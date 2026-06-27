@@ -53,6 +53,7 @@ async function seed() {
     description: "Salon de coiffure premium au coeur de Guéliz. Équipe expérimentée, produits haut de gamme.",
     phone: "+212524431200", email: "atlas@salon.ma", address: "47 Rue de la Liberté, Guéliz",
     city: "Marrakech", latitude: 31.6295, longitude: -7.9811, status: "ACTIVE", ownerId: owner1Id,
+    logoUrl: "https://images.unsplash.com/photo-1560066984-138dadb4c035?w=800&q=80",
   });
   await db.insert(subscriptionsTable).values({ id: uuidv4(), providerId: p1Id, plan: "PRO", status: "active" });
 
@@ -92,6 +93,7 @@ async function seed() {
     description: "Institut de beauté haut de gamme au Maarif. Soins visage, manucure et épilation par des expertes.",
     phone: "+212522271800", email: "elegance@salon.ma", address: "23 Rue Al Aaïoun, Maarif",
     city: "Casablanca", latitude: 33.5731, longitude: -7.5898, status: "ACTIVE", ownerId: owner2Id,
+    logoUrl: "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=800&q=80",
   });
   await db.insert(subscriptionsTable).values({ id: uuidv4(), providerId: p2Id, plan: "PRO", status: "active" });
 
@@ -128,6 +130,7 @@ async function seed() {
     description: "Coiffeuse professionnelle à domicile sur Rabat et alentours. Flexibilité et confort chez vous.",
     phone: "+212537123456", email: "sara@domicile.ma", address: "Rabat",
     city: "Rabat", latitude: 34.0209, longitude: -6.8416, status: "ACTIVE", ownerId: owner3Id,
+    logoUrl: "https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?w=800&q=80",
   });
   await db.insert(subscriptionsTable).values({ id: uuidv4(), providerId: p3Id, plan: "FREE", status: "active" });
 
