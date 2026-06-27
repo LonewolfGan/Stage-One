@@ -1,0 +1,34 @@
+maintenant on doit travailler sur la page de resultat je veux le design sur cette image implemente ce design
+
+j'ai demandé à claude de te macher un peu le travail:
+6 minutes ago
+
+Je commence par explorer l'existant — la page search actuelle et les données mock — puis j'installe les packages carte en parallèle.
+
+Now I have all the info I need. Let me plan the new search page:
+
+    Map: Use react-leaflet (just installed) with OpenStreetMap tiles - no token needed
+
+    Layout:
+        Full-width page (no sidebar filter)
+        Header: result count + sort button
+        Map: full-width, ~380px height, rounded card
+        Cards grid: 4 columns desktop, 2 tablet, 1 mobile
+        Pagination: explicit
+
+    Mock coordinates: I need to add lat/lng to providers in mock-data or create a coordinate mapping
+
+    Card design: Image top, name, city, rating, price level, next available
+
+I should expand the mock data to include around 12 providers with coordinates so pagination actually makes sense. Looking at the design reference, the header shows the result count and location with a sort button, the map sits in the middle with pin markers, and the cards display in a grid below with pagination rather than overlapping the map.
+
+I need to add latitude and longitude fields to the Provider type and populate the mock data with coordinates across different cities. Then I'll build out the search page with the react-leaflet map, card grid, and pagination system while keeping the existing sidebar filters but adjusting the layout. For the map styling, I'll need to import the leaflet CSS in the search page. I should also create a simpler card component specifically for the search results that matches the spec design rather than using the full SalonCard. Adding more mock providers with coordinates... Writing mock data...
+
+J'ai tous les éléments. Je vais :
+
+    Ajouter les coordonnées + plus de prestataires mock (pour paginer)
+    Réécrire la search page avec la carte Leaflet + grille + pagination
+
+Now I'll write the complete new search page with the map + result cards layout.
+
+You've reached your monthly free quota limit. It will reset on July 26, 2026.

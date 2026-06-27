@@ -1,0 +1,129 @@
+/**
+ * tailwind.config.ts — PSTAGEV1 Design System
+ *
+ * SOURCE UNIQUE DE VÉRITÉ. Aucune couleur, taille, radius ou espacement
+ * n'existe en dehors de ce fichier. Si une valeur n'est pas listée ici,
+ * elle n'existe pas dans le projet — il faut soit l'utiliser depuis ce
+ * fichier, soit demander une extension de ce fichier, jamais inventer une
+ * valeur ailleurs (classe arbitraire, hex en dur, style inline).
+ */
+
+import type { Config } from "tailwindcss";
+
+const config: Config = {
+  content: ["./app/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}"],
+  theme: {
+    extend: {
+      colors: {
+        // ---- Canvas ----
+        canvas: "#FBFBFA",
+        "canvas-pure": "#FFFFFF",
+
+        // ---- Surface ladder (profondeur sans shadow) ----
+        "surface-1": "#FFFFFF",
+        "surface-2": "#F2F1EE",
+        "surface-3": "#E9E7E2",
+
+        // ---- Hairlines (bordures, jamais de shadow) ----
+        hairline: "rgba(12, 12, 14, 0.08)",
+        "hairline-strong": "rgba(12, 12, 14, 0.16)",
+
+        // ---- Texte ----
+        ink: "#0C0C0E",
+        "ink-secondary": "#54534D",
+        "ink-tertiary": "#8C8A82",
+
+        // ---- Accent — UNE seule couleur chromatique dans tout le projet ----
+        accent: "#D4466E",
+        "accent-hover": "#B8345B",
+        "accent-tint": "#FBEEF1",
+        "accent-hairline": "rgba(212, 70, 110, 0.24)",
+
+        // ---- Semantic (status uniquement, jamais décoratif) ----
+        success: "#1A8A4C",
+        "success-bg": "#EEF8F1",
+        error: "#D6334A",
+        "error-bg": "#FCEEF0",
+        rating: "#E8A33D",
+      },
+
+      borderRadius: {
+        // Remplace entièrement l'échelle par défaut de Tailwind.
+        // Ces 6 valeurs sont les SEULES autorisées dans tout le projet.
+        none: "0px",
+        chip: "4px",
+        tag: "6px",
+        control: "8px", // boutons, inputs
+        card: "12px", // cards, modals
+        panel: "16px", // panels larges
+        full: "9999px", // pills, avatars
+        DEFAULT: "8px",
+        sm: "4px",
+        md: "8px",
+        lg: "12px",
+        xl: "16px",
+      },
+
+      spacing: {
+        // Base 4px. Remplace l'échelle par défaut pour éviter les valeurs
+        // arbitraires (p-[13px], gap-[19px], etc.)
+        1: "4px",
+        2: "8px",
+        3: "12px",
+        4: "16px",
+        5: "20px",
+        6: "24px",
+        8: "32px",
+        12: "48px",
+        16: "64px",
+        24: "96px",
+        32: "128px",
+      },
+
+      fontFamily: {
+        sans: ["Inter", "-apple-system", "BlinkMacSystemFont", "system-ui", "sans-serif"],
+      },
+
+      fontSize: {
+        // Nom sémantique → [taille, { lineHeight, letterSpacing, fontWeight }]
+        // Ce sont les SEULES tailles de texte autorisées dans le projet.
+        "display-hero": ["84px", { lineHeight: "0.96", letterSpacing: "-0.04em", fontWeight: "700" }],
+        display: ["56px", { lineHeight: "1.05", letterSpacing: "-0.03em", fontWeight: "600" }],
+        "heading-l": ["32px", { lineHeight: "1.15", letterSpacing: "-0.02em", fontWeight: "600" }],
+        "heading-m": ["22px", { lineHeight: "1.25", letterSpacing: "-0.015em", fontWeight: "600" }],
+        "heading-s": ["17px", { lineHeight: "1.35", letterSpacing: "-0.01em", fontWeight: "500" }],
+        "body-l": ["18px", { lineHeight: "1.6", fontWeight: "400" }],
+        body: ["15px", { lineHeight: "1.6", fontWeight: "400" }],
+        "body-s": ["13px", { lineHeight: "1.45", fontWeight: "400" }],
+        label: ["14px", { lineHeight: "1", fontWeight: "500" }],
+        caption: ["12px", { lineHeight: "1.4", letterSpacing: "0.01em", fontWeight: "400" }],
+        // Variantes mobile — à utiliser avec le préfixe responsive inverse
+        // (ex: text-display-hero md:text-display-hero-mobile si le mobile-first
+        // n'est pas la convention du projet — adapter selon la config actuelle)
+        "display-hero-mobile": ["44px", { lineHeight: "1.0", letterSpacing: "-0.03em", fontWeight: "700" }],
+        "display-mobile": ["32px", { lineHeight: "1.1", letterSpacing: "-0.02em", fontWeight: "600" }],
+      },
+
+      maxWidth: {
+        // Container de page — remplace max-w-6xl / max-w-7xl par défaut.
+        page: "1680px",
+      },
+
+      transitionDuration: {
+        // Seules durées autorisées. 500 réservé au zoom d'image au hover.
+        DEFAULT: "150ms",
+        fast: "100ms",
+        slow: "500ms",
+      },
+
+      boxShadow: {
+        // AUCUN shadow nommé n'existe. Si une ombre semble nécessaire,
+        // c'est que le composant doit utiliser la surface ladder à la
+        // place (surface-1 → surface-2 → surface-3 + hairline border).
+      },
+    },
+  },
+  plugins: [],
+};
+
+export default config;

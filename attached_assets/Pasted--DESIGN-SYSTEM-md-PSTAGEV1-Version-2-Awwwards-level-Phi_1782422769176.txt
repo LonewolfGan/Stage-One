@@ -1,0 +1,759 @@
+
+# DESIGN_SYSTEM.md — PSTAGEV1
+> Version 2 — Awwwards-level. Philosophie Linear/Resend appliquée
+> à un produit beauté light-mode. Zéro box-shadow. Zéro border-radius
+> excessif. Typographie qui fait le travail. Rose scarce comme Linear
+> utilise le lavender.
+
+---
+
+## Principe fondamental
+
+La profondeur vient des **surfaces et des bordures hairline**, jamais
+des ombres. L'espace blanc EST le design. Le rose #D4547A est aussi
+rare que le lavender de Linear — CTA, focus, brand mark. Rien d'autre.
+
+---
+
+## 1. Tokens — globals.css
+
+```css
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+:root {
+  /* Canvas — surfaces */
+  --canvas:          #FFFFFF;
+  --canvas-subtle:   #FAFAFA;   /* sections alternées */
+  --canvas-muted:    #F5F5F5;   /* inputs, tags neutres */
+
+  /* Surfaces — hiérarchie sans shadow */
+  --surface-1:       #FFFFFF;   /* cards par défaut */
+  --surface-2:       #FAFAFA;   /* cards hover / featured */
+
+  /* Hairlines — jamais de box-shadow */
+  --hairline:        rgba(0, 0, 0, 0.06);   /* bordures douces */
+  --hairline-strong: rgba(0, 0, 0, 0.12);   /* bordures structurelles */
+  --hairline-focus:  rgba(212, 84, 122, 0.25); /* focus ring rosé */
+
+  /* Ink — texte */
+  --ink:             #0A0A0A;   /* headlines, texte principal */
+  --ink-secondary:   #525252;   /* corps, descriptions */
+  --ink-tertiary:    #8C8C8C;   /* meta, placeholders */
+  --ink-disabled:    #C4C4C4;
+
+  /* Accent — rose, utilisé avec extrême parcimonie */
+  --accent:          #D4547A;   /* CTA primaire, brand mark, liens actifs */
+  --accent-hover:    #C04268;   /* hover CTA */
+  --accent-focus:    #D4547A;   /* focus ring */
+  --accent-light:    #FAF0F3;   /* bg sélectionné, tag actif — jamais en masse */
+  --accent-hairline: rgba(212, 84, 122, 0.20); /* bordure subtile accent */
+
+  /* Semantic */
+  --success:         #16A34A;
+  --success-bg:      #F0FDF4;
+  --error:           #DC2626;
+  --error-bg:        #FEF2F2;
+  --rating:          #F59E0B;   /* étoiles uniquement */
+
+  /* Border radius — économisé */
+  --radius-xs:   4px;    /* chips, status badges */
+  --radius-sm:   6px;    /* tags inline */
+  --radius-md:   8px;    /* boutons, inputs */
+  --radius-lg:   12px;   /* cards, modals */
+  --radius-xl:   16px;   /* panels larges */
+  --radius-full: 9999px; /* pills, avatars */
+
+  /* Spacing — base 4px */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-24: 96px;  /* entre sections majeures */
+
+  /* Typography */
+  --font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  /* Transitions */
+  --ease: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+```
+
+---
+
+## 2. Typographie — la hiérarchie se fait par taille et tracking
+
+Règle Linear : letter-spacing négatif agressif sur les headlines.
+Le poids maximum est 600 — jamais 700 ni bold en dehors des headlines.
+
+```
+Display    48px  600  lh:1.10  ls:-0.03em   Hero headline
+Heading-L  32px  600  lh:1.20  ls:-0.02em   Titres de section
+Heading-M  24px  600  lh:1.25  ls:-0.01em   Sous-sections, card titles
+Heading-S  18px  500  lh:1.35  ls:-0.01em   Labels section, headings dashboard
+Body-L     17px  400  lh:1.60  ls: 0        Lead paragraphs
+Body       15px  400  lh:1.60  ls: 0        Corps par défaut
+Body-S     13px  400  lh:1.50  ls: 0        Meta, descriptions secondaires
+Label      14px  500  lh:1.20  ls: 0        Boutons, nav links
+Caption    12px  400  lh:1.40  ls: 0.01em   Footer, crédits, timestamps
+```
+
+Classes Tailwind à utiliser :
+```
+Display  → text-[48px] font-semibold leading-[1.10] tracking-[-0.03em]
+Heading-L→ text-[32px] font-semibold leading-[1.20] tracking-[-0.02em]
+Heading-M→ text-[24px] font-semibold leading-[1.25] tracking-[-0.01em]
+Heading-S→ text-[18px] font-medium  leading-[1.35] tracking-[-0.01em]
+Body-L   → text-[17px] font-normal  leading-relaxed
+Body     → text-[15px] font-normal  leading-relaxed
+Body-S   → text-[13px] font-normal  leading-[1.50]
+Label    → text-[14px] font-medium  leading-none
+Caption  → text-[12px] font-normal  leading-[1.40] tracking-[0.01em]
+```
+
+---
+
+## 3. Profondeur sans shadow
+
+Linear utilise une surface ladder. On adapte pour light-mode :
+
+```
+Niveau 0 — flat
+  Fond #FFFFFF, aucune bordure
+  Usage : fond de page, hero text, full-bleed sections
+
+Niveau 1 — card
+  Fond #FFFFFF, bordure 1px rgba(0,0,0,0.06)
+  Usage : SalonCard, ServiceCard, cards par défaut
+
+Niveau 2 — card featured / hover
+  Fond #FAFAFA, bordure 1px rgba(0,0,0,0.10)
+  Usage : card hovered, featured pricing, modal
+
+Niveau 3 — input / well
+  Fond #F5F5F5, bordure 1px rgba(0,0,0,0.08)
+  Usage : inputs, code wells, zones de contenu dense
+
+Focus ring
+  outline: 2px solid rgba(212,84,122,0.25)
+  offset: 2px
+```
+
+Règle absolue : ZÉRO box-shadow sur les cards et composants.
+La hiérarchie vient des surfaces et des hairlines.
+
+---
+
+## 4. Composants — specs exactes
+
+### Button Primary
+```tsx
+<button className="
+  inline-flex items-center justify-center gap-2
+  h-9 px-[14px]
+  bg-[#D4547A] text-white
+  text-[14px] font-medium leading-none
+  rounded-[8px]
+  transition-colors duration-150
+  hover:bg-[#C04268]
+  focus-visible:outline focus-visible:outline-2
+  focus-visible:outline-offset-2
+  focus-visible:outline-[#D4547A]
+  disabled:opacity-40 disabled:cursor-not-allowed
+">
+```
+
+### Button Secondary
+```tsx
+<button className="
+  inline-flex items-center justify-center gap-2
+  h-9 px-[14px]
+  bg-[#FAFAFA] text-[#0A0A0A]
+  border border-[rgba(0,0,0,0.10)]
+  text-[14px] font-medium leading-none
+  rounded-[8px]
+  transition-colors duration-150
+  hover:bg-[#F0F0F0]
+">
+```
+
+### Button Ghost
+```tsx
+<button className="
+  inline-flex items-center justify-center gap-2
+  h-9 px-[14px]
+  bg-transparent text-[#525252]
+  text-[14px] font-medium leading-none
+  rounded-[8px]
+  transition-colors duration-150
+  hover:bg-[#F5F5F5] hover:text-[#0A0A0A]
+">
+```
+
+### Input
+```tsx
+<input className="
+  w-full h-10
+  px-3
+  bg-[#FAFAFA]
+  border border-[rgba(0,0,0,0.08)]
+  rounded-[8px]
+  text-[14px] text-[#0A0A0A]
+  placeholder:text-[#8C8C8C]
+  outline-none
+  transition-colors duration-150
+  focus:border-[#D4547A]
+  focus:bg-white
+  focus:ring-2 focus:ring-[rgba(212,84,122,0.15)]
+"/>
+```
+
+### Card — niveau 1
+```tsx
+<div className="
+  bg-white
+  border border-[rgba(0,0,0,0.06)]
+  rounded-[12px]
+  overflow-hidden
+  transition-colors duration-150
+  hover:border-[rgba(0,0,0,0.10)]
+  hover:bg-[#FAFAFA]
+">
+```
+Note : PAS de translateY, PAS de box-shadow au hover.
+Le hover = changement de surface uniquement.
+
+### Badge / Tag neutre
+```tsx
+<span className="
+  inline-flex items-center
+  h-[22px] px-[8px]
+  bg-[#F5F5F5] text-[#525252]
+  text-[12px] font-medium
+  rounded-[4px]
+">
+```
+
+### Badge accent (Populaire, Vérifié)
+```tsx
+<span className="
+  inline-flex items-center
+  h-[22px] px-[8px]
+  bg-[#FAF0F3] text-[#D4547A]
+  border border-[rgba(212,84,122,0.20)]
+  text-[12px] font-medium
+  rounded-[4px]
+">
+```
+
+### Separator
+```tsx
+<hr className="border-0 border-t border-[rgba(0,0,0,0.06)]" />
+```
+
+---
+
+## 5. TopBar — Awwwards level
+
+```tsx
+<header className="
+  sticky top-0 z-50
+  h-14
+  bg-white/90 backdrop-blur-md
+  border-b border-[rgba(0,0,0,0.06)]
+">
+  <div className="max-w-6xl mx-auto px-6 h-full
+                  flex items-center justify-between">
+
+    {/* Logo — Inter 600, rose, rien d'autre */}
+    <a className="
+      text-[17px] font-semibold
+      text-[#D4547A]
+      tracking-[-0.02em]
+    ">pstagev1</a>
+
+    {/* Nav — Inter 14px, couleur secondaire */}
+    <nav className="hidden md:flex items-center gap-7">
+      {links.map(link => (
+        <a className="
+          text-[14px] font-medium text-[#525252]
+          hover:text-[#0A0A0A]
+          transition-colors duration-150
+          relative
+          after:absolute after:bottom-[-2px] after:left-0
+          after:w-0 after:h-[1.5px] after:bg-[#D4547A]
+          after:transition-all after:duration-150
+          hover:after:w-full
+        ">
+      ))}
+    </nav>
+
+    {/* CTA unique */}
+    <button className="
+      h-9 px-[14px]
+      bg-[#D4547A] text-white
+      text-[14px] font-medium
+      rounded-[8px]
+      hover:bg-[#C04268]
+      transition-colors duration-150
+    ">
+      Commencer
+    </button>
+
+  </div>
+</header>
+```
+
+---
+
+## 6. SalonCard — version Awwwards
+
+La carte la plus importante du produit. Zéro shadow.
+Image fait le travail visuel.
+
+```tsx
+<div className="
+  group
+  bg-white
+  border border-[rgba(0,0,0,0.06)]
+  rounded-[12px]
+  overflow-hidden
+  cursor-pointer
+  transition-colors duration-200
+  hover:border-[rgba(0,0,0,0.12)]
+">
+
+  {/* Image — 4:3, pas 1:1 */}
+  <div className="relative aspect-[4/3] overflow-hidden">
+    <img className="
+      w-full h-full object-cover
+      transition-transform duration-500
+      group-hover:scale-[1.03]
+    "/>
+    {/* Badge — discret, top-left */}
+    <span className="
+      absolute top-3 left-3
+      h-[22px] px-[8px]
+      bg-white/90 backdrop-blur-sm
+      text-[#0A0A0A] text-[11px] font-medium
+      rounded-[4px]
+    ">Populaire</span>
+  </div>
+
+  {/* Content */}
+  <div className="px-4 pt-3 pb-4">
+    <div className="flex items-start justify-between">
+      <div>
+        <h3 className="
+          text-[15px] font-semibold text-[#0A0A0A]
+          tracking-[-0.01em]
+        ">Salon Atlas</h3>
+        <p className="
+          text-[13px] text-[#8C8C8C] mt-0.5
+        ">Guéliz, Marrakech</p>
+      </div>
+      <span className="text-[13px] text-[#8C8C8C]">€€</span>
+    </div>
+
+    {/* Rating */}
+    <div className="flex items-center gap-1.5 mt-2">
+      <Star className="w-3.5 h-3.5 text-[#F59E0B] fill-current" />
+      <span className="text-[13px] font-medium text-[#0A0A0A]">4.8</span>
+      <span className="text-[13px] text-[#8C8C8C]">· 127 avis</span>
+    </div>
+
+    {/* Séparateur */}
+    <div className="border-t border-[rgba(0,0,0,0.06)] my-3" />
+
+    {/* Dispo — accent discret */}
+    <p className="
+      text-[12px] font-medium text-[#D4547A] mb-2
+    ">Disponible à 14h30</p>
+
+    {/* Slots */}
+    <div className="flex gap-1.5">
+      {['14:30','15:00','15:30'].map(slot => (
+        <button className="
+          h-8 px-3
+          border border-[rgba(0,0,0,0.08)]
+          rounded-[6px]
+          text-[12px] font-medium text-[#0A0A0A]
+          hover:border-[#D4547A] hover:text-[#D4547A]
+          transition-colors duration-150
+        ">{slot}</button>
+      ))}
+      <button className="
+        h-8 px-3
+        border border-[rgba(0,0,0,0.08)]
+        rounded-[6px]
+        text-[12px] font-medium text-[#8C8C8C]
+        hover:border-[rgba(0,0,0,0.15)]
+        transition-colors duration-150
+      ">+3</button>
+    </div>
+  </div>
+
+</div>
+```
+
+---
+
+## 7. SearchPill — hero element
+
+```tsx
+<div className="
+  flex items-center
+  max-w-2xl mx-auto
+  bg-white
+  border border-[rgba(0,0,0,0.10)]
+  rounded-[12px]
+  p-1.5
+  shadow-[0_2px_20px_rgba(0,0,0,0.06)]
+">
+  {/* Dropdown catégorie */}
+  <div className="
+    flex items-center gap-2
+    px-4 py-2
+    border-r border-[rgba(0,0,0,0.06)]
+    min-w-[150px]
+    cursor-pointer
+  ">
+    <span className="text-[14px] font-medium text-[#0A0A0A]">
+      Coiffeur
+    </span>
+    <ChevronDown className="w-4 h-4 text-[#8C8C8C] ml-auto" />
+  </div>
+
+  {/* Input ville */}
+  <input
+    placeholder="Ville ou quartier..."
+    className="
+      flex-1 px-4 py-2
+      text-[14px] text-[#0A0A0A]
+      placeholder:text-[#8C8C8C]
+      bg-transparent outline-none
+    "
+  />
+
+  {/* Bouton */}
+  <button className="
+    flex items-center gap-2
+    h-10 px-5
+    bg-[#D4547A] text-white
+    text-[14px] font-medium
+    rounded-[8px]
+    hover:bg-[#C04268]
+    transition-colors duration-150
+    flex-shrink-0
+  ">
+    <Search className="w-4 h-4" />
+    Rechercher
+  </button>
+</div>
+```
+
+---
+
+## 8. ServiceCard — fiche prestataire
+
+```tsx
+<div className="
+  py-4
+  border-b border-[rgba(0,0,0,0.06)]
+  last:border-0
+">
+  <div className="flex items-start justify-between gap-4">
+    <div className="flex-1 min-w-0">
+      <div className="flex items-center gap-2">
+        <h4 className="
+          text-[15px] font-medium text-[#0A0A0A]
+          tracking-[-0.01em]
+        ">Coupe femme</h4>
+        {/* Badge populaire — discret */}
+        <span className="
+          h-[18px] px-[6px]
+          bg-[#FAF0F3] text-[#D4547A]
+          text-[11px] font-medium
+          rounded-[3px]
+        ">Populaire</span>
+      </div>
+      <p className="
+        text-[13px] text-[#8C8C8C] mt-0.5
+        line-clamp-1
+      ">Coupe personnalisée selon la morphologie</p>
+      <p className="
+        text-[13px] text-[#8C8C8C] mt-1
+        flex items-center gap-1
+      ">
+        <Clock className="w-3.5 h-3.5" />
+        45 min
+      </p>
+    </div>
+    <div className="flex flex-col items-end gap-2 flex-shrink-0">
+      <span className="
+        text-[15px] font-semibold text-[#0A0A0A]
+        tracking-[-0.01em]
+      ">180 MAD</span>
+      <button className="
+        h-8 px-4
+        bg-transparent text-[#0A0A0A]
+        border border-[rgba(0,0,0,0.12)]
+        text-[13px] font-medium
+        rounded-[6px]
+        hover:border-[#D4547A] hover:text-[#D4547A]
+        transition-colors duration-150
+      ">Choisir</button>
+    </div>
+  </div>
+</div>
+```
+
+---
+
+## 9. TimeSlotGrid — booking widget
+
+```tsx
+{/* Slot disponible */}
+<button className="
+  w-full h-10
+  bg-white
+  border border-[rgba(0,0,0,0.08)]
+  rounded-[8px]
+  text-[13px] font-medium text-[#0A0A0A]
+  hover:border-[#D4547A] hover:text-[#D4547A]
+  transition-colors duration-150
+">10:00</button>
+
+{/* Slot sélectionné */}
+<button className="
+  w-full h-10
+  bg-[#FAF0F3]
+  border border-[#D4547A]
+  rounded-[8px]
+  text-[13px] font-medium text-[#D4547A]
+">10:30</button>
+
+{/* Jour sélectionné */}
+<div className="
+  px-4 py-2 text-center cursor-pointer
+  border-b-2 border-[#D4547A]
+  text-[14px] font-medium text-[#0A0A0A]
+">
+  <div className="text-[11px] text-[#8C8C8C]">ven.</div>
+  <div>26</div>
+</div>
+```
+
+---
+
+## 10. Dashboard — identité Linear
+
+La sidebar doit ressembler à Linear : sobre, dense, professionnel.
+
+```tsx
+{/* Sidebar */}
+<aside className="
+  w-[220px] h-screen
+  bg-[#FAFAFA]
+  border-r border-[rgba(0,0,0,0.06)]
+  flex flex-col
+  sticky top-0
+">
+  {/* Brand */}
+  <div className="px-4 py-4 border-b border-[rgba(0,0,0,0.06)]">
+    <span className="
+      text-[15px] font-semibold text-[#D4547A]
+      tracking-[-0.02em]
+    ">pstagev1</span>
+    <span className="
+      text-[12px] text-[#8C8C8C] mt-0.5 block
+    ">Salon Atlas</span>
+  </div>
+
+  {/* Nav items */}
+  <nav className="flex-1 px-2 py-3 space-y-0.5">
+    {/* Item actif */}
+    <a className="
+      flex items-center gap-2.5
+      h-8 px-3
+      bg-white
+      border border-[rgba(0,0,0,0.06)]
+      rounded-[6px]
+      text-[13px] font-medium text-[#0A0A0A]
+      cursor-pointer
+    ">
+      <CalendarIcon className="w-4 h-4 text-[#D4547A]" />
+      Agenda
+    </a>
+
+    {/* Item inactif */}
+    <a className="
+      flex items-center gap-2.5
+      h-8 px-3
+      rounded-[6px]
+      text-[13px] font-medium text-[#525252]
+      hover:bg-white hover:text-[#0A0A0A]
+      cursor-pointer
+      transition-colors duration-150
+    ">
+      <ScissorsIcon className="w-4 h-4" />
+      Prestations
+    </a>
+  </nav>
+</aside>
+
+{/* Bloc RDV dans l'agenda */}
+<div className="
+  absolute left-1 right-1
+  bg-[#FAF0F3]
+  border-l-2 border-[#D4547A]
+  border border-[rgba(212,84,122,0.15)]
+  rounded-[4px]
+  px-2 py-1
+  overflow-hidden
+">
+  <p className="
+    text-[12px] font-medium text-[#D4547A]
+    truncate
+  ">Coupe femme</p>
+  <p className="
+    text-[11px] text-[#8C8C8C]
+    truncate
+  ">Amina B.</p>
+</div>
+
+{/* Bloc manuel / walk-in */}
+<div className="
+  absolute left-1 right-1
+  bg-[#F5F5F5]
+  border-l-2 border-[#8C8C8C]
+  border border-[rgba(0,0,0,0.06)]
+  border-dashed
+  rounded-[4px]
+  px-2 py-1
+">
+  <p className="
+    text-[11px] font-medium text-[#8C8C8C]
+    flex items-center gap-1
+  ">
+    <Lock className="w-3 h-3" />
+    Bloqué
+  </p>
+</div>
+```
+
+---
+
+## 11. Animations — subtiles ou absentes
+
+```css
+/* Hover card — PAS de translateY, PAS de shadow */
+/* Uniquement changement de bordure et surface */
+.card { transition: border-color 150ms ease, background 150ms ease; }
+.card:hover { border-color: rgba(0,0,0,0.10); background: #FAFAFA; }
+
+/* Image zoom au hover — subtil */
+.card-image { transition: transform 500ms ease; }
+.card:hover .card-image { transform: scale(1.03); }
+
+/* Button press */
+.btn:active { opacity: 0.85; }
+
+/* Slot select — instantané */
+.slot { transition: border-color 100ms, color 100ms, background 100ms; }
+
+/* Underline nav hover */
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: -2px; left: 0;
+  width: 0; height: 1.5px;
+  background: #D4547A;
+  transition: width 150ms ease;
+}
+.nav-link:hover::after { width: 100%; }
+
+/* Page enter */
+.page { animation: fadeUp 200ms ease forwards; }
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+```
+
+---
+
+## 12. Layout
+
+```
+Max content width : max-w-6xl (1152px) — pas 1280px
+Page padding      : px-6
+Entre sections    : py-24 (96px)
+Grid résultats    : grid-cols-3 gap-5
+Grid catégories   : grid-cols-3 gap-4
+```
+
+---
+
+## 13. États vides
+
+```tsx
+<div className="
+  flex flex-col items-center justify-center
+  py-16 text-center
+">
+  <div className="
+    w-10 h-10 rounded-full
+    bg-[#F5F5F5]
+    flex items-center justify-center
+    mb-4
+  ">
+    <Icon className="w-5 h-5 text-[#8C8C8C]" />
+  </div>
+  <h3 className="
+    text-[15px] font-medium text-[#0A0A0A]
+    tracking-[-0.01em] mb-1
+  ">Aucun créneau</h3>
+  <p className="
+    text-[13px] text-[#8C8C8C] max-w-[220px]
+  ">Essayez une autre date ou un autre prestataire.</p>
+</div>
+```
+
+---
+
+## 14. Skeleton
+
+```tsx
+<div className="animate-pulse">
+  {/* Image */}
+  <div className="aspect-[4/3] bg-[#F0F0F0] rounded-[12px]" />
+  {/* Texte */}
+  <div className="mt-3 space-y-2 px-1">
+    <div className="h-4 bg-[#F0F0F0] rounded-[4px] w-2/3" />
+    <div className="h-3 bg-[#F0F0F0] rounded-[4px] w-1/2" />
+  </div>
+</div>
+```
+
+---
+
+## 15. Règles absolues
+
+1. ZÉRO box-shadow sur les cards — hairline border uniquement
+2. ZÉRO translateY au hover — changement de surface uniquement
+3. ZÉRO emoji — Lucide React icons exclusivement
+4. ZÉRO border-radius > 12px sur les cards
+5. Le rose #D4547A sur moins de 8% de la surface totale
+6. Letter-spacing négatif sur tous les textes >= 18px
+7. Font-weight maximum : 600 (semibold) — jamais bold/700
+8. Toutes les transitions : 150ms — jamais 300ms+ sur l'UI
+9. Images : aspect-[4/3] sur les cards, jamais 1:1
+10. Footer : bg-[#FAFAFA], texte #525252 — jamais fond noir
+
+

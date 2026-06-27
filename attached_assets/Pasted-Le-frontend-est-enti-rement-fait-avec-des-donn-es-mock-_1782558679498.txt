@@ -1,0 +1,493 @@
+Le frontend est entièrement fait avec des données mockées dans lib/mock-data.ts.
+Toutes les pages existent et fonctionnent visuellement.
+L'objectif maintenant est de brancher le vrai backend sur ce frontend
+sans toucher au design ni aux composants existants.
+
+---
+FICHIERS DE RÉFÉRENCE — lis-les tous avant de commencer
+
+- CLAUDE.md        → vision produit, stack, règles métier
+- PSTAGEV1-PRD.md  → exigences fonctionnelles complètes
+
+
+---
+PHASE 2 — BACKEND (ce que tu fais maintenant)
+
+Règle absolue : ne modifier aucun composant visuel existant.
+Tu remplaces uniquement les données mockées par de vraies données.
+Le design ne change pas d'un pixel.
+
+---
+ÉTAPE 1 — INFRASTRUCTURE (commence ici)
+
+Initialise le monorepo Turborepo :
+
+apps/
+  web/     → Next.js existant (ne pas y toucher structurellement)
+  api/     → Fastify + TypeScript (à créer)
+packages/
+  shared/  → Types TypeScript + schémas Zod (à créer)
+
+Dans apps/api, installe :
+  fastify @fastify/cors @fastify/jwt @fastify/multipart
+  @prisma/client prisma
+  better-auth
+  bullmq ioredis
+  socket.io
+  stripe
+  zod
+
+Configure Docker Compose pour le développement local :
+  - PostgreSQL 16 avec extension PostGIS activée
+  - Redis 7
+
+---
+ÉTAPE 2 — SCHÉMA PRISMA
+
+Crée packages/shared/prisma/schema.prisma avec ces modèles exacts :
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  phone         String    @unique
+  phoneVerified Boolean   @default(false)
+  emailVerified Boolean   @default(false)
+  name          String
+  passwordHash  String
+  role          Role      @default(CLIENT)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  ownedProvider Provider?
+  bookings      Booking[]
+  reviews       Review[]
+}
+
+model Provider {
+  id          String         @id @default(cuid())
+  type        ProviderType
+  name        String
+  slug        String         @unique
+  description String?
+  phone       String
+  email       String
+  address     String?
+  city        String
+  latitude    Float?
+  longitude   Float?
+  logoUrl     String?
+  status      ProviderStatus @default(PENDING)
+  ownerId     String         @unique
+  owner       User           @relation(fields: [ownerId], references: [id])
+  staff       Staff[]
+  services    Service[]
+  hours       BusinessHours[]
+  blocks      ScheduleBlock[]
+  bookings    Booking[]
+  reviews     Review[]
+  subscription Subscription?
+  createdAt   DateTime       @default(now())
+}
+
+model Staff {
+  id         String    @id @default(cuid())
+  providerId String
+  provider   Provider  @relation(fields: [providerId], references: [id])
+  name       String
+  photoUrl   String?
+  bio        String?
+  isActive   Boolean   @default(true)
+  bookings   Booking[]
+  services   ServiceStaff[]
+  blocks     ScheduleBlock[]
+}
+
+model BusinessHours {
+  id         String   @id @default(cuid())
+  providerId String
+  provider   Provider @relation(fields: [providerId], references: [id])
+  dayOfWeek  Int
+  openTime   String
+  closeTime  String
+  isClosed   Boolean  @default(false)
+}
+
+model ScheduleBlock {
+  id            String      @id @default(cuid())
+  providerId    String
+  provider      Provider    @relation(fields: [providerId], references: [id])
+  staffId       String?
+  staff         Staff?      @relation(fields: [staffId], references: [id])
+  type          BlockType
+  title         String?
+  startDatetime DateTime
+  endDatetime   DateTime
+}
+
+model Service {
+  id              String         @id @default(cuid())
+  providerId      String
+  provider        Provider       @relation(fields: [providerId], references: [id])
+  name            String
+  description     String?
+  durationMinutes Int
+  priceCents      Int
+  bufferMinutes   Int            @default(0)
+  isActive        Boolean        @default(true)
+  staff           ServiceStaff[]
+  bookings        Booking[]
+}
+
+model ServiceStaff {
+  serviceId String
+  staffId   String
+  service   Service @relation(fields: [serviceId], references: [id])
+  staff     Staff   @relation(fields: [staffId], references: [id])
+  @@id([serviceId, staffId])
+}
+
+model Booking {
+  id              String        @id @default(cuid())
+  providerId      String
+  provider        Provider      @relation(fields: [providerId], references: [id])
+  serviceId       String
+  service         Service       @relation(fields: [serviceId], references: [id])
+  staffId         String
+  staff           Staff         @relation(fields: [staffId], references: [id])
+  clientId        String
+  client          User          @relation(fields: [clientId], references: [id])
+  startDatetime   DateTime
+  endDatetime     DateTime
+  status          BookingStatus @default(PENDING)
+  lockedUntil     DateTime?
+  paymentIntentId String?
+  paymentStatus   String?
+  amountCents     Int
+  review          Review?
+  createdAt       DateTime      @default(now())
+}
+
+model Review {
+  id         String   @id @default(cuid())
+  providerId String
+  provider   Provider @relation(fields: [providerId], references: [id])
+  bookingId  String   @unique
+  booking    Booking  @relation(fields: [bookingId], references: [id])
+  clientId   String
+  client     User     @relation(fields: [clientId], references: [id])
+  rating     Int
+  comment    String?
+  reply      String?
+  createdAt  DateTime @default(now())
+}
+
+model Subscription {
+  id                   String   @id @default(cuid())
+  providerId           String   @unique
+  provider             Provider @relation(fields: [providerId], references: [id])
+  plan                 Plan     @default(FREE)
+  status               String
+  stripeSubscriptionId String?
+  currentPeriodStart   DateTime?
+  currentPeriodEnd     DateTime?
+}
+
+enum Role          { CLIENT OWNER ADMIN }
+enum ProviderType  { ESTABLISHMENT INDIVIDUAL }
+enum ProviderStatus{ PENDING ACTIVE SUSPENDED }
+enum BlockType     { HOLIDAY MANUAL_BLOCK ABSENCE }
+enum BookingStatus { PENDING CONFIRMED CANCELLED COMPLETED EXPIRED }
+enum Plan          { FREE PRO BUSINESS }
+
+Après le schéma, exécute cette migration SQL manuellement
+pour la contrainte anti-double-booking :
+
+CREATE EXTENSION IF NOT EXISTS btree_gist;
+ALTER TABLE bookings
+  ADD CONSTRAINT no_overlapping_bookings
+  EXCLUDE USING GIST (
+    staff_id WITH =,
+    tstzrange(start_datetime, end_datetime) WITH &&
+  )
+  WHERE (status NOT IN ('cancelled', 'expired'));
+
+---
+ÉTAPE 3 — AUTHENTIFICATION
+
+Intègre Better Auth avec Prisma.
+Configure Firebase Auth pour la vérification OTP SMS.
+
+Routes à créer dans apps/api/src/routes/auth/ :
+
+POST /api/auth/register
+  Body : { email, phone, password, name, role: "client"|"owner" }
+  - Valider avec Zod
+  - Hasher le password avec bcrypt (cost 12)
+  - Créer le User en DB
+  - Envoyer OTP SMS via Firebase Auth
+  - Envoyer email de vérification
+  - Retourner : { userId, requiresPhoneVerification: true }
+  - Codes d'erreur : AUTH-001 (email pris), AUTH-002 (phone pris)
+
+POST /api/auth/login
+  Body : { email, password }
+  - Rate limiting : max 5 tentatives / 15 min / IP
+  - Vérifier password avec bcrypt
+  - Générer JWT (24h) + refreshToken (7j)
+  - Retourner : { token, refreshToken, user }
+
+POST /api/auth/verify-phone
+  Body : { userId, code }
+  - Vérifier le code OTP via Firebase Admin SDK
+  - Mettre à jour phoneVerified: true
+
+POST /api/auth/refresh
+  Body : { refreshToken }
+  - Retourner un nouveau token JWT
+
+Middleware auth : extraire et vérifier le JWT sur toutes
+les routes protégées, injecter req.user.
+
+---
+ÉTAPE 4 — ONBOARDING PRESTATAIRE
+
+Routes dans apps/api/src/routes/providers/ :
+
+POST /api/providers/register
+  Auth requise (role: owner)
+  Body : { type, name, city, phone, email, description? }
+  - Générer le slug depuis le nom
+  - Si type === INDIVIDUAL : créer automatiquement un Staff
+    avec le nom du owner
+  - Créer le Provider avec status: PENDING
+  - Créer Subscription FREE par défaut
+
+PUT /api/providers/:slug/hours
+  Auth requise (owner du provider)
+  Body : { hours: [{ dayOfWeek, openTime, closeTime, isClosed }] }
+  - Remplacer tous les BusinessHours du provider
+
+POST /api/providers/:slug/staff
+PUT /api/providers/:slug/staff/:staffId
+DELETE /api/providers/:slug/staff/:staffId
+  CRUD staff — filtrer toujours par providerId
+
+POST /api/providers/:slug/services
+PUT /api/providers/:slug/services/:serviceId
+DELETE /api/providers/:slug/services/:serviceId
+  CRUD services — inclure l'assignation du staff
+
+---
+ÉTAPE 5 — SLOT ENGINE (partie critique)
+
+Crée apps/api/src/lib/slot-engine.ts
+
+Fonction principale :
+  getAvailableSlots(providerId, staffId, serviceId, date)
+  → retourne SlotResult[]
+
+Algorithme :
+  1. Charger BusinessHours du jour pour ce provider/staff
+  2. Charger ScheduleBlocks actifs ce jour (congés, blocages)
+  3. Charger Bookings existants status IN [PENDING, CONFIRMED]
+  4. Générer tous les slots théoriques :
+     de openTime à closeTime,
+     par pas de (durationMinutes + bufferMinutes)
+  5. Filtrer les slots qui chevauchent un booking ou un block :
+     chevauchement = slotStart < existingEnd AND slotEnd > existingStart
+  6. Retourner les slots libres avec staff disponibles
+
+Mise en cache Redis :
+  clé : slots:{providerId}:{staffId}:{serviceId}:{date}
+  TTL : 300 secondes (5 min)
+  Invalider : à chaque booking créé/annulé, à chaque block créé
+
+Route associée :
+GET /api/providers/:slug/slots?serviceId=&date=&staffId=
+  - Vérifier cache Redis en premier
+  - Calculer si cache miss
+  - Retourner les slots disponibles
+
+---
+ÉTAPE 6 — RÉSERVATION AVEC ANTI-DOUBLE-BOOKING
+
+Route :
+POST /api/bookings
+  Auth requise (phoneVerified ET emailVerified)
+  Body : { providerSlug, serviceId, staffId?, startDatetime }
+
+Flux exact à implémenter :
+
+  1. Résoudre le staffId si null (premier disponible)
+
+  2. Redis lock :
+     SET lock:staff:{staffId}:{startDatetime} NX EX 30
+     → Si lock échoue : retourner ERR-005 (409)
+
+  3. Transaction PostgreSQL :
+     BEGIN
+     SELECT id FROM bookings
+       WHERE staff_id = $staffId
+       AND status NOT IN ('cancelled', 'expired')
+       AND tstzrange(start_datetime, end_datetime) &&
+           tstzrange($slotStart, $slotEnd)
+       FOR UPDATE
+     → Si résultat non vide : ROLLBACK + ERR-005
+     INSERT INTO bookings (...)
+     VALUES (status: PENDING, lockedUntil: now + 10min)
+     COMMIT
+
+  4. Créer PaymentIntent Stripe :
+     amount: service.priceCents
+     currency: 'mad'
+     metadata: { bookingId }
+
+  5. Invalider cache Redis des slots de ce staff/date
+
+  6. Émettre via Socket.io :
+     { type: 'slot.update', payload: { slotStart, staffId,
+       change: 'booked' } }
+
+  7. Retourner : { bookingId, status: 'pending',
+     paymentIntentSecret, expiresAt }
+
+Job BullMQ — expiration paiement :
+  Toutes les minutes, libérer les bookings PENDING
+  dont lockedUntil < now() :
+  UPDATE bookings SET status = 'EXPIRED'
+  WHERE status = 'PENDING' AND locked_until < now()
+  Émettre slot.update (released) pour chaque libéré
+  Invalider cache Redis correspondant
+
+---
+ÉTAPE 7 — WEBHOOK STRIPE
+
+POST /api/webhooks/stripe
+  - Vérifier signature : stripe.webhooks.constructEvent(...)
+  - Événement payment_intent.succeeded :
+    UPDATE booking SET status = CONFIRMED, paymentStatus = 'paid'
+    Émettre Socket.io : booking.confirmed au prestataire
+    Invalider cache Redis
+  - Événement payment_intent.payment_failed :
+    UPDATE booking SET status = EXPIRED
+    Libérer le slot via Socket.io
+
+---
+ÉTAPE 8 — DASHBOARD ROUTES
+
+Routes protégées (owner uniquement, middleware injecte providerId
+depuis la session — jamais depuis l'URL) :
+
+GET /api/dashboard/bookings?date=&staffId=
+  Retourner les bookings du provider pour cette date/staff
+
+POST /api/dashboard/blocks
+  Body : { staffId?, startDatetime, endDatetime, title? }
+  type: MANUAL_BLOCK
+  Invalider cache Redis
+  Émettre Socket.io slot.update (booked) pour chaque slot bloqué
+
+DELETE /api/dashboard/blocks/:blockId
+  Supprimer le bloc
+  Invalider cache Redis
+  Émettre slot.update (released)
+
+GET /api/dashboard/analytics
+  Retourner : { totalBookings, fillRate, estimatedRevenue,
+                bookingsByDay[], topServices[] }
+
+---
+ÉTAPE 9 — WEBSOCKET
+
+Dans apps/api/src/lib/socket.ts, configure Socket.io :
+
+Namespace : /ws
+Room : provider:{providerId}
+
+Événements client → serveur :
+  subscribe : { providerId, date, serviceId }
+  → Rejoindre la room provider:{providerId}
+
+Événements serveur → client :
+  slot.update : { slotStart, staffId, change, capacityRemaining }
+  booking.confirmed : { bookingId, staffId, serviceName,
+                        clientName, startDatetime }
+
+Le frontend doit s'abonner au chargement de chaque page
+affichant un calendrier (fiche publique et dashboard agenda).
+
+---
+ÉTAPE 10 — BRANCHER LE FRONTEND
+
+Une fois toutes les routes créées et testées,
+remplace les imports de mock-data dans chaque page
+par de vrais appels React Query :
+
+// AVANT (mock)
+import { providers } from '@/lib/mock-data'
+
+// APRÈS (réel)
+const { data: providers } = useQuery({
+  queryKey: ['providers', { city, type }],
+  queryFn: () => fetch('/api/providers?city=...').then(r => r.json())
+})
+
+Pages à brancher dans cet ordre :
+  1. /search → GET /api/providers
+  2. /[slug] → GET /api/providers/:slug
+  3. /[slug] slots → GET /api/providers/:slug/slots (+ WebSocket)
+  4. /booking/[slug] → POST /api/bookings
+  5. /dashboard/agenda → GET /api/dashboard/bookings (+ WebSocket)
+  6. /dashboard/services → CRUD /api/providers/:slug/services
+  7. /dashboard/staff → CRUD /api/providers/:slug/staff
+
+---
+DONNÉES DE SEED
+
+Crée apps/api/prisma/seed.ts avec 30 providers réalistes :
+
+Provider 1 — "Salon Atlas" (ESTABLISHMENT, Marrakech, Guéliz)
+  Staff : Fatima (coiffure femme), Youssef (coiffure homme),
+          Sara (coloration)
+  Services : Coupe femme 45min 18000cts, Coupe homme 30min 8000cts,
+             Coloration 120min 45000cts, Soin kératine 90min 35000cts
+  Horaires : Lun-Sam 9h-19h, pause 13h-14h, fermé Dim
+
+Provider 2 — "Institut Élégance" (ESTABLISHMENT, Casablanca, Maarif)
+  Staff : Nadia (soins visage), Karima (manucure), Houda (épilation)
+  Services : Soin visage 60min 28000cts, Manucure 45min 15000cts,
+             Épilation sourcils 15min 4000cts
+  Horaires : Mar-Sam 10h-20h, fermé Dim-Lun
+
+Provider 3 — "Sara à domicile" (INDIVIDUAL, Rabat)
+  Staff : auto-créé (Sara elle-même)
+  Services : Coupe domicile 60min 20000cts, Brushing 45min 15000cts
+  Horaires : Lun-Ven 9h-18h
+
+Générer aussi des bookings fictifs couvrant les 7 prochains jours
+avec environ 60% de remplissage pour simuler une activité réelle.
+
+---
+RÈGLES ABSOLUES
+
+1. Ne jamais modifier un composant React ou un fichier CSS existant
+2. Ne jamais retourner le providerId depuis l'URL — toujours
+   depuis la session JWT
+3. Toujours valider les entrées avec Zod avant traitement
+4. Toujours invalider le cache Redis après toute modification
+   d'un booking, d'un block ou d'un service
+5. La contrainte GIST doit être dans la migration initiale —
+   ne jamais l'omettre
+6. Tester explicitement le cas de deux requêtes simultanées
+   sur le même créneau avant de valider le lot 4
+
+---
+ORDRE D'EXÉCUTION
+
+Étape 1 (infra) → Étape 2 (Prisma) → Étape 3 (auth) →
+Étape 4 (onboarding) → Étape 5 (slot engine) →
+Étape 6 (réservation) → Étape 7 (webhook) →
+Étape 8 (dashboard) → Étape 9 (WebSocket) →
+Étape 10 (branchement frontend)
+
+Ne pas sauter d'étape. Valider chaque étape avant de passer
+à la suivante.

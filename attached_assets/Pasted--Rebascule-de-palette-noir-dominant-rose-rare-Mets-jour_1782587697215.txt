@@ -1,0 +1,71 @@
+# Rebascule de palette — noir dominant, rose rare
+
+Mets à jour `tailwind.config.ts` (seule source de vérité du design) avec
+cette nouvelle hiérarchie de couleurs, puis répercute le changement sur
+tout le site (front public + dashboard).
+
+## Nouvelle palette
+
+```ts
+colors: {
+  canvas: "#FFFFFF",
+  "surface-1": "#FFFFFF",
+
+  ink: "#0C0C0E",
+  "ink-secondary": "rgba(12, 12, 14, 0.65)",
+  "ink-tertiary": "rgba(12, 12, 14, 0.45)",
+
+  hairline: "rgba(12, 12, 14, 0.10)",
+  "hairline-strong": "rgba(12, 12, 14, 0.18)",
+
+  accent: "#D4466E",
+  "accent-hover": "#B8345B",
+
+  success: "#1A8A4C",
+  error: "#D6334A",
+}
+```
+
+**Supprime entièrement** `surface-2`, `surface-3`, et toute autre nuance
+beige/grise floue (`#F2F1EE`, `#E9E7E2`, etc.) — plus aucune trace dans le
+config ni dans le code. Le fond est blanc pur partout, sans exception.
+
+## Nouvelle hiérarchie d'usage
+
+- **Le noir (`#0C0C0E`) est la couleur d'accent principale** : boutons
+  primaires (CTA) en fond noir/texte blanc, titres, bordures fortes,
+  icônes actives.
+- **Le rose (`accent`) devient rare** : un seul élément par écran maximum
+  (ex. un mot dans le titre du hero, le prix "Disponible à...", un état
+  actif très ponctuel). Jamais sur un bouton primaire, jamais en fond de
+  section, jamais en masse.
+- **Le blanc** est le fond, partout, sans variante grise/beige pour les
+  cards — la séparation entre une card et le fond se fait uniquement par
+  `border border-hairline` (1px), jamais par un changement de fond gris.
+- Le hover des cards/boutons se fait par un assombrissement léger de la
+  bordure (`hairline` → `hairline-strong`), pas par un fond gris.
+
+## Icônes
+
+Toutes les icônes du site doivent venir de **Lucide React**
+(`lucide-react`) exclusivement. Si des icônes d'une autre origine
+(emojis, SVG inline custom, autre librairie) existent encore quelque part,
+remplace-les par l'équivalent Lucide.
+
+## Composants UI
+
+Base tous les composants interactifs (boutons, inputs, select, dropdown,
+dialog, etc.) sur **shadcn/ui**, personnalisés avec les classes/tokens
+ci-dessus — jamais recréés from scratch en CSS custom.
+
+## Vérification après implémentation
+
+```bash
+grep -rn "surface-2\|surface-3\|#F2F1EE\|#E9E7E2\|#DEDBD4" --include="*.tsx" --include="*.ts" apps/web
+```
+
+Doit retourner 0 résultat. Montre la sortie réelle avant de considérer le
+travail terminé.
+
+
+les composants sont réutilisables donc tu crée les composansts que tu réutilises et à chaque fois que tu fais des travaux de design comme ça , faut consulter les skills de best practices

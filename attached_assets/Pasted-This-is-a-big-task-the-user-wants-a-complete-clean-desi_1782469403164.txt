@@ -1,0 +1,133 @@
+This is a big task - the user wants a complete, clean design system for the entire platform. Let me use the enter_plan_mode to plan this out properly before diving in, because this is complex.
+
+Actually, let me read the relevant skills first and then plan this. The user mentions:
+
+    Complete design system for ALL pages including the dashboard/back-office
+    Centralized, clean code with no dead code
+    No weird double borders, shadows, etc.
+    Premium forms with proper selects (city selector with actual Moroccan cities)
+    Use nice-select or similar for selects
+    Reference the vercel-react-best-practices and web-design-guidelines skills
+    I need to start by reviewing the current design tokens and examining all the dashboard pages to see what I'm working with, then build out a comprehensive component library that everything can use consistently.
+
+Entered plan mode
+
+Je vais d'abord faire un audit complet du codebase avant de planifier.
+
+Now I have a clear picture of the codebase. Let me plan the comprehensive design system work.
+
+Current State Assessment:
+
+    CSS tokens are already well-defined in index.css ✅
+    But pages use hardcoded hex values everywhere instead of CSS variables ❌
+    No shared UI primitive components (Button, Input, Select, Badge, etc.) ❌
+    Forms have native HTML selects (ugly, inconsistent) ❌
+    Dashboard pages all hardcode colors ❌
+    No consistent spacing system applied ❌
+
+What needs to be built:
+
+    Design tokens — Already good in index.css, just need to add spacing tokens and ensure they're used everywhere
+
+    UI Primitive components — I need to create reusable components like Button with multiple variants, a custom Input with label and error handling, a Select component to replace native dropdowns, Badge for status indicators, Card for surfaces, FormField as a wrapper, DashboardCard for stats, and PageHeader for consistency across pages.
+
+    Dashboard layout — Building a DashboardLayout wrapper that combines the sidebar with the main content area.
+
+    Update all pages — Refactoring existing pages to use these new primitives and CSS variables instead of hardcoded styling values.
+
+    Search and filtering — Adding a city filter to the search page with actual Moroccan cities using the custom Select component.
+
+    Code cleanup — Removing any unused code.
+
+I'm breaking this into a structured task plan with ordered steps: first creating the UI primitives, then the layout wrapper, updating all public pages, updating dashboard pages, and finally setting up the CSS tokens and spacing system.
+
+Since this is a substantial refactor, I should present this plan to the user for approval before diving in, then execute it systematically as the main agent.
+
+Voici l'audit complet. Voici ce que je propose comme plan structuré :
+Plan — Design System Complet PSTAGEV1
+État actuel des problèmes
+
+    Couleurs : 200+ valeurs hex codées en dur dans les pages au lieu des variables CSS
+    Aucun composant primitif : pas de Button, Input, Select, Badge partagés — chaque page ré-invente ses propres styles inline
+    Selects natifs laids et incohérents (navigation des villes, catégories)
+    Dashboard : hardcodé, pas aligné avec le design system public
+    Spacing aléatoire : padding/margin incohérents d'une page à l'autre
+
+Ce que je vais construire
+
+1. Tokens CSS étendus (index.css)
+Ajouter les espacements (--space-*), les transitions, et les utilitaires manquants
+
+2. Bibliothèque de composants UI (src/components/ui/)
+Composant	Usage
+Button.tsx	primary / secondary / ghost / danger · 3 tailles
+Input.tsx	label intégré · focus ring · état error
+NiceSelect.tsx	dropdown custom avec recherche, remplace tous les <select> natifs
+Badge.tsx	Actif / Vérifié / En attente / Fermé
+FormField.tsx	wrapper label + contrôle + message d'erreur
+DataCard.tsx	carte stat dashboard
+PageSection.tsx	wrapper de section avec titre + sous-titre
+
+3. Layout Dashboard (src/components/dashboard/DashboardLayout.tsx)
+Wrapper commun pour toutes les pages pro — sidebar + main, responsive
+
+4. Sélecteur de villes marocaines
+Villes Maroc dans lib/cities.ts · utilisé dans la recherche, le profil, la réservation
+
+5. Refactorisation de toutes les pages
+
+    5 pages publiques (home, search, profile, booking, auth/404)
+    4 pages dashboard (agenda, services, staff, analytics)
+    Remplacement de tout le style inline par les primitives et les variables CSS
+
+Ordre d'exécution
+
+    index.css → tokens complets
+    Composants UI primitifs
+    DashboardLayout + Sidebar
+    Pages publiques
+    Pages dashboard
+    Nettoyage code mort
+
+C'est un refactor conséquent (environ 15 fichiers). Je peux l'exécuter entièrement dans cette session. Dois-je lancer ?
+
+oui vas y
+10 minutes ago
+
+Let me create the session plan and then execute it. I'll write the plan file first and then start executing in parallel.
+
+The plan:
+
+    Extend index.css with spacing tokens + form input base styles
+    Create UI primitives: Button, Input, NiceSelect, Badge, FormField, DataCard
+    Create cities.ts data file
+    Create DashboardLayout.tsx
+    Update all pages to use primitives
+
+Let me start by writing all the new UI components in parallel, then update the pages.
+
+Key components to create:
+
+    src/components/ui/Button.tsx - reusable button
+    src/components/ui/Input.tsx - text input with label/error
+    src/components/ui/NiceSelect.tsx - custom dropdown
+    src/components/ui/Badge.tsx - status badges
+    src/components/ui/FormField.tsx - form field wrapper
+    src/components/ui/DataCard.tsx - stat card for dashboard
+    src/components/dashboard/DashboardLayout.tsx - layout wrapper
+    src/lib/cities.ts - Moroccan cities list
+
+I'll also update index.css with spacing tokens and form styles. Starting with the foundational pieces first, then moving to the pages. For the Button component, I'm supporting multiple variants and sizes.
+
+Writing UI components... Writing component files...
+
+Je lance l'exécution complète. Je commence en parallèle par les fondations — design tokens étendus, tous les composants UI primitifs, les villes, et le layout dashboard.
+
+Fondations posées. Je réécris maintenant toutes les pages dashboard et publiques en parallèle.
+Optimized Agent memory
+
+Now I'll rewrite all the dashboard pages and the key public pages. Let me do them all in parallel.
+
+Je réécris toutes les pages dashboard et publiques en parallèle.
+
+You've reached your daily free quota limit. It will reset at 12:00 AM UTC.

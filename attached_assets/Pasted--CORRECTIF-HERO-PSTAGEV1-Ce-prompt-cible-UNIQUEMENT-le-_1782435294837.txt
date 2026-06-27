@@ -1,0 +1,164 @@
+# CORRECTIF HERO — PSTAGEV1
+
+> Ce prompt cible UNIQUEMENT le composant hero de la page d'accueil. Ne touche
+> à rien d'autre. Le `tailwind.config.ts` (design tokens sémantiques) est déjà
+> en place et reste la seule source de vérité — toutes les classes utilisées
+> ci-dessous viennent de ce config, n'en invente aucune en dehors.
+
+## Ce qui est rejeté dans la version actuelle
+
+Le hero actuel reproduit le pattern générique "landing page SaaS IA" qu'on a
+déjà explicitement interdit, et qui est revenu malgré le design system
+strict. Liste précise de ce qui doit disparaître :
+
+1. **Titre centré sur 3 lignes** avec un fragment en couleur accent au
+   milieu — pattern le plus copié au monde, à bannir définitivement.
+2. **Glow rose flou en arrière-plan.** Sur fond clair, un glow pâle ressemble
+   à une tache d'eau, pas à de l'atmosphère. Aucun glow, aucun gradient
+   radial décoratif dans le hero.
+3. **Search bar flottante centrée**, posée comme une card isolée sous le
+   titre, déconnectée de la typographie.
+4. **Vide vertical massif** sous la search bar — la hauteur du hero ne doit
+   jamais être fixée arbitrairement plus grande que son contenu réel.
+5. Badge "Made with Replit" visible en prod — à masquer ou supprimer si
+   configurable, ce n'est pas un détail design mais ça doit disparaître du
+   rendu final.
+
+## Composition imposée
+
+**Grille asymétrique, alignée à gauche, sans image.** Le titre occupe la
+largeur naturelle de son texte (pas centré, pas contraint à une colonne
+étroite arbitraire), et la recherche est une continuation typographique du
+titre — pas un composant de formulaire plaqué dessous.
+
+```
+┌────────────────────────────────────────────────────────────────────┐
+│ [padding gauche du container]                                      │
+│                                                                      │
+│ text-display-hero, aligné à gauche, sur 2 lignes MAX,               │
+│ jamais centré, largeur naturelle (peut occuper 9-10 colonnes        │
+│ sur 12, pas toute la largeur, pas une colonne étroite non plus)     │
+│                                                                      │
+│ Je cherche [input: prestation___] à [input: ville___] →            │
+│   ↑ cette ligne est composée avec la MÊME famille et un poids      │
+│   proche du corps de texte (text-heading-s ou text-body-l, PAS      │
+│   text-label comme un bouton classique), les inputs sont des        │
+│   <input> natifs avec une bordure UNIQUEMENT en bottom (pas de       │
+│   box autour), comme un blanc à remplir dans une phrase --          │
+│   le tout doit se lire comme une phrase, pas comme un formulaire    │
+│                                                                      │
+│ Le bouton "Rechercher" est une flèche ou un mot court en             │
+│ text-accent à la fin de la phrase, pas un gros bouton pill séparé   │
+│                                                                      │
+│ [padding droit du container]                                       │
+└────────────────────────────────────────────────────────────────────┘
+```
+
+### Implémentation de référence (adapter mais garder la structure)
+
+```tsx
+<section className="max-w-page mx-auto px-5 md:px-10 lg:px-20 pt-24 pb-16">
+  <h1 className="text-display-hero text-ink max-w-[1100px]">
+    Votre prochain rendez-vous beauté,{" "}
+    <span className="text-accent">sans attendre.</span>
+  </h1>
+
+  <form className="mt-12 flex flex-wrap items-baseline gap-3 max-w-[900px]">
+    <span className="text-heading-s text-ink-secondary">Je cherche</span>
+
+    <input
+      type="text"
+      placeholder="une coupe, un soin..."
+      className="
+        text-heading-s text-ink placeholder:text-ink-tertiary
+        bg-transparent border-0 border-b border-hairline-strong
+        focus:border-accent outline-none
+        min-w-[200px] pb-1
+        transition-colors duration-DEFAULT
+      "
+    />
+
+    <span className="text-heading-s text-ink-secondary">à</span>
+
+    <input
+      type="text"
+      placeholder="Casablanca, Marrakech..."
+      className="
+        text-heading-s text-ink placeholder:text-ink-tertiary
+        bg-transparent border-0 border-b border-hairline-strong
+        focus:border-accent outline-none
+        min-w-[220px] pb-1
+        transition-colors duration-DEFAULT
+      "
+    />
+
+    <button
+      type="submit"
+      className="
+        text-heading-s text-accent inline-flex items-center gap-1.5
+        hover:gap-2.5 transition-all duration-DEFAULT
+      "
+    >
+      Rechercher →
+    </button>
+  </form>
+
+  {/* Optionnel : ligne de catégories rapides, alignée à gauche, pas centrée */}
+  <div className="mt-8 flex items-center gap-2 flex-wrap">
+    {["Coiffeur", "Barbier", "Manucure", "Institut beauté", "Bien-être"].map((cat) => (
+      <button
+        key={cat}
+        className="
+          text-body-s text-ink-secondary
+          border border-hairline rounded-full px-4 py-2
+          hover:border-accent hover:text-accent
+          transition-colors duration-DEFAULT
+        "
+      >
+        {cat}
+      </button>
+    ))}
+  </div>
+</section>
+```
+
+## Règles précises pour cette section
+
+1. **Aucun `text-center`, `justify-center`, `mx-auto` sur le titre ou le
+   form.** Le container global (`max-w-page mx-auto`) reste centré sur la
+   page, mais tout le contenu à l'intérieur est aligné à gauche.
+2. **Aucun `bg-gradient-radial`, aucune classe de glow/blur décorative.**
+   Le fond du hero est uniformément `bg-canvas`, rien d'autre.
+3. **Les deux `<input>` n'ont qu'une bordure inférieure** (`border-b`), pas
+   de `rounded-control`, pas de `bg-surface-1` autour — ils doivent se lire
+   comme du texte à compléter, pas comme des champs de formulaire classiques.
+   Réserve `rounded-control` + `bg-surface-1` aux inputs du reste du site
+   (filtres de recherche, dashboard) — le hero est la seule exception
+   typographique.
+4. **Le bouton de recherche n'est ni `bg-accent`, ni en pill, ni en
+   `rounded-control`.** C'est un texte `text-accent` avec une flèche, dans
+   le fil de la phrase.
+5. **La hauteur du hero est dictée par le contenu** (`pt-24 pb-16` ou
+   équivalent dans l'échelle de spacing), jamais par un `min-h-screen` ou
+   une hauteur fixe arbitraire.
+6. **Le titre fait 2 lignes maximum**, jamais 3. S'il dépasse, raccourcis le
+   texte plutôt que de laisser une 3e ligne apparaître.
+7. **Les catégories rapides sous le form sont optionnelles mais si
+   présentes, alignées à gauche, jamais centrées, jamais en grille — une
+   ligne de pills qui wrap naturellement.**
+
+## Vérification après implémentation
+
+```bash
+# Doit retourner 0 résultat dans le fichier du hero
+grep -n "text-center\|justify-center\|items-center.*justify-center\|mx-auto.*text-center" apps/web/components/Hero.tsx apps/web/app/page.tsx 2>/dev/null
+
+# Doit retourner 0 résultat — aucun glow/gradient décoratif
+grep -n "gradient\|blur-\[" apps/web/components/Hero.tsx apps/web/app/page.tsx 2>/dev/null
+
+# Doit retourner 0 résultat — pas de hauteur fixe arbitraire sur le hero
+grep -n "min-h-screen\|h-\[100vh\]\|h-screen" apps/web/components/Hero.tsx apps/web/app/page.tsx 2>/dev/null
+```
+
+Montre la sortie réelle de ces 3 commandes avant de considérer le hero comme
+terminé. Si l'une retourne un résultat, corrige et relance.

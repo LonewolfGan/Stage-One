@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "PSTAGEV1 — Plateforme de Réservation Beauté"
+version = "1.0.0"
+id = "artifacts/pstagev1"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 21962
+
+[services.development]
+run = "PORT=21962 BASE_PATH=/ pnpm --filter @workspace/pstagev1 run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/pstagev1", "run", "build" ]
+publicDir = "artifacts/pstagev1/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "21962"
+BASE_PATH = "/"

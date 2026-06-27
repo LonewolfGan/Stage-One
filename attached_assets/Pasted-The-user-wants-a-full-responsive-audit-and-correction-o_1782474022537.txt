@@ -1,0 +1,55 @@
+The user wants a full responsive audit and correction of the PSTAGEV1 app. The prompt is very detailed - it asks for:
+
+    Phase 1: Audit all files and produce a report
+    Phase 2: Establish responsive philosophy
+    Phase 3: Correct files
+
+But the prompt references apps/web/app and apps/web/components which is the wrong path - this is a monorepo with the app at artifacts/pstagev1/src/. I need to adapt the audit to the actual file structure.
+
+Let me start with Phase 1 - audit all files in the project.
+
+I'm realizing this project uses inline styles rather than Tailwind classes, so I need to look for fixed pixel values and hardcoded dimensions in the style objects instead of searching for responsive utility classes. Let me systematically go through all the files, identify where responsive issues exist, and then plan the corrections.
+
+Je vais faire l'audit complet. Ce projet utilise des inline styles (pas des classes Tailwind), donc j'adapte les commandes grep aux patterns réels.
+
+Bon audit de départ. Maintenant je lis les fichiers critiques et prends les screenshots aux 5 largeurs en parallèle.
+
+Let me prendre les screenshots manquants et lire les derniers fichiers critiques avant de corriger.
+
+J'ai maintenant une vision complète. Voici les bugs critiques identifiés :
+
+    375px TopBar : liens nav débordent hors du pill
+    375px Search : sidebar filtre (256px fixe) + résultats = débordement total
+    375px Dashboard : sidebar (220px fixe) + contenu = inutilisable
+
+Je vais rédiger l'audit puis enchaîner immédiatement sur les corrections Phase 3.
+
+Les pages provider/booking sont vides → probablement un problème de route. Laissez-moi vérifier le routeur et lire les autres pages critiques, puis je produirai l'audit et enchaînerai sur les corrections.
+
+J'ai tout ce qu'il faut. Let me read provider-profile quickly then write all corrections in parallel.
+
+J'ai tout le contexte nécessaire. Je vais maintenant écrire l'audit puis enchaîner directement sur toutes les corrections Phase 3 en lots parallèles.
+
+Let me read index.css for the dash layout classes, then write all corrections in one efficient batch.
+
+J'ai toute l'information nécessaire. Maintenant je vais écrire le rapport d'audit et enchaîner immédiatement sur toutes les corrections en lots parallèles.
+
+J'ai tout ce qu'il me faut. Je vais maintenant produire le rapport d'audit, puis corriger tous les fichiers en lots parallèles.
+
+Rapport d'audit prêt. Maintenant je corrige tous les fichiers — Batch 1 en parallèle.
+
+Maintenant je corrige tous les fichiers en lots parallèles.
+
+Lot 1 terminé. Maintenant Lot 2 en parallèle — CSS responsive + DashboardLayout + PhotoGallery + TimeSlotGrid.
+
+Lot 2 terminé. Maintenant Lot 3 — les pages critiques. Je lis HeroSection en entier puis écris tout en parallèle.
+
+Maintenant je corrige tout en parallèle — HeroSection, search, provider-profile, booking + dashboard pages.
+
+Lot 3 presque terminé. Maintenant HeroSection, search.tsx et home.tsx en parallèle.
+
+Maintenant je finalise home.tsx avec les 4 corrections de grilles.
+
+Maintenant je corrige home.tsx avec les 4 sections responsive.
+
+You've reached your daily free quota limit. It will reset at 12:00 AM UTC.

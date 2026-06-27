@@ -1,0 +1,177 @@
+Audit complet et purification du codebase.
+Objectif : zéro placeholder, zéro donnée fictive codée en dur,
+zéro code mort. Un codebase propre, production-ready.
+
+---
+ÉTAPE 1 — AUDIT : liste tout ce qui doit être nettoyé
+
+Avant de toucher quoi que ce soit, fais un audit complet
+et liste explicitement :
+
+- Tous les fichiers qui importent encore depuis lib/mock-data.ts
+- Tous les composants qui contiennent des strings hardcodées
+  (noms, adresses, prix, photos en dur dans le JSX)
+- Tous les TODO, FIXME, placeholder, "coming soon", "lorem ipsum"
+- Toutes les images avec des URLs Unsplash ou picsum hardcodées
+- Toutes les fonctions qui retournent des données fictives
+- Tous les fichiers de mock qui ne servent plus à rien
+- Tout le code commenté qui n'est plus utilisé
+- Les console.log de debug laissés pendant le développement
+- Les composants créés mais jamais utilisés
+- Les routes API créées mais jamais appelées depuis le frontend
+
+Affiche la liste complète avant de commencer le nettoyage.
+
+---
+ÉTAPE 2 — SUPPRIMER LES MOCKS
+
+Supprime définitivement :
+  apps/web/lib/mock-data.ts
+  Tout fichier mock-*.ts ou *.mock.ts
+  Tout fichier fixture ou seed de développement dans le frontend
+
+Si un composant importe encore depuis mock-data après
+le branchement backend, c'est un bug à corriger maintenant.
+
+---
+ÉTAPE 3 — PURIFIER CHAQUE PAGE
+
+Pour chaque page, vérifie que :
+
+1. Toutes les données viennent d'un appel API réel
+   via React Query ou fetch dans un Server Component Next.js
+2. Les états de chargement sont gérés (skeleton affiché
+   pendant le fetch, pas de flash de contenu vide)
+3. Les états d'erreur sont gérés (message clair si l'API
+   est indisponible, pas de crash silencieux)
+4. Aucune valeur hardcodée dans le JSX
+   (pas de "Salon Atlas", pas de "180 MAD", pas d'URL en dur)
+
+Pages à vérifier et corriger dans cet ordre :
+  app/page.tsx                    → accueil + recherche
+  app/search/page.tsx             → résultats
+  app/[slug]/page.tsx             → fiche prestataire
+  app/booking/[slug]/page.tsx     → widget réservation
+  app/dashboard/agenda/page.tsx   → agenda
+  app/dashboard/services/page.tsx → services
+  app/dashboard/staff/page.tsx    → staff
+  app/dashboard/analytics/page.tsx→ statistiques
+
+---
+ÉTAPE 4 — IMAGES RÉELLES
+
+Remplace toutes les URLs d'images hardcodées
+(Unsplash, picsum, placeholder.com) par :
+
+  - Le champ logoUrl / photoUrl du prestataire/staff depuis la DB
+  - Un composant Image Next.js avec fallback propre si null :
+
+    {provider.logoUrl ? (
+      <Image
+        src={provider.logoUrl}
+        alt={provider.name}
+        fill
+        className="object-cover"
+      />
+    ) : (
+      <div className="w-full h-full bg-[#F5F5F5]
+                      flex items-center justify-center">
+        <ScissorsIcon className="w-8 h-8 text-[#C4C4C4]" />
+      </div>
+    )}
+
+  Configure next.config.ts pour autoriser les domaines
+  d'images légitimes (Cloudflare R2, etc.) :
+
+    images: {
+      remotePatterns: [
+        { protocol: 'https',
+          hostname: '*.r2.cloudflarestorage.com' }
+      ]
+    }
+
+---
+ÉTAPE 5 — VRAIES DONNÉES EN BASE
+
+Le seed existant dans apps/api/prisma/seed.ts contient
+des données de démonstration. Exécute-le et vérifie
+que les données apparaissent correctement dans l'UI.
+
+Vérifie que le seed crée :
+  - 3 providers avec photos uploadées sur R2 (ou URLs réelles)
+  - Staff avec photos réelles (Unsplash est acceptable dans
+    le seed uniquement, pas dans le code des composants)
+  - Services avec durées et prix réalistes en centimes
+  - BusinessHours pour chaque provider
+  - Bookings couvrant les 7 prochains jours (~60% remplissage)
+  - Reviews avec notes et commentaires réalistes
+  - Un compte admin, deux comptes owner, trois comptes client
+
+Si certaines photos manquent dans le seed, utilise ces
+URLs stables pour les providers :
+
+  Salon Atlas :
+    https://images.unsplash.com/photo-1560066984-138dadb4c035
+    ?w=800&q=80
+  Institut Élégance :
+    https://images.unsplash.com/photo-1522337360788-8b13dee7a37e
+    ?w=800&q=80
+  Sara à domicile :
+    https://images.unsplash.com/photo-1487412947147-5cebf100ffc2
+    ?w=800&q=80
+
+Ces URLs vont dans le champ logoUrl de la DB,
+pas en dur dans les composants.
+
+---
+ÉTAPE 6 — SUPPRIMER LE CODE MORT
+
+Supprime sans exception :
+  - Tout composant React importé nulle part
+  - Toute fonction utilitaire jamais appelée
+  - Tout type TypeScript jamais utilisé
+  - Tout import inutilisé (ESLint no-unused-vars doit passer)
+  - Tous les console.log, console.error de debug
+  - Tout code commenté (blocs /* */ et lignes //)
+  - Les fichiers .bak, .old, .copy
+  - Les props définies sur un composant mais jamais passées
+
+Lance ensuite :
+  npx tsc --noEmit          → zéro erreur TypeScript
+  npx eslint . --fix        → zéro warning ESLint
+
+---
+ÉTAPE 7 — VÉRIFIER LES ÉTATS VIDES RÉELS
+
+Avec de vraies données en base, teste ces scénarios :
+
+  - Prestataire sans photo → fallback icon affiché, pas de crash
+  - Prestataire sans avis → "Aucun avis pour le moment" affiché
+  - Aucun créneau disponible ce jour → empty state affiché,
+    pas de grille vide ou d'erreur
+  - Recherche sans résultat → "Aucun salon trouvé" affiché
+    avec suggestion de modifier les filtres
+  - Dashboard avec zéro réservation → empty state agenda propre
+  - Analytics avec peu de données → graphiques affichés
+    même avec 1-2 points de données
+
+---
+ÉTAPE 8 — VÉRIFICATION FINALE
+
+Quand tout est nettoyé, confirme point par point :
+
+  [ ] lib/mock-data.ts supprimé
+  [ ] Aucun import de mock dans aucun composant
+  [ ] Aucune string hardcodée dans le JSX
+      (noms, adresses, prix, descriptions)
+  [ ] Aucune URL d'image hardcodée dans les composants
+  [ ] Aucun console.log dans le code
+  [ ] Aucun code commenté
+  [ ] npx tsc --noEmit passe sans erreur
+  [ ] npx eslint . passe sans warning
+  [ ] Les 3 providers du seed apparaissent sur l'accueil
+  [ ] La recherche retourne de vrais résultats depuis la DB
+  [ ] Le slot engine retourne de vrais créneaux
+  [ ] Le dashboard affiche les vrais bookings du seed
+  [ ] Tous les empty states sont gérés proprement
+  [ ] Aucune page ne crash si une donnée est null ou undefined

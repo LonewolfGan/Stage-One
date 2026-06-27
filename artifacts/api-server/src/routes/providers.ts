@@ -1,0 +1,217 @@
+import { Router } from "express";
+import { v4 as uuidv4 } from "uuid";
+import { z } from "zod";
+import {
+  db,
+  providersTable,
+  staffTable,
+  servicesTable,
+  businessHoursTable,
+  reviewsTable,
+  subscriptionsTable,
+  usersTable,
+} from "@workspace/db";
+import { eq, and, ilike, sql } from "drizzle-orm";
+import { requireOwner } from "../middlewares/auth";
+
+const router = Router();
+
+function slugify(name: string): string {
+  return name
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+}
+
+router.get("/", async (req, res) => {
+  const { city, type, q } = req.query as Record<string, string>;
+
+  let query = db
+    .select({
+      id: providersTable.id,
+      type: providersTable.type,
+      name: providersTable.name,
+      slug: providersTable.slug,
+      description: providersTable.description,
+      phone: providersTable.phone,
+      city: providersTable.city,
+      latitude: providersTable.latitude,
+      longitude: providersTable.longitude,
+      logoUrl: providersTable.logoUrl,
+      status: providersTable.status,
+    })
+    .from(providersTable)
+    .where(eq(providersTable.status, "ACTIVE"));
+
+  const providers = await query;
+
+  let filtered = providers;
+  if (city) filtered = filtered.filter((p) => p.city.toLowerCase().includes(city.toLowerCase()));
+  if (type) filtered = filtered.filter((p) => p.type === type.toUpperCase());
+  if (q) filtered = filtered.filter((p) => p.name.toLowerCase().includes(q.toLowerCase()));
+
+  const enriched = await Promise.all(
+    filtered.map(async (p) => {
+      const [staffList, serviceList, reviews] = await Promise.all([
+        db.query.staffTable.findMany({ where: and(eq(staffTable.providerId, p.id), eq(staffTable.isActive, true)) }),
+        db.query.servicesTable.findMany({ where: and(eq(servicesTable.providerId, p.id), eq(servicesTable.isActive, true)) }),
+        db.query.reviewsTable.findMany({ where: eq(reviewsTable.providerId, p.id) }),
+      ]);
+      const avgRating = reviews.length
+        ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
+        : null;
+      const minPriceCents = serviceList.length > 0 ? Math.min(...serviceList.map((s) => s.priceCents)) : null;
+      const minDurationMinutes = serviceList.length > 0 ? Math.min(...serviceList.map((s) => s.durationMinutes)) : null;
+      return { ...p, staffCount: staffList.length, serviceCount: serviceList.length, avgRating, reviewCount: reviews.length, minPriceCents, minDurationMinutes };
+    }),
+  );
+
+  res.json(enriched);
+});
+
+router.get("/:slug", async (req, res) => {
+  const provider = await db.query.providersTable.findFirst({
+    where: eq(providersTable.slug, req.params.slug),
+  });
+  if (!provider) {
+    res.status(404).json({ code: "ERR-004", message: "Prestataire introuvable" });
+    return;
+  }
+
+  const [staffList, serviceList, hours, reviews] = await Promise.all([
+    db.query.staffTable.findMany({ where: and(eq(staffTable.providerId, provider.id), eq(staffTable.isActive, true)) }),
+    db.query.servicesTable.findMany({ where: and(eq(servicesTable.providerId, provider.id), eq(servicesTable.isActive, true)) }),
+    db.query.businessHoursTable.findMany({ where: eq(businessHoursTable.providerId, provider.id) }),
+    db.query.reviewsTable.findMany({ where: eq(reviewsTable.providerId, provider.id) }),
+  ]);
+
+  const serviceStaff = await Promise.all(
+    serviceList.map(async (s) => {
+      const rows = await db.execute(
+        sql`SELECT staff_id FROM service_staff WHERE service_id = ${s.id}`,
+      );
+      return { ...s, staffIds: (rows.rows as { staff_id: string }[]).map((r) => r.staff_id) };
+    }),
+  );
+
+  const avgRating = reviews.length
+    ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
+    : null;
+
+  res.json({ ...provider, staff: staffList, services: serviceStaff, businessHours: hours, reviews, avgRating });
+});
+
+const registerProviderSchema = z.object({
+  type: z.enum(["ESTABLISHMENT", "INDIVIDUAL"]),
+  name: z.string().min(1),
+  city: z.string().min(1),
+  phone: z.string().min(8),
+  email: z.string().email(),
+  description: z.string().optional(),
+  address: z.string().optional(),
+  latitude: z.number().optional(),
+  longitude: z.number().optional(),
+});
+
+router.post("/register", requireOwner, async (req, res) => {
+  const parse = registerProviderSchema.safeParse(req.body);
+  if (!parse.success) {
+    res.status(400).json({ code: "ERR-001", message: "Données invalides", errors: parse.error.flatten() });
+    return;
+  }
+
+  const existing = await db.query.providersTable.findFirst({
+    where: eq(providersTable.ownerId, req.user!.sub),
+  });
+  if (existing) {
+    res.status(409).json({ code: "ERR-005", message: "Vous avez déjà un espace prestataire" });
+    return;
+  }
+
+  const { type, name, city, phone, email, description, address, latitude, longitude } = parse.data;
+  const baseSlug = slugify(name);
+  let slug = baseSlug;
+  let counter = 1;
+  while (await db.query.providersTable.findFirst({ where: eq(providersTable.slug, slug) })) {
+    slug = `${baseSlug}-${counter++}`;
+  }
+
+  const providerId = uuidv4();
+
+  await db.insert(providersTable).values({
+    id: providerId,
+    type,
+    name,
+    slug,
+    city,
+    phone,
+    email,
+    description,
+    address,
+    latitude,
+    longitude,
+    ownerId: req.user!.sub,
+    status: "ACTIVE",
+  });
+
+  if (type === "INDIVIDUAL") {
+    const user = await db.query.usersTable.findFirst({ where: eq(usersTable.id, req.user!.sub) });
+    await db.insert(staffTable).values({
+      id: uuidv4(),
+      providerId,
+      name: user?.name ?? name,
+      isActive: true,
+    });
+  }
+
+  await db.insert(subscriptionsTable).values({
+    id: uuidv4(),
+    providerId,
+    plan: "FREE",
+    status: "active",
+  });
+
+  const provider = await db.query.providersTable.findFirst({ where: eq(providersTable.id, providerId) });
+  res.status(201).json(provider);
+});
+
+const hoursSchema = z.object({
+  hours: z.array(
+    z.object({
+      dayOfWeek: z.number().min(0).max(6),
+      openTime: z.string(),
+      closeTime: z.string(),
+      isClosed: z.boolean().default(false),
+    }),
+  ),
+});
+
+router.put("/:slug/hours", requireOwner, async (req, res) => {
+  const provider = await db.query.providersTable.findFirst({
+    where: and(eq(providersTable.slug, req.params.slug), eq(providersTable.ownerId, req.user!.sub)),
+  });
+  if (!provider) {
+    res.status(404).json({ code: "ERR-004", message: "Prestataire introuvable" });
+    return;
+  }
+
+  const parse = hoursSchema.safeParse(req.body);
+  if (!parse.success) {
+    res.status(400).json({ code: "ERR-001", message: "Données invalides" });
+    return;
+  }
+
+  await db.delete(businessHoursTable).where(eq(businessHoursTable.providerId, provider.id));
+  if (parse.data.hours.length > 0) {
+    await db.insert(businessHoursTable).values(
+      parse.data.hours.map((h) => ({ id: uuidv4(), providerId: provider.id, ...h })),
+    );
+  }
+
+  const updated = await db.query.businessHoursTable.findMany({ where: eq(businessHoursTable.providerId, provider.id) });
+  res.json(updated);
+});
+
+export default router;

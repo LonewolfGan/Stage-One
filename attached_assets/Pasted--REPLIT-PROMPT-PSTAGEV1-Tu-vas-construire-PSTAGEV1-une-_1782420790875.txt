@@ -1,0 +1,191 @@
+# REPLIT PROMPT — PSTAGEV1
+
+Tu vas construire PSTAGEV1 — une plateforme SaaS de réservation en ligne
+pour salons de coiffure et instituts de beauté au Maroc.
+
+FICHIERS DE RÉFÉRENCE — lis-les tous avant d'écrire la moindre ligne :
+- CLAUDE.md        → vision produit, stack, modèle de données, règles métier
+- PSTAGEV1-PRD.md  → exigences fonctionnelles complètes
+- DESIGN_SYSTEM.md → tokens CSS, composants Tailwind, règles visuelles
+- REPLIT_CONTEXT.md → structure des pages, UX flows, composants détaillés
+
+---
+
+## PHASE 1 — UI UNIQUEMENT (ce que tu fais maintenant)
+
+Construis l'interface complète avec des données mockées hardcodées.
+PAS de Prisma. PAS de routes API réelles. PAS de base de données.
+PAS d'authentification réelle.
+Uniquement des composants React avec des données JSON locales.
+
+L'objectif : avoir un produit visuellement validé avant de brancher le backend.
+Un composant fonctionnel avec un mauvais design = un composant non livré.
+
+---
+
+## DONNÉES MOCKÉES — réalistes et complètes
+
+Crée lib/mock-data.ts avec ces 3 providers :
+
+Provider 1 — "Salon Atlas" (establishment, Marrakech, Guéliz)
+- Staff : Fatima (coiffure femme), Youssef (coiffure homme + barbe), Sara (coloration)
+- Services : Coupe femme 45min 180MAD, Coupe homme 30min 80MAD,
+  Coloration complète 120min 450MAD, Soin kératine 90min 350MAD,
+  Coupe + brushing 60min 220MAD
+- Horaires : Lun-Sam 9h-19h, pause 13h-14h, fermé Dimanche
+- Note : 4.8 (127 avis)
+
+Provider 2 — "Institut Élégance" (establishment, Casablanca, Maarif)
+- Staff : Nadia (soins visage), Karima (manucure + pédicure), Houda (épilation)
+- Services : Soin visage hydratant 60min 280MAD, Manucure complète 45min 150MAD,
+  Épilation sourcils 15min 40MAD, Épilation jambes complètes 45min 120MAD,
+  Massage relaxant 60min 320MAD
+- Horaires : Mar-Sam 10h-20h, fermé Dim-Lun
+- Note : 4.6 (89 avis)
+
+Provider 3 — "Sara à domicile" (individual, Rabat)
+- Staff : Sara elle-même (auto-créé)
+- Services : Coupe femme domicile 60min 200MAD,
+  Brushing 45min 150MAD, Tresse africaine 120min 300MAD
+- Horaires : Lun-Ven 9h-18h
+- Note : 4.9 (43 avis)
+
+Créneaux simulés : générer dynamiquement des slots disponibles
+sur les 7 prochains jours avec ~60% de remplissage pour simuler
+une vraie activité.
+
+---
+
+## IDENTITÉ VISUELLE — le rose comme ADN
+
+La couleur signature est #D4547A — rose profond inspiré Airbnb,
+adapté à l'univers beauté premium. Planity n'a pas de couleur forte.
+C'est notre avantage concurrentiel visuel.
+
+Palette à utiliser EXCLUSIVEMENT (dans globals.css dès le départ) :
+
+--accent:           #D4547A   → CTA primaires, éléments actifs
+--accent-hover:     #C04268   → Hover boutons primaires
+--accent-light:     #FAF0F3   → Backgrounds sélectionnés, tags actifs
+--accent-border:    #F0C4CF   → Bordures légères en contexte accent
+--canvas:           #FFFFFF   → Fond général
+--canvas-subtle:    #FAFAFA   → Fonds de sections alternées
+--ink:              #1A1A1A   → Texte principal
+--ink-secondary:    #6B6B6B   → Texte secondaire
+--ink-tertiary:     #9E9E9E   → Placeholders
+--border:           #F0F0F0   → Séparateurs neutres
+--rating:           #F5A623   → Étoiles uniquement
+--success:          #43A047
+--error:            #E53935
+
+Règles d'usage du rose :
+- Bouton primaire → fond #D4547A, texte blanc (jamais fond noir)
+- Créneau/date sélectionné → fond #FAF0F3, bordure #D4547A
+- Badge "Vérifié" → fond #FAF0F3, texte #D4547A
+- Focus ring inputs → ring-[#D4547A]/20
+- Maximum 10% de surface par écran — accent, pas masse
+
+---
+
+## RÈGLES DE DESIGN — non négociables
+
+1. Lis DESIGN_SYSTEM.md en entier avant le premier composant.
+   Utilise exactement les classes Tailwind et tokens définis dedans.
+   Aucune couleur, espacement ou border-radius arbitraires.
+
+2. Lis REPLIT_CONTEXT.md pour la structure exacte de chaque page.
+   Respecte les layouts et patterns UX — mais PAS l'identité visuelle
+   de Planity. On s'inspire de leur UX, on crée notre propre look.
+
+3. Police Inter depuis Google Fonts — dans le layout global.
+
+4. Shadcn/ui comme base. Installe au départ :
+   npx shadcn@latest add button input card badge separator
+   avatar tabs sheet dialog scroll-area
+
+5. Skeleton loading sur chaque liste (shimmer #F5F5F5 → #FAF0F3).
+   État vide = icône + titre + sous-titre. Jamais de page blanche.
+
+6. Micro-animations obligatoires :
+   - Card hover : translateY(-2px) + shadow elevation
+   - Button active : scale(0.97)
+   - Slot sélectionné : transition 150ms avec fond #FAF0F3
+
+---
+
+## PARTIS PRIS UX — innover par rapport à Planity
+
+1. SALONCARD — afficher "Disponible à 14h30" en rose en évidence,
+   pas une grille de slots anonymes. Le client voit la prochaine
+   dispo immédiatement.
+
+2. PAGE FICHE — badge "Populaire" en rose sur le service le plus
+   réservé. Layout photo asymétrique (hero large + vignettes).
+
+3. BOOKING WIDGET — deux colonnes desktop : sélection à gauche,
+   récapitulatif live à droite. Bottom sheet sur mobile.
+   Pas de stepper numéroté visible.
+
+4. DASHBOARD — style Linear : sidebar #FAFAFA, item actif en rose,
+   bordure gauche rose sur les blocs de RDV. Hero cards pour
+   les 3 prochains RDV en haut de l'agenda.
+
+5. EMPTY STATES — micro-illustrations SVG inline avec rose comme
+   couleur d'accent.
+
+Ce produit doit ressembler à ce qu'Airbnb aurait construit
+pour la réservation beauté au Maroc.
+Référence UX : Planity. Référence dashboard : Linear.
+Identité visuelle : la nôtre.
+
+---
+
+## STRUCTURE DU PROJET
+
+apps/web/
+├── app/
+│   ├── page.tsx                     → Homepage
+│   ├── search/page.tsx              → Résultats de recherche
+│   ├── [slug]/page.tsx              → Fiche prestataire
+│   ├── booking/[slug]/page.tsx      → Widget réservation
+│   └── dashboard/
+│       ├── agenda/page.tsx
+│       ├── services/page.tsx
+│       ├── staff/page.tsx
+│       └── analytics/page.tsx
+├── components/
+│   ├── public/                      → Composants partie publique
+│   │   ├── TopBar.tsx
+│   │   ├── SearchPill.tsx
+│   │   ├── SalonCard.tsx
+│   │   ├── ServiceCard.tsx
+│   │   ├── PhotoGallery.tsx
+│   │   ├── TimeSlotGrid.tsx
+│   │   └── StaffSelector.tsx
+│   ├── dashboard/                   → Composants dashboard
+│   │   ├── Sidebar.tsx
+│   │   ├── AgendaView.tsx
+│   │   ├── BookingBlock.tsx
+│   │   └── StatCard.tsx
+│   └── ui/                          → Shadcn/ui
+├── lib/
+│   └── mock-data.ts                 → Toutes les données mockées
+└── app/globals.css                  → Tokens CSS + Inter font
+
+---
+
+## ORDRE DE CONSTRUCTION
+
+Construis dans cet ordre exact.
+Ne passe à l'étape suivante qu'après validation visuelle de la précédente.
+
+1. globals.css avec tous les tokens CSS + import Inter
+2. lib/mock-data.ts avec les 3 providers complets
+3. Installation Shadcn/ui
+4. TopBar (sticky, backdrop-blur, logo rose + nav + CTA)
+5. Homepage (SearchPill + CategoryGrid + TrustBar)
+6. Page résultats (SalonCard avec "Disponible à X" + MapPanel)
+7. Page fiche prestataire (PhotoGallery + ServiceList + FloatingBar)
+8. Widget réservation (2 colonnes desktop / bottom sheet mobile)
+9. Dashboard agenda (sidebar Linear + timeline + hero cards)
+10. Dashboard services + staff + analytics
