@@ -6,6 +6,7 @@ import { db, usersTable, providersTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { signToken, verifyToken } from "../lib/auth";
 import { requireAuth } from "../middlewares/auth";
+import { adminAuth } from "../lib/firebase";
 
 const router = Router();
 
@@ -45,32 +46,15 @@ router.post("/register", async (req, res) => {
   const passwordHash = await bcrypt.hash(password, 12);
   const userId = uuidv4();
 
-  const [user] = await db.insert(usersTable).values({
-    id: userId,
-    email,
-    phone,
-    passwordHash,
-    name,
-    role,
-    emailVerified: false,
-    phoneVerified: false,
-  }).returning({
-    id: usersTable.id,
-    email: usersTable.email,
-    phone: usersTable.phone,
-    name: usersTable.name,
-    role: usersTable.role,
-  });
+  const [user] = await db
+    .insert(usersTable)
+    .values({ id: userId, email, phone, passwordHash, name, role, emailVerified: false, phoneVerified: false })
+    .returning({ id: usersTable.id, email: usersTable.email, phone: usersTable.phone, name: usersTable.name, role: usersTable.role });
 
   const token = await signToken({ sub: user.id, role: user.role });
   const refreshToken = await signToken({ sub: user.id, role: user.role }, "7d");
 
-  res.status(201).json({
-    user,
-    token,
-    refreshToken,
-    requiresPhoneVerification: true,
-  });
+  res.status(201).json({ user, token, refreshToken, requiresPhoneVerification: true });
 });
 
 router.post("/login", async (req, res) => {
@@ -95,9 +79,7 @@ router.post("/login", async (req, res) => {
 
   let providerId: string | undefined;
   if (user.role === "OWNER") {
-    const provider = await db.query.providersTable.findFirst({
-      where: eq(providersTable.ownerId, user.id),
-    });
+    const provider = await db.query.providersTable.findFirst({ where: eq(providersTable.ownerId, user.id) });
     providerId = provider?.id;
   }
 
@@ -107,29 +89,39 @@ router.post("/login", async (req, res) => {
   res.json({
     token,
     refreshToken,
-    user: {
-      id: user.id,
-      email: user.email,
-      phone: user.phone,
-      name: user.name,
-      role: user.role,
-      phoneVerified: user.phoneVerified,
-      emailVerified: user.emailVerified,
-    },
+    user: { id: user.id, email: user.email, phone: user.phone, name: user.name, role: user.role, phoneVerified: user.phoneVerified, emailVerified: user.emailVerified },
   });
 });
 
-router.post("/verify-phone", async (req, res) => {
-  const { userId, code } = req.body as { userId: string; code: string };
-  if (!userId || !code) {
-    res.status(400).json({ code: "ERR-001", message: "userId et code requis" });
-    return;
-  }
-  await db
-    .update(usersTable)
-    .set({ phoneVerified: true, updatedAt: new Date() })
-    .where(eq(usersTable.id, userId));
+// Verify phone — uses Firebase idToken when available, mock otherwise
+router.post("/verify-phone", requireAuth, async (req, res) => {
+  const { idToken, code } = req.body as { idToken?: string; code?: string };
 
+  const userId = req.user!.sub;
+  const user = await db.query.usersTable.findFirst({ where: eq(usersTable.id, userId) });
+  if (!user) { res.status(404).json({ code: "ERR-004", message: "Utilisateur introuvable" }); return; }
+
+  if (adminAuth && idToken) {
+    // Real Firebase verification
+    try {
+      const decoded = await adminAuth.verifyIdToken(idToken);
+      if (!decoded.phone_number || decoded.phone_number !== user.phone) {
+        res.status(400).json({ code: "AUTH-003", message: "Le numéro Firebase ne correspond pas au compte" });
+        return;
+      }
+    } catch (err) {
+      res.status(400).json({ code: "AUTH-003", message: "idToken Firebase invalide" });
+      return;
+    }
+  } else {
+    // Mock path — only accepts any non-empty code (development only)
+    if (!code) {
+      res.status(400).json({ code: "ERR-001", message: "code requis (mode développement)" });
+      return;
+    }
+  }
+
+  await db.update(usersTable).set({ phoneVerified: true, updatedAt: new Date() }).where(eq(usersTable.id, userId));
   res.json({ message: "Téléphone vérifié avec succès" });
 });
 
@@ -153,10 +145,7 @@ router.get("/me", requireAuth, async (req, res) => {
     where: eq(usersTable.id, req.user!.sub),
     columns: { passwordHash: false },
   });
-  if (!user) {
-    res.status(404).json({ code: "ERR-004", message: "Utilisateur introuvable" });
-    return;
-  }
+  if (!user) { res.status(404).json({ code: "ERR-004", message: "Utilisateur introuvable" }); return; }
   res.json(user);
 });
 

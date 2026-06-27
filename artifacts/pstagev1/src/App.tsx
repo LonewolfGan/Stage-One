@@ -1,6 +1,7 @@
 import { Switch, Route, Router as WouterRouter, useLocation, Redirect } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
+import { Toaster as SonnerToaster } from "sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AnimatePresence, motion } from "framer-motion";
 
@@ -10,6 +11,8 @@ import SearchPage from "@/pages/search";
 import CategoryPage from "@/pages/category";
 import ProviderProfilePage from "@/pages/provider-profile";
 import BookingPage from "@/pages/booking";
+import BookingConfirmationPage from "@/pages/booking-confirmation";
+import AccountBookingsPage from "@/pages/account/bookings";
 import AgendaPage from "@/pages/dashboard/agenda";
 import ServicesPage from "@/pages/dashboard/services";
 import StaffPage from "@/pages/dashboard/staff";
@@ -27,7 +30,9 @@ function Router() {
       <Route path="/" component={HomePage} />
       <Route path="/search" component={SearchPage} />
       <Route path="/categorie/:categorySlug" component={CategoryPage} />
+      <Route path="/booking/confirmation" component={BookingConfirmationPage} />
       <Route path="/booking/:slug" component={BookingPage} />
+      <Route path="/account/bookings" component={AccountBookingsPage} />
       <Route path="/dashboard" component={() => <Redirect to="/dashboard/agenda" />} />
       <Route path="/dashboard/agenda" component={AgendaPage} />
       <Route path="/dashboard/services" component={ServicesPage} />
@@ -66,6 +71,7 @@ export default function App() {
           <AnimatedRouter />
         </WouterRouter>
         <Toaster />
+        <SonnerToaster position="top-right" richColors closeButton />
       </TooltipProvider>
     </QueryClientProvider>
   );

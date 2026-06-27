@@ -20,3 +20,6 @@ router.use("/bookings", bookingsRouter);
 router.use("/dashboard", dashboardRouter);
 
 export default router;
+
+// Note: /api/webhooks/stripe is registered directly in app.ts (before express.json)
+// to preserve the raw request body required by stripe.webhooks.constructEvent()

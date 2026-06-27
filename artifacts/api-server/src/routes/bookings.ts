@@ -1,17 +1,12 @@
 import { Router } from "express";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
-import {
-  db,
-  bookingsTable,
-  servicesTable,
-  staffTable,
-  providersTable,
-  usersTable,
-} from "@workspace/db";
-import { eq, and, ne, sql } from "drizzle-orm";
+import { db, bookingsTable, servicesTable, staffTable, providersTable, usersTable } from "@workspace/db";
+import { eq, and, sql, desc } from "drizzle-orm";
 import { requireAuth } from "../middlewares/auth";
 import { emitSlotUpdate, emitBookingConfirmed } from "../lib/socket";
+import { stripe } from "../lib/stripe";
+import { redis } from "../lib/redis";
 
 const router = Router();
 
@@ -60,36 +55,92 @@ router.post("/", requireAuth, async (req, res) => {
   });
   if (!existingStaff) { res.status(404).json({ code: "ERR-004", message: "Staff introuvable" }); return; }
 
-  const overlap = await db.execute(sql`
-    SELECT id FROM bookings
-    WHERE staff_id = ${staffId}
-      AND status NOT IN ('CANCELLED', 'EXPIRED')
-      AND tstzrange(start_datetime, end_datetime) && tstzrange(${startDatetime.toISOString()}::timestamptz, ${endDatetime.toISOString()}::timestamptz)
-    LIMIT 1
-  `);
-
-  if ((overlap.rows as unknown[]).length > 0) {
-    res.status(409).json({ code: "ERR-005", message: "Ce créneau est déjà réservé" });
-    return;
+  // Redis distributed lock (30s TTL) — prevents concurrent requests for the same slot
+  const lockKey = `lock:staff:${staffId}:${startDatetime.toISOString()}`;
+  if (redis) {
+    const locked = await redis.set(lockKey, "1", "NX", "EX", 30);
+    if (!locked) {
+      res.status(409).json({ code: "ERR-005", message: "Ce créneau est en cours de réservation, réessayez dans quelques secondes." });
+      return;
+    }
   }
 
-  const lockedUntil = new Date(Date.now() + 10 * 60_000);
   const bookingId = uuidv4();
+  const lockedUntil = new Date(Date.now() + 10 * 60_000);
 
-  await db.insert(bookingsTable).values({
-    id: bookingId,
-    providerId: provider.id,
-    serviceId: service.id,
-    staffId,
-    clientId: req.user!.sub,
-    startDatetime,
-    endDatetime,
-    status: "PENDING",
-    lockedUntil,
-    amountCents: service.priceCents,
-    paymentStatus: "pending",
-    paymentIntentId: `pi_mock_${bookingId}`,
-  });
+  let booking: typeof bookingsTable.$inferSelect;
+  try {
+    booking = await db.transaction(async (tx) => {
+      // SELECT FOR UPDATE — serialise concurrent requests at the DB level
+      const conflicts = await tx.execute(sql`
+        SELECT id FROM bookings
+        WHERE staff_id = ${staffId}
+          AND status NOT IN ('CANCELLED', 'EXPIRED')
+          AND tstzrange(start_datetime, end_datetime) &&
+              tstzrange(${startDatetime.toISOString()}::timestamptz, ${endDatetime.toISOString()}::timestamptz)
+        FOR UPDATE
+      `);
+
+      if ((conflicts.rows as unknown[]).length > 0) {
+        const err = new Error("SLOT_CONFLICT") as Error & { isSlotConflict: boolean };
+        err.isSlotConflict = true;
+        throw err;
+      }
+
+      const [inserted] = await tx
+        .insert(bookingsTable)
+        .values({
+          id: bookingId,
+          providerId: provider.id,
+          serviceId: service.id,
+          staffId,
+          clientId: req.user!.sub,
+          startDatetime,
+          endDatetime,
+          status: "PENDING",
+          lockedUntil,
+          amountCents: service.priceCents,
+          paymentStatus: "pending",
+          paymentIntentId: `pi_mock_${bookingId}`,
+        })
+        .returning();
+
+      return inserted;
+    });
+  } catch (e: any) {
+    if (redis) await redis.del(lockKey).catch(() => {});
+    if (e.isSlotConflict || e.code === "23P01") {
+      res.status(409).json({ code: "ERR-005", message: "Ce créneau est déjà réservé, choisissez un autre horaire." });
+      return;
+    }
+    throw e;
+  }
+
+  // Release Redis lock after successful commit
+  if (redis) await redis.del(lockKey).catch(() => {});
+
+  // Stripe PaymentIntent
+  let paymentIntentId = `pi_mock_${bookingId}`;
+  let clientSecret = `pi_mock_${bookingId}_secret`;
+
+  if (stripe) {
+    try {
+      const pi = await stripe.paymentIntents.create({
+        amount: service.priceCents,
+        currency: "mad",
+        metadata: { bookingId: booking.id, providerId: provider.id },
+      });
+      paymentIntentId = pi.id;
+      clientSecret = pi.client_secret!;
+
+      await db
+        .update(bookingsTable)
+        .set({ paymentIntentId })
+        .where(eq(bookingsTable.id, bookingId));
+    } catch (err) {
+      req.log.error({ err }, "Stripe PaymentIntent creation failed — using mock");
+    }
+  }
 
   emitSlotUpdate(provider.id, {
     slotStart: startDatetime.toISOString(),
@@ -100,12 +151,78 @@ router.post("/", requireAuth, async (req, res) => {
   res.status(201).json({
     bookingId,
     status: "PENDING",
-    paymentIntentSecret: `pi_mock_${bookingId}_secret`,
+    paymentIntentSecret: clientSecret,
     expiresAt: lockedUntil.toISOString(),
     amountCents: service.priceCents,
+    isMock: !stripe,
   });
 });
 
+// GET /bookings/me — client's own booking history
+router.get("/me", requireAuth, async (req, res) => {
+  const rows = await db
+    .select({
+      id: bookingsTable.id,
+      status: bookingsTable.status,
+      paymentStatus: bookingsTable.paymentStatus,
+      startDatetime: bookingsTable.startDatetime,
+      endDatetime: bookingsTable.endDatetime,
+      amountCents: bookingsTable.amountCents,
+      serviceName: servicesTable.name,
+      serviceDuration: servicesTable.durationMinutes,
+      staffName: staffTable.name,
+      providerName: providersTable.name,
+      providerSlug: providersTable.slug,
+      providerLogoUrl: providersTable.logoUrl,
+      providerCity: providersTable.city,
+    })
+    .from(bookingsTable)
+    .leftJoin(servicesTable, eq(bookingsTable.serviceId, servicesTable.id))
+    .leftJoin(staffTable, eq(bookingsTable.staffId, staffTable.id))
+    .leftJoin(providersTable, eq(bookingsTable.providerId, providersTable.id))
+    .where(eq(bookingsTable.clientId, req.user!.sub))
+    .orderBy(desc(bookingsTable.startDatetime));
+
+  res.json(rows);
+});
+
+// GET /bookings/:bookingId
+router.get("/:bookingId", requireAuth, async (req, res) => {
+  const [row] = await db
+    .select({
+      id: bookingsTable.id,
+      status: bookingsTable.status,
+      paymentStatus: bookingsTable.paymentStatus,
+      startDatetime: bookingsTable.startDatetime,
+      endDatetime: bookingsTable.endDatetime,
+      amountCents: bookingsTable.amountCents,
+      clientId: bookingsTable.clientId,
+      staffId: bookingsTable.staffId,
+      providerId: bookingsTable.providerId,
+      serviceName: servicesTable.name,
+      serviceDuration: servicesTable.durationMinutes,
+      staffName: staffTable.name,
+      providerName: providersTable.name,
+      providerSlug: providersTable.slug,
+      providerLogoUrl: providersTable.logoUrl,
+      providerCity: providersTable.city,
+      providerAddress: providersTable.address,
+    })
+    .from(bookingsTable)
+    .leftJoin(servicesTable, eq(bookingsTable.serviceId, servicesTable.id))
+    .leftJoin(staffTable, eq(bookingsTable.staffId, staffTable.id))
+    .leftJoin(providersTable, eq(bookingsTable.providerId, providersTable.id))
+    .where(eq(bookingsTable.id, req.params.bookingId))
+    .limit(1);
+
+  if (!row) { res.status(404).json({ code: "ERR-004", message: "Réservation introuvable" }); return; }
+  if (row.clientId !== req.user!.sub && req.user!.role === "CLIENT") {
+    res.status(403).json({ code: "ERR-003", message: "Accès refusé" }); return;
+  }
+  res.json(row);
+});
+
+// POST /bookings/:bookingId/cancel — client cancellation (2h window)
 router.post("/:bookingId/cancel", requireAuth, async (req, res) => {
   const booking = await db.query.bookingsTable.findFirst({
     where: and(eq(bookingsTable.id, req.params.bookingId), eq(bookingsTable.clientId, req.user!.sub)),
@@ -113,6 +230,12 @@ router.post("/:bookingId/cancel", requireAuth, async (req, res) => {
   if (!booking) { res.status(404).json({ code: "ERR-004", message: "Réservation introuvable" }); return; }
   if (booking.status === "CANCELLED" || booking.status === "EXPIRED") {
     res.status(409).json({ code: "ERR-005", message: "Réservation déjà annulée" }); return;
+  }
+
+  const hoursUntilStart = (booking.startDatetime.getTime() - Date.now()) / 3_600_000;
+  if (hoursUntilStart < 2) {
+    res.status(409).json({ code: "ERR-006", message: "Annulation impossible moins de 2h avant le rendez-vous" });
+    return;
   }
 
   await db
@@ -129,6 +252,7 @@ router.post("/:bookingId/cancel", requireAuth, async (req, res) => {
   res.json({ message: "Réservation annulée" });
 });
 
+// POST /bookings/:bookingId/confirm — manual confirmation (mock/webhook fallback)
 router.post("/:bookingId/confirm", async (req, res) => {
   const booking = await db.query.bookingsTable.findFirst({ where: eq(bookingsTable.id, req.params.bookingId) });
   if (!booking) { res.status(404).json({ code: "ERR-004", message: "Réservation introuvable" }); return; }

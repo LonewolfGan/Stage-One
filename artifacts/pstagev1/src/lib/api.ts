@@ -123,6 +123,43 @@ export interface BookingResult {
   paymentIntentSecret: string;
   expiresAt: string;
   amountCents: number;
+  isMock?: boolean;
+}
+
+export interface MyBooking {
+  id: string;
+  status: string;
+  paymentStatus: string;
+  startDatetime: string;
+  endDatetime: string;
+  amountCents: number;
+  serviceName: string | null;
+  serviceDuration: number | null;
+  staffName: string | null;
+  providerName: string | null;
+  providerSlug: string | null;
+  providerLogoUrl: string | null;
+  providerCity: string | null;
+}
+
+export interface BookingDetail {
+  id: string;
+  status: string;
+  paymentStatus: string;
+  startDatetime: string;
+  endDatetime: string;
+  amountCents: number;
+  clientId: string;
+  staffId: string;
+  providerId: string;
+  serviceName: string | null;
+  serviceDuration: number | null;
+  staffName: string | null;
+  providerName: string | null;
+  providerSlug: string | null;
+  providerLogoUrl: string | null;
+  providerCity: string | null;
+  providerAddress: string | null;
 }
 
 // ── API functions
@@ -173,6 +210,13 @@ export const api = {
 
   cancelBooking: (bookingId: string) =>
     apiFetch<{ message: string }>(`/bookings/${bookingId}/cancel`, { method: "POST" }),
+
+  getMyBookings: () => apiFetch<MyBooking[]>("/bookings/me"),
+
+  getBooking: (bookingId: string) => apiFetch<BookingDetail>(`/bookings/${bookingId}`),
+
+  confirmBooking: (bookingId: string) =>
+    apiFetch<{ message: string }>(`/bookings/${bookingId}/confirm`, { method: "POST" }),
 
   // Dashboard
   getDashboardProvider: () => apiFetch<any>("/dashboard/provider"),
