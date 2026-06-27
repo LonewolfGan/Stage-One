@@ -1,13 +1,6 @@
 import type { Provider, StaffMember, Service, BusinessHours } from "./types";
 import type { ApiProvider } from "./api";
 
-const DEFAULT_PHOTOS = [
-  "https://images.unsplash.com/photo-1560066984-138dadb4c035?w=800&q=80",
-  "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=800&q=80",
-  "https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?w=800&q=80",
-  "https://images.unsplash.com/photo-1600948836101-f9ffda59d250?w=800&q=80",
-  "https://images.unsplash.com/photo-1562322140-8baeececf3df?w=800&q=80",
-];
 
 function initials(name: string): string {
   return name
@@ -74,7 +67,7 @@ export function adaptProvider(api: ApiProvider): Provider {
     minDurationMinutes: api.minDurationMinutes ?? null,
     isVerified: true,
     isPopular: (api.reviewCount ?? 0) > 5,
-    photos: api.logoUrl ? [api.logoUrl, ...DEFAULT_PHOTOS.slice(0, 4)] : DEFAULT_PHOTOS,
+    photos: api.logoUrl ? [api.logoUrl] : [],
     latitude: api.latitude ?? undefined,
     longitude: api.longitude ?? undefined,
     staff,
