@@ -7,6 +7,7 @@ import servicesRouter from "./services";
 import slotsRouter from "./slots";
 import bookingsRouter from "./bookings";
 import dashboardRouter from "./dashboard";
+import reviewsRouter from "./reviews";
 
 const router: IRouter = Router();
 
@@ -18,6 +19,7 @@ router.use("/providers/:slug/services", servicesRouter);
 router.use("/providers/:slug/slots", slotsRouter);
 router.use("/bookings", bookingsRouter);
 router.use("/dashboard", dashboardRouter);
+router.use("/reviews", reviewsRouter);
 
 export default router;
 
