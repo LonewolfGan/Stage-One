@@ -420,32 +420,83 @@ function Pagination({ page, total, onPage }: { page: number; total: number; onPa
 function EmptyState({ onReset }: { onReset: () => void }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
+      initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
       style={{
         display: "flex", flexDirection: "column", alignItems: "center",
-        justifyContent: "center", textAlign: "center", paddingBlock: 80, paddingInline: 24,
+        justifyContent: "center", textAlign: "center",
+        paddingBlock: 72, paddingInline: 32,
       }}
     >
-      <div style={{
-        width: 52, height: 52, borderRadius: 14,
-        background: "rgba(12,12,14,0.04)",
-        display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 18,
-      }}>
-        <Compass size={22} color="var(--ink-tertiary)" strokeWidth={1.5} />
+      {/* Illustration */}
+      <div style={{ marginBottom: 28, position: "relative" }}>
+        <svg width="140" height="120" viewBox="0 0 140 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+          {/* Background soft circle */}
+          <circle cx="70" cy="56" r="52" fill="rgba(212,70,110,0.06)" />
+          {/* Map pin base */}
+          <ellipse cx="70" cy="104" rx="22" ry="5" fill="rgba(12,12,14,0.06)" />
+          {/* Pin body */}
+          <path d="M70 18C57.3 18 47 28.3 47 41C47 55.6 70 82 70 82C70 82 93 55.6 93 41C93 28.3 82.7 18 70 18Z" fill="var(--canvas-pure)" stroke="rgba(12,12,14,0.10)" strokeWidth="1.5" />
+          {/* Pin accent ring */}
+          <path d="M70 20C58.4 20 49 29.4 49 41C49 54.9 70 80 70 80C70 80 91 54.9 91 41C91 29.4 81.6 20 70 20Z" fill="rgba(212,70,110,0.07)" />
+          {/* Magnifier glass body */}
+          <circle cx="67" cy="40" r="14" fill="white" stroke="rgba(12,12,14,0.12)" strokeWidth="1.5" />
+          {/* Magnifier inner */}
+          <circle cx="67" cy="40" r="9" fill="rgba(212,70,110,0.10)" />
+          {/* Magnifier handle */}
+          <line x1="77" y1="50" x2="85" y2="58" stroke="rgba(12,12,14,0.20)" strokeWidth="2.5" strokeLinecap="round" />
+          {/* X cross inside lens */}
+          <line x1="63" y1="36" x2="71" y2="44" stroke="#D4466E" strokeWidth="1.8" strokeLinecap="round" />
+          <line x1="71" y1="36" x2="63" y2="44" stroke="#D4466E" strokeWidth="1.8" strokeLinecap="round" />
+          {/* Sparkle top-right */}
+          <circle cx="100" cy="22" r="3" fill="rgba(212,70,110,0.30)" />
+          <circle cx="110" cy="38" r="2" fill="rgba(212,70,110,0.18)" />
+          <circle cx="96" cy="44" r="1.5" fill="rgba(212,70,110,0.22)" />
+          {/* Sparkle top-left */}
+          <circle cx="38" cy="24" r="2.5" fill="rgba(12,12,14,0.10)" />
+          <circle cx="30" cy="40" r="1.5" fill="rgba(12,12,14,0.07)" />
+          {/* Dashed lines suggesting a map grid */}
+          <line x1="20" y1="68" x2="50" y2="68" stroke="rgba(12,12,14,0.07)" strokeWidth="1" strokeDasharray="3 3" />
+          <line x1="90" y1="68" x2="120" y2="68" stroke="rgba(12,12,14,0.07)" strokeWidth="1" strokeDasharray="3 3" />
+          <line x1="20" y1="78" x2="44" y2="78" stroke="rgba(12,12,14,0.05)" strokeWidth="1" strokeDasharray="3 3" />
+          <line x1="96" y1="78" x2="120" y2="78" stroke="rgba(12,12,14,0.05)" strokeWidth="1" strokeDasharray="3 3" />
+        </svg>
       </div>
-      <h3 style={{ fontSize: 17, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.02em", margin: "0 0 8px" }}>
-        Aucun résultat
-      </h3>
-      <p style={{ fontSize: 13, color: "var(--ink-tertiary)", maxWidth: 280, margin: "0 0 22px", lineHeight: 1.55 }}>
-        Essayez d'élargir la recherche ou de modifier les filtres.
-      </p>
-      <button onClick={onReset} style={{
-        height: 36, paddingInline: 20, background: "var(--ink)", color: "#fff",
-        fontSize: 12, fontWeight: 600, letterSpacing: "-0.01em",
-        border: "none", borderRadius: 9, cursor: "pointer", fontFamily: "var(--font)",
+
+      {/* Text */}
+      <h3 style={{
+        fontSize: 18, fontWeight: 600, color: "var(--ink)",
+        letterSpacing: "-0.02em", margin: "0 0 10px", lineHeight: 1.2,
       }}>
+        Aucun établissement trouvé
+      </h3>
+      <p style={{
+        fontSize: 13, color: "var(--ink-tertiary)",
+        maxWidth: 260, margin: "0 0 8px", lineHeight: 1.6,
+      }}>
+        Aucun salon ne correspond à vos critères dans cette zone.
+      </p>
+      <p style={{
+        fontSize: 13, color: "var(--ink-tertiary)",
+        maxWidth: 260, margin: "0 0 28px", lineHeight: 1.6,
+      }}>
+        Essayez une autre ville ou élargissez la catégorie.
+      </p>
+
+      {/* CTA */}
+      <button
+        onClick={onReset}
+        style={{
+          height: 38, paddingInline: 22,
+          background: "var(--accent)", color: "#fff",
+          fontSize: 12, fontWeight: 600, letterSpacing: "-0.01em",
+          border: "none", borderRadius: 9999, cursor: "pointer", fontFamily: "var(--font)",
+          transition: "opacity 160ms ease",
+        }}
+        onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.opacity = "0.88"; }}
+        onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.opacity = "1"; }}
+      >
         Réinitialiser les filtres
       </button>
     </motion.div>
@@ -1374,7 +1425,7 @@ export default function SearchPage() {
   // TopBar (56px) + filterBar both sticky — map must clear both
   const mapStickyTop = TOPBAR_H + filterBarH;
   const mapHeight = `calc(100vh - ${TOPBAR_H + filterBarH}px)`;
-  const listWidth = isLg ? 640 : 500;
+  const listWidth = "50%";
 
   /* dynamic title */
   const pageTitle = (() => {
@@ -1401,7 +1452,7 @@ export default function SearchPage() {
       {/* ③ Two-column */}
       <div style={{ display: "flex", alignItems: "flex-start" }}>
         {/* Left — results */}
-        <div style={{ width: listWidth, flexShrink: 0, borderRight: "1px solid rgba(12,12,14,0.06)" }}>
+        <div style={{ flex: "0 0 50%", minWidth: 0, borderRight: "1px solid rgba(12,12,14,0.06)" }}>
 
           {/* Column header — title + subtitle */}
           <div style={{ padding: "24px 20px 20px" }}>
@@ -1432,7 +1483,7 @@ export default function SearchPage() {
         </div>
 
         {/* Right — sticky map */}
-        <div style={{ flex: 1, position: "sticky", top: mapStickyTop, height: mapHeight, overflow: "hidden" }}>
+        <div style={{ flex: "0 0 50%", position: "sticky", top: mapStickyTop, height: mapHeight, overflow: "hidden" }}>
           <MapView
             providers={mapProviders} selectedId={selectedId} setSelectedId={setSelectedId}
             userCoords={userCoords} defaultCenter={defaultCenter}
