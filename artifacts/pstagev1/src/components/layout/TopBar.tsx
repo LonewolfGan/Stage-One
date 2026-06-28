@@ -29,24 +29,25 @@ export function TopBar() {
   return (
     <>
       <motion.header
-        className="fixed left-0 right-0 z-50 flex items-center justify-center pointer-events-none"
-        style={{ top: 20, paddingInline: 20 }}
-        initial={{ opacity: 0, y: -16 }}
+        className="fixed left-0 right-0 z-50 pointer-events-none"
+        style={{ top: 0 }}
+        initial={{ opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.38, ease: [0.0, 0.0, 0.2, 1] }}
+        transition={{ duration: 0.32, ease: [0.0, 0.0, 0.2, 1] }}
       >
         <div
           className="pointer-events-auto flex items-center justify-between w-full"
           style={{
-            maxWidth: 800,
             height: 56,
-            backgroundColor: "rgba(255,255,255,0.88)",
+            backgroundColor: "rgba(255,255,255,0.92)",
             backdropFilter: "blur(20px)",
             WebkitBackdropFilter: "blur(20px)",
-            borderRadius: 9999,
-            paddingLeft: isMobile ? 12 : 10,
-            paddingRight: isMobile ? 12 : 10,
-            border: "1px solid var(--hairline)",
+            borderRadius: "0 0 12px 12px",
+            paddingLeft: isMobile ? 16 : 28,
+            paddingRight: isMobile ? 12 : 20,
+            borderBottom: "1px solid var(--hairline)",
+            borderLeft: "1px solid var(--hairline)",
+            borderRight: "1px solid var(--hairline)",
             gap: 16,
           }}
         >
@@ -227,16 +228,16 @@ export function TopBar() {
         <AnimatePresence>
           {isMobile && menuOpen && (
             <motion.div
-              initial={{ opacity: 0, y: -8, scale: 0.97 }}
+              initial={{ opacity: 0, y: -6, scale: 0.98 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -8, scale: 0.97 }}
-              transition={{ type: "spring", stiffness: 400, damping: 32 }}
+              exit={{ opacity: 0, y: -6, scale: 0.98 }}
+              transition={{ type: "spring", stiffness: 420, damping: 34 }}
               style={{
-                position: "absolute", top: 68, left: 20, right: 20,
+                position: "absolute", top: "calc(100% + 6px)", left: 0, right: 0,
                 backgroundColor: "rgba(255,255,255,0.97)",
                 backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
-                borderRadius: 16, border: "1px solid var(--hairline)",
-                padding: "8px 0", zIndex: 100,
+                borderRadius: "0 0 12px 12px", border: "1px solid var(--hairline)",
+                borderTop: "none", padding: "8px 0", zIndex: 100,
               }}
             >
               {NAV_LINKS.map((item, i) => (
