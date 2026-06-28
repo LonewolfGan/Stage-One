@@ -277,9 +277,16 @@ Logging backend : toujours `req.log` dans les routes, `logger` ailleurs. Jamais 
 - Langue UI : **français** (plateforme marocaine)
 - Pas d'emojis dans l'UI — seulement icônes Lucide React
 - Design : Awwwards-level, Linear/Resend en light mode
-- Accent rose `#D4466E` — jamais de noir pour les boutons primaires
+- Boutons primaires : **ink `#0C0C0E`** (jamais rose sur les CTAs)
+- Accent rose `#D4466E` : max 1 élément par écran, uniquement sémantique (pastille notif, cœur favori)
 - Prix en MAD : toujours `priceCents / 100` + "MAD"
 - Sections majeures : `py-24` (96px) de séparation
+
+### Règle de processus design (obligatoire)
+
+**À chaque modification du frontend (`artifacts/pstagev1/src/`), le skill `impeccable` doit être invoqué** pour s'assurer que la qualité design est maintenue. Cela inclut : toute création ou modification de composant, page, ou token CSS. Lire `.agents/skills/impeccable/SKILL.md` avant d'implémenter, puis effectuer un audit post-implémentation.
+
+Fichier contexte produit pour `impeccable` : `artifacts/pstagev1/PRODUCT.md`
 
 ---
 
