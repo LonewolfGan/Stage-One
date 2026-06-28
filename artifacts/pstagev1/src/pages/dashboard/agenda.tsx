@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
-import { DataCard } from "@/components/ui/DataCard";
 import { Button } from "@/components/ui/DSButton";
 import { BookingBlock } from "@/components/dashboard/BookingBlock";
 import { api } from "@/lib/api";
@@ -13,23 +12,24 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 
 const MONTHS = ["jan.", "fév.", "mars", "avr.", "mai", "juin", "juil.", "août", "sep.", "oct.", "nov.", "déc."];
-const DAY_NAMES_LONG = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
+const DAY_NAMES_LONG  = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
+const DAY_NAMES_SHORT = ["D", "L", "M", "M", "J", "V", "S"];
 
 function toDateStr(d: Date) {
   return d.toISOString().slice(0, 10);
 }
 
 function formatDateLabel(d: Date, short: boolean) {
-  const day = d.getDate();
+  const day   = d.getDate();
   const month = MONTHS[d.getMonth()];
   return short ? `${day} ${month}` : `${DAY_NAMES_LONG[d.getDay()]} ${day} ${month}`;
 }
 
 const BLOCK_DURATIONS = [
   { label: "30 min", value: 30 },
-  { label: "1h", value: 60 },
-  { label: "1h30", value: 90 },
-  { label: "2h", value: 120 },
+  { label: "1h",     value: 60 },
+  { label: "1h30",   value: 90 },
+  { label: "2h",     value: 120 },
 ];
 
 interface BlockModal {
@@ -37,6 +37,96 @@ interface BlockModal {
   staffName: string;
   hour: number;
   date: string;
+}
+
+function WeekStrip({
+  current,
+  onSelect,
+}: {
+  current: Date;
+  onSelect: (d: Date) => void;
+}) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const startOfWeek = (() => {
+    const d = new Date(current);
+    const dow = d.getDay();
+    d.setDate(d.getDate() - ((dow + 6) % 7));
+    d.setHours(0, 0, 0, 0);
+    return d;
+  })();
+
+  const days = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(startOfWeek);
+    d.setDate(d.getDate() + i);
+    return d;
+  });
+
+  const isToday    = (d: Date) => d.getTime() === today.getTime();
+  const isSelected = (d: Date) => {
+    const c = new Date(current);
+    c.setHours(0, 0, 0, 0);
+    return d.getTime() === c.getTime();
+  };
+
+  return (
+    <div
+      style={{
+        display: "flex",
+        gap: 4,
+        marginBottom: 20,
+        backgroundColor: "var(--surface-1)",
+        border: "1px solid var(--hairline)",
+        borderRadius: 14,
+        padding: "10px 12px",
+        alignItems: "center",
+      }}
+    >
+      <span style={{ fontSize: 11, fontWeight: 600, color: "var(--ink-tertiary)", letterSpacing: "0.04em", textTransform: "uppercase", marginRight: 8, whiteSpace: "nowrap" }}>
+        {MONTHS[startOfWeek.getMonth()].replace(".", "")} {startOfWeek.getFullYear()}
+      </span>
+      <div style={{ flex: 1, display: "flex", gap: 4 }}>
+        {days.map((d, i) => {
+          const selected = isSelected(d);
+          const tod      = isToday(d);
+          return (
+            <button
+              key={i}
+              onClick={() => onSelect(d)}
+              style={{
+                flex: 1,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: 4,
+                padding: "6px 4px",
+                borderRadius: 10,
+                border: "none",
+                cursor: "pointer",
+                backgroundColor: selected
+                  ? "var(--accent)"
+                  : tod
+                  ? "var(--accent-tint)"
+                  : "transparent",
+                transition: "background-color 150ms",
+              }}
+            >
+              <span style={{ fontSize: 9, fontWeight: 600, letterSpacing: "0.04em", color: selected ? "rgba(255,255,255,0.8)" : "var(--ink-tertiary)", textTransform: "uppercase" }}>
+                {DAY_NAMES_SHORT[(i + 1) % 7]}
+              </span>
+              <span style={{ fontSize: 14, fontWeight: selected || tod ? 600 : 400, color: selected ? "#fff" : tod ? "var(--accent)" : "var(--ink)", lineHeight: 1 }}>
+                {d.getDate()}
+              </span>
+              {tod && !selected && (
+                <div style={{ width: 4, height: 4, borderRadius: "50%", backgroundColor: "var(--accent)" }} />
+              )}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
 }
 
 export default function AgendaPage() {
@@ -71,7 +161,6 @@ export default function AgendaPage() {
   const staffList: Array<{ id: string; name: string }> = providerData?.staff ?? [];
   const providerId: string | undefined = providerData?.id;
 
-  // Real-time WebSocket hooks
   useSlotSync(providerId, dateStr);
   useBookingNotifications(providerId);
 
@@ -95,12 +184,8 @@ export default function AgendaPage() {
     },
   });
 
-  function prevDay() {
-    setCurrentDate((d) => { const nd = new Date(d); nd.setDate(nd.getDate() - 1); return nd; });
-  }
-  function nextDay() {
-    setCurrentDate((d) => { const nd = new Date(d); nd.setDate(nd.getDate() + 1); return nd; });
-  }
+  function prevDay() { setCurrentDate((d) => { const nd = new Date(d); nd.setDate(nd.getDate() - 1); return nd; }); }
+  function nextDay() { setCurrentDate((d) => { const nd = new Date(d); nd.setDate(nd.getDate() + 1); return nd; }); }
   function goToday() { setCurrentDate(new Date()); }
 
   const adaptedBookings = bookings.map((b: any) => {
@@ -117,13 +202,10 @@ export default function AgendaPage() {
     };
   });
 
-  const displayStaff = staffList.length > 0 ? staffList : [{ id: "", name: "—" }];
-
-  const todayBookings = bookings.length;
-  const estimatedRevenue = analytics?.estimatedRevenueCents
-    ? Math.round(analytics.estimatedRevenueCents / 100)
-    : 0;
-  const fillRate = analytics?.fillRate ?? 0;
+  const displayStaff       = staffList.length > 0 ? staffList : [{ id: "", name: "—" }];
+  const todayBookings      = bookings.length;
+  const estimatedRevenue   = analytics?.estimatedRevenueCents ? Math.round(analytics.estimatedRevenueCents / 100) : 0;
+  const fillRate           = analytics?.fillRate ?? 0;
 
   return (
     <DashboardLayout
@@ -170,37 +252,86 @@ export default function AgendaPage() {
         </>
       }
     >
-      <div className="dash-stat-grid" style={{ marginBottom: 20 }}>
-        <DataCard label="Aujourd'hui" value={`${todayBookings}`} subValue="RDV" />
-        <DataCard label="CA 30 jours" value={estimatedRevenue.toLocaleString("fr-MA")} subValue="MAD" trend="up" trendValue="" />
-        <DataCard label="Remplissage" value={`${fillRate}%`} trend={fillRate > 50 ? "up" : undefined} trendValue="" />
+      {/* Week strip */}
+      <WeekStrip current={currentDate} onSelect={setCurrentDate} />
+
+      {/* KPI mini-row */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginBottom: 20 }}>
+        {[
+          { label: "RDV aujourd'hui", value: todayBookings.toString(), sub: "RDV", color: "#D4466E" },
+          { label: "CA 30 jours",     value: estimatedRevenue.toLocaleString("fr-MA"), sub: "MAD", color: "#E8A33D" },
+          { label: "Remplissage",     value: `${fillRate}%`, sub: "", color: "#8B5CF6" },
+        ].map((card, i) => (
+          <div
+            key={i}
+            className="ds-card"
+            style={{ padding: "14px 16px", display: "flex", flexDirection: "column", gap: 4 }}
+          >
+            <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "var(--ink-tertiary)", margin: 0 }}>
+              {card.label}
+            </p>
+            <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
+              <span style={{ fontSize: 24, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.02em" }}>
+                {card.value}
+              </span>
+              {card.sub && (
+                <span style={{ fontSize: 12, color: "var(--ink-tertiary)" }}>{card.sub}</span>
+              )}
+            </div>
+            <div style={{ height: 3, backgroundColor: "var(--surface-2)", borderRadius: 99, overflow: "hidden", marginTop: 4 }}>
+              <div style={{ height: "100%", width: "65%", backgroundColor: card.color, borderRadius: 99 }} />
+            </div>
+          </div>
+        ))}
       </div>
 
-      <div className="ds-card" style={{ padding: 0, overflow: "hidden", display: "flex", flexDirection: "column", height: 560 }}>
+      {/* Time grid */}
+      <div className="ds-card" style={{ padding: 0, overflow: "hidden", display: "flex", flexDirection: "column", height: 520 }}>
         {/* Header row */}
-        <div style={{ display: "flex", borderBottom: "1px solid var(--hairline)", backgroundColor: "rgba(12,12,14,0.03)", flexShrink: 0 }}>
+        <div style={{ display: "flex", borderBottom: "1px solid var(--hairline)", backgroundColor: "rgba(12,12,14,0.025)", flexShrink: 0 }}>
           <div style={{ width: 56, flexShrink: 0, borderRight: "1px solid var(--hairline)" }} />
           {displayStaff.map((member) => (
             <div
               key={member.id || member.name}
               style={{
-                flex: 1, textAlign: "center", padding: "10px 8px",
+                flex: 1, textAlign: "center", padding: "12px 8px",
                 fontSize: 12, fontWeight: 600, color: "var(--ink-secondary)",
                 borderRight: "1px solid var(--hairline)",
                 letterSpacing: "0.01em", whiteSpace: "nowrap",
                 overflow: "hidden", textOverflow: "ellipsis",
               }}
             >
-              {member.name.split(" ")[0]}
+              <div style={{
+                display: "inline-flex", alignItems: "center", gap: 6,
+              }}>
+                <div style={{
+                  width: 22, height: 22, borderRadius: "50%",
+                  backgroundColor: "var(--accent-tint)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: 9, fontWeight: 700, color: "var(--accent)",
+                  flexShrink: 0,
+                }}>
+                  {member.name.split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase()}
+                </div>
+                {member.name.split(" ")[0]}
+              </div>
             </div>
           ))}
         </div>
 
-        {/* Time grid */}
+        {/* Scrollable grid */}
         <div style={{ flex: 1, overflowY: "auto", overflowX: "auto" }}>
           <div style={{ minWidth: 360 }}>
-            {hours.map((hour) => (
-              <div key={hour} style={{ display: "flex", borderBottom: "1px solid var(--hairline)", height: 72 }}>
+            {hours.map((hour, hi) => (
+              <div
+                key={hour}
+                style={{
+                  display: "flex",
+                  borderBottom: "1px solid var(--hairline)",
+                  height: 64,
+                  backgroundColor: hi % 2 === 0 ? "transparent" : "rgba(12,12,14,0.012)",
+                }}
+              >
                 <div style={{
                   width: 56, flexShrink: 0, borderRight: "1px solid var(--hairline)",
                   display: "flex", justifyContent: "center", paddingTop: 8,
@@ -244,10 +375,11 @@ export default function AgendaPage() {
                         <BookingBlock key={booking.id} booking={booking} />
                       ))}
                       {member.id && !hasBooking && (
-                        <div style={{
-                          position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center",
-                          opacity: 0, transition: "opacity var(--ease-fast)",
-                        }}
+                        <div
+                          style={{
+                            position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center",
+                            opacity: 0, transition: "opacity var(--ease-fast)",
+                          }}
                           className="block-hint"
                         >
                           <Lock size={11} style={{ color: "var(--ink-disabled)" }} />
@@ -268,7 +400,7 @@ export default function AgendaPage() {
           style={{
             position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.4)",
             display: "flex", alignItems: "center", justifyContent: "center",
-            zIndex: 1000, padding: 20,
+            zIndex: 1000, padding: 20, backdropFilter: "blur(4px)",
           }}
           onClick={() => setBlockModal(null)}
         >
@@ -290,7 +422,6 @@ export default function AgendaPage() {
               </p>
             </div>
 
-            {/* Duration picker */}
             <div style={{ marginBottom: 16 }}>
               <label style={{ display: "block", fontSize: 13, fontWeight: 500, color: "var(--ink)", marginBottom: 8 }}>Durée</label>
               <div style={{ display: "flex", gap: 8 }}>
@@ -314,7 +445,6 @@ export default function AgendaPage() {
               </div>
             </div>
 
-            {/* Reason */}
             <div style={{ marginBottom: 24 }}>
               <label style={{ display: "block", fontSize: 13, fontWeight: 500, color: "var(--ink)", marginBottom: 8 }}>Motif (optionnel)</label>
               <input

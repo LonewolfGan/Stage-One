@@ -915,6 +915,50 @@ export default function HomePage() {
       </section>
 
       <Footer />
+
+      {/* Floating dashboard demo button */}
+      <a
+        href="/dashboard/analytics"
+        style={{
+          position: "fixed",
+          bottom: 28,
+          right: 28,
+          zIndex: 999,
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          backgroundColor: "var(--ink)",
+          color: "#fff",
+          fontSize: 13,
+          fontWeight: 600,
+          padding: "10px 18px 10px 14px",
+          borderRadius: 999,
+          textDecoration: "none",
+          letterSpacing: "-0.01em",
+          border: "1px solid rgba(255,255,255,0.08)",
+          backdropFilter: "blur(8px)",
+          cursor: "pointer",
+        }}
+        onMouseEnter={(e) => {
+          (e.currentTarget as HTMLAnchorElement).style.backgroundColor = "var(--accent)";
+        }}
+        onMouseLeave={(e) => {
+          (e.currentTarget as HTMLAnchorElement).style.backgroundColor = "var(--ink)";
+        }}
+      >
+        <span style={{
+          width: 20, height: 20, borderRadius: 6,
+          backgroundColor: "rgba(255,255,255,0.15)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          flexShrink: 0,
+        }}>
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+            <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+          </svg>
+        </span>
+        Voir le Dashboard
+      </a>
     </div>
   );
 }
