@@ -32,16 +32,17 @@ const MOCK_MONTH = Array.from({ length: 30 }, (_, i) => {
   };
 });
 
+/* Harmonized monochromatic scale — ranked darkest to lightest */
 const MOCK_SERVICES = [
   { name: "Coupe + Brushing", count: 48, color: "#D4466E", max: 48 },
-  { name: "Soin kératine",    count: 31, color: "#0E7B6C", max: 48 },
-  { name: "Coloration",       count: 27, color: "#8B5CF6", max: 48 },
-  { name: "Manucure",         count: 21, color: "#E8A33D", max: 48 },
-  { name: "Épilation",        count: 16, color: "#06B6D4", max: 48 },
+  { name: "Soin kératine",    count: 31, color: "#3A3D43", max: 48 },
+  { name: "Coloration",       count: 27, color: "#53565C", max: 48 },
+  { name: "Manucure",         count: 21, color: "#8A8D93", max: 48 },
+  { name: "Épilation",        count: 16, color: "#C2C4C8", max: 48 },
 ];
 
 const tooltipStyle = {
-  borderRadius: 10,
+  borderRadius: 8,
   border: "1px solid var(--hairline)",
   backgroundColor: "var(--surface-1)",
   fontSize: 12,
@@ -50,11 +51,10 @@ const tooltipStyle = {
 };
 
 function KpiCard({
-  label, value, sub, delta, positive,
-  icon: Icon, accent, sparkData,
+  label, value, sub, delta, positive, icon: Icon, sparkData,
 }: {
   label: string; value: string; sub?: string; delta?: string; positive?: boolean;
-  icon: React.ElementType; accent: string; sparkData: { v: number }[];
+  icon: React.ElementType; sparkData: { v: number }[];
 }) {
   return (
     <motion.div
@@ -65,15 +65,19 @@ function KpiCard({
       style={{ padding: 20, overflow: "hidden", position: "relative", display: "flex", flexDirection: "column", gap: 0 }}
     >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 14 }}>
-        <div style={{ width: 36, height: 36, borderRadius: 10, backgroundColor: accent + "18", display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <Icon size={17} color={accent} />
+        <div style={{
+          width: 34, height: 34, borderRadius: 8,
+          backgroundColor: "rgba(12,12,14,0.05)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+        }}>
+          <Icon size={16} color="var(--ink-secondary)" />
         </div>
         {delta && (
           <span style={{
             display: "flex", alignItems: "center", gap: 3,
             fontSize: 11, fontWeight: 600,
-            color: positive ? "#10B981" : "#EF4444",
-            backgroundColor: positive ? "#10B98115" : "#EF444415",
+            color: positive ? "var(--success)" : "var(--error)",
+            backgroundColor: positive ? "var(--success-bg)" : "var(--error-bg)",
             padding: "3px 8px", borderRadius: 20,
           }}>
             {positive ? <ArrowUpRight size={11} /> : <ArrowDownRight size={11} />}{delta}
@@ -86,17 +90,17 @@ function KpiCard({
       </div>
       <p style={{ fontSize: 12, color: "var(--ink-tertiary)", margin: "0 0 12px" }}>{label}</p>
 
-      {/* Sparkline */}
-      <div style={{ height: 40, marginInline: -20, marginBottom: -20 }}>
+      {/* Sparkline — subtle ink tone */}
+      <div style={{ height: 36, marginInline: -20, marginBottom: -20 }}>
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={sparkData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
             <defs>
               <linearGradient id={`sk-${label}`} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor={accent} stopOpacity={0.3} />
-                <stop offset="100%" stopColor={accent} stopOpacity={0} />
+                <stop offset="0%" stopColor="#0C0C0E" stopOpacity={0.12} />
+                <stop offset="100%" stopColor="#0C0C0E" stopOpacity={0} />
               </linearGradient>
             </defs>
-            <Area type="monotone" dataKey="v" stroke={accent} strokeWidth={1.5} fill={`url(#sk-${label})`} dot={false} isAnimationActive={false} />
+            <Area type="monotone" dataKey="v" stroke="rgba(12,12,14,0.25)" strokeWidth={1.5} fill={`url(#sk-${label})`} dot={false} isAnimationActive={false} />
           </AreaChart>
         </ResponsiveContainer>
       </div>
@@ -104,7 +108,7 @@ function KpiCard({
   );
 }
 
-/* ── Pill bar (like image 3) ── */
+/* Pill bar — ranked by shade */
 function PillBar({ value, max, color, label }: { value: number; max: number; color: string; label: string }) {
   const filled   = Math.round((value / max) * 7);
   const segments = 7;
@@ -115,7 +119,7 @@ function PillBar({ value, max, color, label }: { value: number; max: number; col
         <span style={{ fontSize: 12, color: "var(--ink-secondary)", fontWeight: 500 }}>{label}</span>
         <span style={{ fontSize: 12, fontWeight: 600, color: "var(--ink)" }}>{value}</span>
       </div>
-      <div style={{ display: "flex", gap: 3, height: 28 }}>
+      <div style={{ display: "flex", gap: 3, height: 24 }}>
         {Array.from({ length: segments }, (_, i) => (
           <div
             key={i}
@@ -138,26 +142,32 @@ function CustomTooltip({ active, payload, label }: any) {
     <div style={tooltipStyle}>
       <p style={{ margin: "0 0 4px", fontWeight: 600, color: "var(--ink)", fontSize: 12 }}>{label}</p>
       {payload.map((p: any, i: number) => (
-        <p key={i} style={{ margin: 0, color: p.color ?? "var(--ink-secondary)", fontSize: 12 }}>
-          {p.name}: <strong>{p.value}</strong>
+        <p key={i} style={{ margin: 0, color: "var(--ink-secondary)", fontSize: 12 }}>
+          {p.name}: <strong style={{ color: "var(--ink)" }}>{p.value}</strong>
         </p>
       ))}
     </div>
   );
 }
 
-/* ── "Today's Earning" mini-widget style (from ref image 1) ── */
-function EarningWidget({ label, value, color, sub }: { label: string; value: string; color: string; sub?: string }) {
+/* Compact stat widget — replaces colored EarningWidget */
+function StatWidget({ label, value, sub, dark }: { label: string; value: string; sub?: string; dark?: boolean }) {
   return (
     <div
       className="ds-card"
-      style={{ padding: "14px 16px", backgroundColor: color, border: "none", display: "flex", flexDirection: "column", gap: 4 }}
+      style={{
+        padding: "16px 18px",
+        backgroundColor: dark ? "#0C0C0E" : undefined,
+        border: dark ? "none" : undefined,
+      }}
     >
-      <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "rgba(255,255,255,0.7)", margin: 0 }}>
+      <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.03em", textTransform: "uppercase", color: dark ? "rgba(255,255,255,0.45)" : "var(--ink-tertiary)", margin: "0 0 6px" }}>
         {label}
       </p>
-      <p style={{ fontSize: 22, fontWeight: 700, color: "#fff", letterSpacing: "-0.02em", margin: 0 }}>{value}</p>
-      {sub && <p style={{ fontSize: 11, color: "rgba(255,255,255,0.6)", margin: 0 }}>{sub}</p>}
+      <p style={{ fontSize: 22, fontWeight: 600, letterSpacing: "-0.02em", color: dark ? "#FFFFFF" : "var(--ink)", margin: 0 }}>
+        {value}
+      </p>
+      {sub && <p style={{ fontSize: 11, color: dark ? "rgba(255,255,255,0.38)" : "var(--ink-tertiary)", margin: "4px 0 0" }}>{sub}</p>}
     </div>
   );
 }
@@ -194,18 +204,17 @@ export default function AnalyticsPage() {
   return (
     <DashboardLayout title="Statistiques" breadcrumb="Statistiques">
 
-      {/* ── Top widgets (inspired by image 1 top row) ── */}
+      {/* ── KPI cards ── */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 20 }}>
-        <KpiCard label="Réservations (30 j)" value={`${totalBookings}`} delta="+12%" positive icon={TrendingUp} accent="#D4466E" sparkData={spark(monthData)} />
-        <KpiCard label="CA estimé (30 j)" value={revenueMad.toLocaleString("fr-MA")} sub="MAD" delta="+8%" positive icon={Star} accent="#0E7B6C" sparkData={sparkR} />
-        <KpiCard label="Taux de remplissage" value={`${fillRate}%`} delta="+5 pts" positive icon={Scissors} accent="#8B5CF6" sparkData={sparkF} />
-        <KpiCard label="Clients ce mois" value="84" delta="+3" positive icon={Users} accent="#E8A33D" sparkData={sparkC} />
+        <KpiCard label="Réservations (30 j)" value={`${totalBookings}`} delta="+12%" positive icon={TrendingUp} sparkData={spark(monthData)} />
+        <KpiCard label="CA estimé (30 j)" value={revenueMad.toLocaleString("fr-MA")} sub="MAD" delta="+8%" positive icon={Star} sparkData={sparkR} />
+        <KpiCard label="Taux de remplissage" value={`${fillRate}%`} delta="+5 pts" positive icon={Scissors} sparkData={sparkF} />
+        <KpiCard label="Clients ce mois" value="84" delta="+3" positive icon={Users} sparkData={sparkC} />
       </div>
 
-      {/* ── Middle: area chart + pill bar chart (image 3 style) ── */}
+      {/* ── Area chart + pill bars ── */}
       <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 16, marginBottom: 16 }}>
 
-        {/* Area chart — main */}
         <motion.div
           className="ds-card"
           initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
@@ -218,11 +227,9 @@ export default function AnalyticsPage() {
               </h2>
               <p style={{ fontSize: 12, color: "var(--ink-tertiary)", margin: "3px 0 0" }}>30 derniers jours</p>
             </div>
-            <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                <div style={{ width: 8, height: 8, borderRadius: "50%", backgroundColor: "#D4466E" }} />
-                <span style={{ fontSize: 11, color: "var(--ink-tertiary)" }}>Réservations</span>
-              </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+              <div style={{ width: 8, height: 8, borderRadius: "50%", backgroundColor: "var(--accent)" }} />
+              <span style={{ fontSize: 11, color: "var(--ink-tertiary)" }}>Réservations</span>
             </div>
           </div>
           <div style={{ height: 220 }}>
@@ -230,21 +237,20 @@ export default function AnalyticsPage() {
               <AreaChart data={monthData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="ga-main" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#D4466E" stopOpacity={0.35} />
-                    <stop offset="100%" stopColor="#D4466E" stopOpacity={0} />
+                    <stop offset="0%" stopColor="var(--accent)" stopOpacity={0.30} />
+                    <stop offset="100%" stopColor="var(--accent)" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid stroke="var(--hairline)" vertical={false} strokeDasharray="3 3" />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: "var(--ink-tertiary)", fontSize: 10 }} interval={5} />
                 <YAxis axisLine={false} tickLine={false} tick={{ fill: "var(--ink-tertiary)", fontSize: 10 }} />
                 <Tooltip content={<CustomTooltip />} />
-                <Area type="monotone" dataKey="bookings" name="Réservations" stroke="#D4466E" strokeWidth={2} fill="url(#ga-main)" dot={false} activeDot={{ r: 4, fill: "#D4466E", strokeWidth: 0 }} />
+                <Area type="monotone" dataKey="bookings" name="Réservations" stroke="var(--accent)" strokeWidth={2} fill="url(#ga-main)" dot={false} activeDot={{ r: 4, fill: "var(--accent)", strokeWidth: 0 }} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         </motion.div>
 
-        {/* Pill bar chart — image 3 style */}
         <motion.div
           className="ds-card"
           initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
@@ -256,7 +262,7 @@ export default function AnalyticsPage() {
             </h2>
             <p style={{ fontSize: 12, color: "var(--ink-tertiary)", margin: "3px 0 0" }}>Ce mois — par volume</p>
           </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
             {serviceData.map((s, i) => (
               <motion.div
                 key={s.name}
@@ -271,88 +277,86 @@ export default function AnalyticsPage() {
         </motion.div>
       </div>
 
-      {/* ── Bottom: donut + weekly bar + earning widgets ── */}
+      {/* ── Bottom row: donut + weekly bar + stat widgets ── */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
 
-        {/* Donut — fill rate */}
+        {/* Donut — ink fill */}
         <motion.div
           className="ds-card"
           initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.22, duration: 0.4, ease: [0, 0, 0.2, 1] }}
           style={{ display: "flex", flexDirection: "column" }}
         >
-          <h2 style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.01em", margin: "0 0 4px" }}>
+          <h2 style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.01em", margin: "0 0 3px" }}>
             Taux de remplissage
           </h2>
           <p style={{ fontSize: 12, color: "var(--ink-tertiary)", margin: "0 0 12px" }}>Ce mois</p>
           <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", position: "relative", minHeight: 160 }}>
             <ResponsiveContainer width="100%" height={160}>
               <PieChart>
-                <defs>
-                  <linearGradient id="dg" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0%" stopColor="#0E7B6C" />
-                    <stop offset="100%" stopColor="#D4466E" />
-                  </linearGradient>
-                </defs>
-                <Pie data={[{ value: fillRate }, { value: 100 - fillRate }]} cx="50%" cy="50%" innerRadius={50} outerRadius={66} startAngle={90} endAngle={-270} dataKey="value" strokeWidth={0}>
-                  <Cell fill="url(#dg)" />
+                <Pie
+                  data={[{ value: fillRate }, { value: 100 - fillRate }]}
+                  cx="50%" cy="50%" innerRadius={50} outerRadius={66}
+                  startAngle={90} endAngle={-270} dataKey="value" strokeWidth={0}
+                >
+                  <Cell fill="#0C0C0E" />
                   <Cell fill="var(--surface-3)" />
                 </Pie>
               </PieChart>
             </ResponsiveContainer>
             <div style={{ position: "absolute", textAlign: "center" }}>
-              <p style={{ fontSize: 24, fontWeight: 700, color: "var(--ink)", letterSpacing: "-0.025em", margin: 0 }}>{fillRate}%</p>
+              <p style={{ fontSize: 24, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.025em", margin: 0 }}>{fillRate}%</p>
               <p style={{ fontSize: 10, color: "var(--ink-tertiary)", margin: 0 }}>occupé</p>
             </div>
           </div>
         </motion.div>
 
-        {/* Weekly bar */}
+        {/* Weekly bar — ink tones */}
         <motion.div
           className="ds-card"
           initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.28, duration: 0.4, ease: [0, 0, 0.2, 1] }}
         >
-          <h2 style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.01em", margin: "0 0 4px" }}>
+          <h2 style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.01em", margin: "0 0 3px" }}>
             Cette semaine
           </h2>
           <p style={{ fontSize: 12, color: "var(--ink-tertiary)", margin: "0 0 12px" }}>Réservations par jour</p>
           <div style={{ height: 150 }}>
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={MOCK_WEEK} barSize={18} margin={{ top: 0, right: 0, left: -30, bottom: 0 }}>
+              <BarChart data={MOCK_WEEK} barSize={16} margin={{ top: 0, right: 0, left: -30, bottom: 0 }}>
                 <defs>
                   <linearGradient id="gb" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#8B5CF6" stopOpacity={1} />
-                    <stop offset="100%" stopColor="#8B5CF6" stopOpacity={0.4} />
+                    <stop offset="0%" stopColor="#0C0C0E" stopOpacity={0.80} />
+                    <stop offset="100%" stopColor="#0C0C0E" stopOpacity={0.20} />
                   </linearGradient>
                 </defs>
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: "var(--ink-tertiary)", fontSize: 10 }} />
                 <YAxis axisLine={false} tickLine={false} tick={{ fill: "var(--ink-tertiary)", fontSize: 10 }} />
                 <Tooltip content={<CustomTooltip />} cursor={{ fill: "rgba(12,12,14,0.03)", radius: 4 }} />
-                <Bar dataKey="bookings" name="RDV" fill="url(#gb)" radius={[6, 6, 0, 0]} />
+                <Bar dataKey="bookings" name="RDV" fill="url(#gb)" radius={[5, 5, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
         </motion.div>
 
-        {/* Earning widgets stack (image 1 style) */}
+        {/* Stat widgets — harmonized */}
         <motion.div
           initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.34, duration: 0.4, ease: [0, 0, 0.2, 1] }}
-          style={{ display: "flex", flexDirection: "column", gap: 12 }}
+          style={{ display: "flex", flexDirection: "column", gap: 10 }}
         >
-          <EarningWidget label="CA aujourd'hui" value="1 080 MAD" color="#0E7B6C" sub="+12% vs hier" />
-          <EarningWidget label="RDV aujourd'hui" value={`${totalBookings || 8}`} color="#D4466E" sub="sur 12 créneaux" />
-          <div className="ds-card" style={{ padding: "14px 16px", flex: 1 }}>
-            <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "var(--ink-tertiary)", margin: "0 0 6px" }}>
+          <StatWidget label="CA aujourd'hui" value="1 080 MAD" sub="+12% vs hier" dark />
+          <StatWidget label="RDV aujourd'hui" value={`${totalBookings || 8}`} sub="sur 12 créneaux" />
+          <div className="ds-card" style={{ padding: "14px 18px", flex: 1 }}>
+            <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.03em", textTransform: "uppercase", color: "var(--ink-tertiary)", margin: "0 0 6px" }}>
               Solde total
             </p>
-            <p style={{ fontSize: 22, fontWeight: 700, color: "var(--ink)", letterSpacing: "-0.02em", margin: 0 }}>
+            <p style={{ fontSize: 22, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.02em", margin: 0 }}>
               {revenueMad.toLocaleString("fr-MA")} MAD
             </p>
-            <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 6 }}>
-              <div style={{ width: 6, height: 6, borderRadius: "50%", backgroundColor: "#10B981" }} />
-              <span style={{ fontSize: 11, color: "#10B981", fontWeight: 500 }}>En hausse ce mois</span>
+            <div style={{ display: "flex", alignItems: "center", gap: 5, marginTop: 6 }}>
+              <ArrowUpRight size={12} color="var(--success)" />
+              <span style={{ fontSize: 11, color: "var(--success)", fontWeight: 500 }}>En hausse ce mois</span>
             </div>
           </div>
         </motion.div>
