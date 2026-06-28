@@ -7,6 +7,7 @@ import { requireAuth } from "../middlewares/auth";
 import { emitSlotUpdate, emitBookingConfirmed } from "../lib/socket";
 import { stripe } from "../lib/stripe";
 import { redis } from "../lib/redis";
+import { enqueueEmailJob } from "../lib/email-worker";
 
 const router = Router();
 
@@ -277,6 +278,20 @@ router.post("/:bookingId/confirm", async (req, res) => {
     clientName: client?.name ?? "",
     startDatetime: booking.startDatetime.toISOString(),
   });
+
+  // Confirmation email — sent immediately
+  enqueueEmailJob({ type: "booking_confirmation", bookingId: booking.id }).catch((err) =>
+    req.log.error({ err }, "Failed to enqueue confirmation email"),
+  );
+
+  // J-1 reminder — scheduled 24h before appointment (only if > 25h away)
+  const msUntilStart = booking.startDatetime.getTime() - Date.now();
+  const reminderDelay = msUntilStart - 24 * 60 * 60 * 1000;
+  if (reminderDelay > 60_000) {
+    enqueueEmailJob({ type: "booking_reminder", bookingId: booking.id }, reminderDelay).catch((err) =>
+      req.log.error({ err }, "Failed to enqueue reminder email"),
+    );
+  }
 
   res.json({ message: "Réservation confirmée" });
 });

@@ -3,6 +3,7 @@ import app from "./app";
 import { logger } from "./lib/logger";
 import { initSocket } from "./lib/socket";
 import { startBookingExpiryJob } from "./lib/booking-expiry";
+import { startEmailWorker } from "./lib/email-worker";
 
 const rawPort = process.env["PORT"];
 
@@ -22,3 +23,5 @@ startBookingExpiryJob();
 httpServer.listen(port, () => {
   logger.info({ port }, "Server listening");
 });
+
+startEmailWorker();
