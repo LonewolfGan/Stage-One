@@ -902,60 +902,129 @@ function FAQ() {
   return (
     <div style={{
       borderTop: "1px solid rgba(12,12,14,0.08)",
-      maxWidth: 720, margin: "0 auto",
-      padding: "64px 24px",
+      padding: "64px 48px",
+      display: "grid",
+      gridTemplateColumns: "1fr 1fr",
+      gap: 80,
+      alignItems: "start",
     }}>
-      <h2 style={{
-        fontSize: 22, fontWeight: 600, color: "var(--ink)",
-        letterSpacing: "-0.02em", margin: "0 0 40px",
-      }}>
-        Questions fréquentes
-      </h2>
+      {/* Left — accordion */}
       <div>
-        {FAQ_ITEMS.map(({ q, a }, i) => (
-          <div key={i} style={{ borderTop: "1px solid rgba(12,12,14,0.08)" }}>
-            <button
-              onClick={() => setOpen(open === i ? null : i)}
-              style={{
-                width: "100%", background: "none", border: "none",
-                padding: "20px 0", cursor: "pointer",
-                display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16,
-                textAlign: "left", fontFamily: "var(--font)",
-              }}
-            >
-              <span style={{
-                fontSize: 14, fontWeight: 500, color: "var(--ink)",
-                letterSpacing: "-0.01em", lineHeight: 1.4,
-              }}>{q}</span>
-              <motion.span
-                animate={{ rotate: open === i ? 45 : 0 }}
-                transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
-                style={{ flexShrink: 0, display: "flex", alignItems: "center", color: "var(--ink-tertiary)" }}
+        <h2 style={{
+          fontSize: 22, fontWeight: 600, color: "var(--ink)",
+          letterSpacing: "-0.02em", margin: "0 0 40px",
+        }}>
+          Questions fréquentes
+        </h2>
+        <div>
+          {FAQ_ITEMS.map(({ q, a }, i) => (
+            <div key={i} style={{ borderTop: "1px solid rgba(12,12,14,0.08)" }}>
+              <button
+                onClick={() => setOpen(open === i ? null : i)}
+                style={{
+                  width: "100%", background: "none", border: "none",
+                  padding: "20px 0", cursor: "pointer",
+                  display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16,
+                  textAlign: "left", fontFamily: "var(--font)",
+                }}
               >
-                <Plus size={16} />
-              </motion.span>
-            </button>
-            <AnimatePresence initial={false}>
-              {open === i && (
-                <motion.div
-                  key="answer"
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: "auto", opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
-                  style={{ overflow: "hidden" }}
+                <span style={{
+                  fontSize: 14, fontWeight: 500, color: "var(--ink)",
+                  letterSpacing: "-0.01em", lineHeight: 1.4,
+                }}>{q}</span>
+                <motion.span
+                  animate={{ rotate: open === i ? 45 : 0 }}
+                  transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
+                  style={{ flexShrink: 0, display: "flex", alignItems: "center", color: "var(--ink-tertiary)" }}
                 >
-                  <p style={{
-                    fontSize: 13, color: "var(--ink-tertiary)",
-                    lineHeight: 1.7, margin: "0 0 20px",
-                    paddingRight: 32,
-                  }}>{a}</p>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        ))}
-        <div style={{ borderTop: "1px solid rgba(12,12,14,0.08)" }} />
+                  <Plus size={16} />
+                </motion.span>
+              </button>
+              <AnimatePresence initial={false}>
+                {open === i && (
+                  <motion.div
+                    key="answer"
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
+                    style={{ overflow: "hidden" }}
+                  >
+                    <p style={{
+                      fontSize: 13, color: "var(--ink-tertiary)",
+                      lineHeight: 1.7, margin: "0 0 20px",
+                      paddingRight: 32,
+                    }}>{a}</p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          ))}
+          <div style={{ borderTop: "1px solid rgba(12,12,14,0.08)" }} />
+        </div>
+      </div>
+
+      {/* Right — pro CTA */}
+      <div style={{
+        background: "var(--ink)",
+        borderRadius: 16,
+        padding: "40px 36px",
+        display: "flex",
+        flexDirection: "column",
+        gap: 0,
+      }}>
+        <p style={{
+          fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.4)",
+          letterSpacing: "0.08em", textTransform: "uppercase", margin: "0 0 20px",
+        }}>Pour les professionnels</p>
+        <h3 style={{
+          fontSize: 22, fontWeight: 600, color: "#fff",
+          letterSpacing: "-0.02em", lineHeight: 1.25, margin: "0 0 12px",
+        }}>
+          Développez votre clientèle en ligne
+        </h3>
+        <p style={{
+          fontSize: 13, color: "rgba(255,255,255,0.55)",
+          lineHeight: 1.65, margin: "0 0 28px",
+        }}>
+          Rejoignez 3 400 professionnels qui gèrent leur agenda et attirent de nouveaux clients via la plateforme — sans commission sur les réservations.
+        </p>
+        <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 32 }}>
+          {[
+            "Agenda en ligne synchronisé en temps réel",
+            "Zéro commission sur vos réservations",
+            "Visibilité dans toutes les recherches locales",
+          ].map((item, i) => (
+            <div key={i} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <div style={{
+                width: 18, height: 18, borderRadius: "50%",
+                background: "rgba(255,255,255,0.1)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                flexShrink: 0,
+              }}>
+                <CheckCircle2 size={10} color="rgba(255,255,255,0.7)" strokeWidth={2} />
+              </div>
+              <span style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", lineHeight: 1.4 }}>{item}</span>
+            </div>
+          ))}
+        </div>
+        <button
+          onClick={() => window.location.href = "/auth/register"}
+          style={{
+            height: 40, paddingInline: 20,
+            background: "#fff", border: "none", borderRadius: 9999,
+            fontSize: 13, fontWeight: 600, color: "var(--ink)",
+            letterSpacing: "-0.01em", cursor: "pointer",
+            fontFamily: "var(--font)", alignSelf: "flex-start",
+            display: "flex", alignItems: "center", gap: 6,
+            transition: "opacity 140ms ease",
+          }}
+          onMouseEnter={e => { e.currentTarget.style.opacity = "0.88"; }}
+          onMouseLeave={e => { e.currentTarget.style.opacity = "1"; }}
+        >
+          Inscrire mon établissement
+          <ArrowRight size={13} />
+        </button>
       </div>
     </div>
   );
