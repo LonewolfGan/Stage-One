@@ -1,0 +1,48 @@
+Je vais lire le TopBar et le haut de la colonne gauche en parallèle.
+
+Je comprends les deux problèmes :
+
+    TopBar en position: fixed (floating pill) n'est pas dans le flux du document → le filter bar démarre à y=0 visuellement derrière le header, et le premier résultat passe derrière lui
+    Colonne gauche : il faut un titre/sous-titre introductif + du padding en haut
+
+La vraie solution au point 1 est de passer le TopBar en position: sticky, top: 0 — il rentre dans le flux, tout s'empile naturellement.
+
+J'ai tout ce qu'il faut. Je fais les deux changements en parallèle maintenant.
+
+Maintenant je mets à jour la colonne gauche avec le titre/sous-titre et le bon padding.
+
+Now let me read the desktop layout section of the search page to add the title/subtitle to the left column.
+
+Now I need to:
+
+    Update the desktop left column in search.tsx to:
+        Add a dynamic title + subtitle at the top
+        Fix the top: mapStickyTop for the map (since TopBar is now sticky in the flow, the filter bar's top: TOPBAR_H is relative to the viewport, which is correct)
+        The map's sticky top needs to be filterBarH only since the TopBar is now in the flow
+
+Wait, let me think about this more carefully:
+
+With TopBar as position: sticky, top: 0:
+
+    TopBar sticks at viewport y=0, height 56px
+    When scrolled, TopBar occupies viewport 0-56px
+
+With FilterBar as position: sticky, top: TOPBAR_H (56px):
+
+    FilterBar sticks at viewport y=56px (right below TopBar)
+    This is correct!
+
+For the map's sticky positioning:
+
+    The map needs to stick at top: TOPBAR_H + filterBarH
+    This is still correct since both TopBar (56px) and FilterBar (filterBarH) stack in the viewport
+
+So the calculation mapStickyTop = TOPBAR_H + filterBarH remains correct.
+
+Since TopBar is now in the document flow, when scrolling: TopBar sticks at the top of the viewport, FilterBar sticks below it at 56px, and the map sticks below the filter bar at 186px. This layering works as intended.
+
+The real issue with content going under the filter bar is that on initial page load, the left column content starts right after the FilterBar in the document flow, so it renders at its natural position without any offset. The filter bar will stick from the start, so the overlap issue is resolved now that the TopBar is in the document flow. I need to add a title and subtitle to the left column with proper padding. The title changes dynamically based on the filters applied—showing the category and city combination, just the category, just the city, search results, or a default message—and the subtitle displays the count of establishments found.
+
+Maintenant je mets à jour le desktop layout avec le titre dynamique et le bon padding. Avec le TopBar sticky en flow, mapStickyTop reste correct mais je dois ajuster : la carte doit coller à top: filterBarH seulement (le TopBar est maintenant dans le flux).
+
+You've reached your daily free quota limit. It will reset at 12:00 AM UTC.
