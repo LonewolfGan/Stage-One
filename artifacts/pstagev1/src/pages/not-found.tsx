@@ -1,19 +1,21 @@
 import { useLocation } from "wouter";
-import { ArrowLeft } from "lucide-react";
+import { motion } from "framer-motion";
 import { TopBar } from "@/components/layout/TopBar";
 import { Footer } from "@/components/layout/Footer";
+import illustrationSrc from "@assets/404_Error_Page_not_Found_with_people_connecting_a_plug-cuate_(_1782672223512.svg";
 
-export default function NotFound() {
-  const [, setLocation] = useLocation();
+const ease = [0.16, 1, 0.3, 1] as const;
+
+export default function NotFoundPage() {
+  const [, navigate] = useLocation();
 
   return (
     <div
       style={{
-        minHeight: "100vh",
-        backgroundColor: "var(--canvas)",
+        minHeight: "100dvh",
         display: "flex",
         flexDirection: "column",
-        paddingTop: 96,
+        background: "var(--canvas)",
       }}
     >
       <TopBar />
@@ -22,77 +24,160 @@ export default function NotFound() {
         style={{
           flex: 1,
           display: "flex",
+          flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          padding: "60px 24px",
-          textAlign: "center",
+          paddingInline: 24,
+          paddingBlock: 48,
         }}
       >
-        <div style={{ maxWidth: 480 }}>
+        {/* Illustration */}
+        <motion.div
+          initial={{ opacity: 0, y: 28 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.65, ease }}
+          style={{ width: "100%", maxWidth: 340 }}
+        >
+          <img
+            src={illustrationSrc}
+            alt="Illustration page introuvable"
+            style={{
+              width: "100%",
+              height: "auto",
+              display: "block",
+              userSelect: "none",
+              pointerEvents: "none",
+            }}
+            draggable={false}
+          />
+        </motion.div>
+
+        {/* Text block */}
+        <motion.div
+          initial={{ opacity: 0, y: 18 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.55, ease, delay: 0.14 }}
+          style={{ textAlign: "center", maxWidth: 400 }}
+        >
+          {/* Error code label */}
           <p
             style={{
-              fontSize: 12,
+              fontSize: 11,
               fontWeight: 600,
-              letterSpacing: "0.08em",
-              textTransform: "uppercase",
+              letterSpacing: "0.07em",
               color: "var(--ink-tertiary)",
-              marginBottom: 20,
+              textTransform: "uppercase",
+              margin: "0 0 14px",
+              fontFamily: "var(--font)",
             }}
           >
-            404
+            Erreur 404
           </p>
+
           <h1
             style={{
-              fontSize: "clamp(36px, 5vw, 56px)",
-              fontWeight: 700,
-              letterSpacing: "-0.03em",
-              lineHeight: 1.1,
+              fontSize: 28,
+              fontWeight: 600,
               color: "var(--ink)",
-              marginBottom: 16,
+              letterSpacing: "-0.025em",
+              lineHeight: 1.2,
+              margin: "0 0 12px",
+              fontFamily: "var(--font)",
+              textWrap: "balance",
             }}
           >
             Page introuvable
           </h1>
+
           <p
             style={{
-              fontSize: 16,
-              color: "var(--ink-tertiary)",
-              lineHeight: 1.6,
-              marginBottom: 40,
+              fontSize: 15,
+              color: "var(--ink-secondary)",
+              lineHeight: 1.65,
+              margin: "0 0 32px",
+              fontFamily: "var(--font)",
+              maxWidth: "52ch",
             }}
           >
-            Cette page n'existe pas ou a été déplacée.
+            L'adresse que vous avez saisie n'existe pas ou a été déplacée.
+            Vérifiez l'URL ou revenez à l'accueil.
           </p>
-          <button
-            onClick={() => setLocation("/")}
+
+          {/* Actions */}
+          <div
             style={{
-              display: "inline-flex",
+              display: "flex",
               alignItems: "center",
-              gap: 8,
-              height: 44,
-              paddingInline: 24,
-              backgroundColor: "var(--ink)",
-              color: "#FFFFFF",
-              fontSize: 14,
-              fontWeight: 600,
-              borderRadius: 8,
-              border: "none",
-              cursor: "pointer",
-              transition: "background-color 140ms ease",
-            }}
-            onMouseEnter={(e) => {
-              (e.currentTarget as HTMLButtonElement).style.backgroundColor =
-                "rgba(12,12,14,0.80)";
-            }}
-            onMouseLeave={(e) => {
-              (e.currentTarget as HTMLButtonElement).style.backgroundColor =
-                "var(--ink)";
+              justifyContent: "center",
+              gap: 10,
+              flexWrap: "wrap",
             }}
           >
-            <ArrowLeft size={15} />
-            Retour à l'accueil
-          </button>
-        </div>
+            {/* Primary — ink black */}
+            <motion.button
+              onClick={() => navigate("/")}
+              whileTap={{ scale: 0.97 }}
+              style={{
+                height: 40,
+                paddingInline: 24,
+                background: "var(--ink)",
+                color: "#fff",
+                fontSize: 13,
+                fontWeight: 600,
+                letterSpacing: "-0.01em",
+                border: "none",
+                borderRadius: 10,
+                cursor: "pointer",
+                fontFamily: "var(--font)",
+                transition: "background 140ms ease",
+              }}
+              onMouseEnter={e =>
+                ((e.currentTarget as HTMLButtonElement).style.background =
+                  "rgba(12,12,14,0.82)")
+              }
+              onMouseLeave={e =>
+                ((e.currentTarget as HTMLButtonElement).style.background =
+                  "var(--ink)")
+              }
+            >
+              Retour à l'accueil
+            </motion.button>
+
+            {/* Secondary — ghost */}
+            <motion.button
+              onClick={() => navigate("/search")}
+              whileTap={{ scale: 0.97 }}
+              style={{
+                height: 40,
+                paddingInline: 20,
+                background: "transparent",
+                color: "var(--ink-secondary)",
+                fontSize: 13,
+                fontWeight: 500,
+                letterSpacing: "-0.01em",
+                border: "1px solid rgba(12,12,14,0.14)",
+                borderRadius: 10,
+                cursor: "pointer",
+                fontFamily: "var(--font)",
+                transition: "border-color 140ms ease, color 140ms ease",
+              }}
+              onMouseEnter={e => {
+                (e.currentTarget as HTMLButtonElement).style.borderColor =
+                  "rgba(12,12,14,0.32)";
+                (e.currentTarget as HTMLButtonElement).style.color =
+                  "var(--ink)";
+              }}
+              onMouseLeave={e => {
+                (e.currentTarget as HTMLButtonElement).style.borderColor =
+                  "rgba(12,12,14,0.14)";
+                (e.currentTarget as HTMLButtonElement).style.color =
+                  "var(--ink-secondary)";
+              }}
+            >
+              Parcourir les salons
+            </motion.button>
+          </div>
+        </motion.div>
       </main>
 
       <Footer />

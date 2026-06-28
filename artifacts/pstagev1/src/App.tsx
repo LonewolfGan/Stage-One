@@ -25,6 +25,7 @@ import StaticPage from "@/pages/static-page";
 import VerifyEmailPage from "@/pages/verify-email";
 import SubscriptionPage from "@/pages/dashboard/subscription";
 import ProfilePage from "@/pages/account/profile";
+import NotFoundPage from "@/pages/not-found";
 
 const queryClient = new QueryClient();
 
@@ -50,6 +51,7 @@ function Router() {
       <Route path="/auth/register" component={RegisterPage} />
       <Route path="/auth/login" component={LoginPage} />
       <Route path="/page/:slug" component={StaticPage} />
+      <Route path="/404" component={NotFoundPage} />
       <Route path="/:slug" component={ProviderProfilePage} />
     </Switch>
   );

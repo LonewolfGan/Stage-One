@@ -215,26 +215,9 @@ export default function ProviderProfilePage() {
     );
   }
 
-  if (isError || !provider) {
-    return (
-      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "var(--canvas)" }}>
-        <div style={{ textAlign: "center" }}>
-          <Scissors size={32} color="var(--ink-disabled)" style={{ marginBottom: 12 }} />
-          <p style={{ fontSize: 15, color: "var(--ink-secondary)", fontWeight: 500 }}>Établissement introuvable</p>
-          <button
-            onClick={() => setLocation("/search")}
-            style={{
-              marginTop: 16, height: 36, paddingInline: 18,
-              backgroundColor: "rgba(12,12,14,0.04)", color: "var(--ink)",
-              border: "1px solid var(--hairline)", borderRadius: 8,
-              fontSize: 13, fontWeight: 500, cursor: "pointer", fontFamily: "var(--font)",
-            }}
-          >
-            Retour à la recherche
-          </button>
-        </div>
-      </div>
-    );
+  if (isError || (!isLoading && !provider)) {
+    setLocation("/404");
+    return null;
   }
 
   const groupedServices = provider.services.reduce((acc, s) => {
