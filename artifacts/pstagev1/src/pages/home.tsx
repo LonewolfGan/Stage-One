@@ -849,19 +849,10 @@ export default function HomePage() {
             color: "var(--ink)",
             letterSpacing: "-0.025em",
             lineHeight: 1.1,
-            margin: "0 0 16px",
+            margin: "0 0 40px",
           }}>
             Prêt à commencer ?
           </h2>
-          <p style={{
-            fontSize: 16,
-            color: "var(--ink-tertiary)",
-            lineHeight: 1.6,
-            maxWidth: 440,
-            margin: "0 auto 40px",
-          }}>
-            Réservez votre prochaine prestation en quelques secondes, sans appel, sans attente.
-          </p>
         </Reveal>
         <Reveal delay={0.2}>
           <div style={{ display: "flex", gap: 12, flexWrap: "wrap", justifyContent: "center" }}>
@@ -869,13 +860,13 @@ export default function HomePage() {
               onClick={() => setLocation("/search")}
               style={{
                 height: 46,
-                paddingInline: 32,
+                paddingInline: 28,
                 backgroundColor: "var(--accent)",
                 color: "#FFFFFF",
                 fontSize: 13,
                 fontWeight: 600,
                 letterSpacing: "-0.01em",
-                borderRadius: 10,
+                borderRadius: 9999,
                 border: "none",
                 cursor: "pointer",
                 fontFamily: "var(--font)",
@@ -890,13 +881,13 @@ export default function HomePage() {
               onClick={() => setLocation("/auth/register?role=pro")}
               style={{
                 height: 46,
-                paddingInline: 32,
+                paddingInline: 28,
                 backgroundColor: "transparent",
                 color: "var(--ink)",
                 fontSize: 13,
                 fontWeight: 600,
                 letterSpacing: "-0.01em",
-                borderRadius: 10,
+                borderRadius: 9999,
                 border: "1px solid var(--hairline-strong)",
                 cursor: "pointer",
                 display: "flex",
