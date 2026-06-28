@@ -1,6 +1,7 @@
 import { useLocation } from "wouter";
 import { motion } from "framer-motion";
 import { TopBar } from "@/components/layout/TopBar";
+import { Footer } from "@/components/layout/Footer";
 import illustrationSrc from "@assets/404_Error-pana_1782672606697.svg";
 
 const ease = [0.16, 1, 0.3, 1] as const;
@@ -11,11 +12,10 @@ export default function NotFoundPage() {
   return (
     <div
       style={{
-        height: "100dvh",
+        minHeight: "100dvh",
         display: "flex",
         flexDirection: "column",
         background: "var(--canvas)",
-        overflow: "hidden",
       }}
     >
       <TopBar />
@@ -28,33 +28,22 @@ export default function NotFoundPage() {
           alignItems: "center",
           justifyContent: "center",
           paddingInline: 24,
-          paddingBottom: 24,
-          overflow: "hidden",
+          paddingBlock: 48,
         }}
       >
-        {/* Illustration — fills available vertical space */}
+        {/* Illustration */}
         <motion.div
-          initial={{ opacity: 0, y: 24 }}
+          initial={{ opacity: 0, y: 28 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.65, ease }}
-          style={{
-            flex: "1 1 0",
-            minHeight: 0,
-            display: "flex",
-            alignItems: "flex-end",
-            justifyContent: "center",
-            width: "100%",
-            maxWidth: 640,
-          }}
+          style={{ width: "100%", maxWidth: 560 }}
         >
           <img
             src={illustrationSrc}
             alt="Illustration page introuvable"
             style={{
               width: "100%",
-              height: "100%",
-              maxHeight: "100%",
-              objectFit: "contain",
+              height: "auto",
               display: "block",
               userSelect: "none",
               pointerEvents: "none",
@@ -63,12 +52,12 @@ export default function NotFoundPage() {
           />
         </motion.div>
 
-        {/* Text block — fixed height, sits below illustration */}
+        {/* Text block */}
         <motion.div
-          initial={{ opacity: 0, y: 16 }}
+          initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease, delay: 0.14 }}
-          style={{ textAlign: "center", flexShrink: 0, paddingTop: 8 }}
+          transition={{ duration: 0.55, ease, delay: 0.14 }}
+          style={{ textAlign: "center", maxWidth: 400 }}
         >
           <p
             style={{
@@ -77,7 +66,7 @@ export default function NotFoundPage() {
               letterSpacing: "0.07em",
               color: "var(--ink-tertiary)",
               textTransform: "uppercase",
-              margin: "0 0 10px",
+              margin: "0 0 14px",
               fontFamily: "var(--font)",
             }}
           >
@@ -86,12 +75,12 @@ export default function NotFoundPage() {
 
           <h1
             style={{
-              fontSize: 26,
+              fontSize: 28,
               fontWeight: 600,
               color: "var(--ink)",
               letterSpacing: "-0.025em",
               lineHeight: 1.2,
-              margin: "0 0 10px",
+              margin: "0 0 12px",
               fontFamily: "var(--font)",
               textWrap: "balance",
             }}
@@ -101,12 +90,12 @@ export default function NotFoundPage() {
 
           <p
             style={{
-              fontSize: 14,
+              fontSize: 15,
               color: "var(--ink-secondary)",
-              lineHeight: 1.6,
-              margin: "0 0 24px",
+              lineHeight: 1.65,
+              margin: "0 0 32px",
               fontFamily: "var(--font)",
-              maxWidth: "50ch",
+              maxWidth: "52ch",
             }}
           >
             L'adresse que vous avez saisie n'existe pas ou a été déplacée.
@@ -186,6 +175,8 @@ export default function NotFoundPage() {
           </div>
         </motion.div>
       </main>
+
+      <Footer />
     </div>
   );
 }
