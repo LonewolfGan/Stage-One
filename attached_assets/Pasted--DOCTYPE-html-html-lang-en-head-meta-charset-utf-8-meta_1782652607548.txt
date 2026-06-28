@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Managing Your Team and Workflows</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'bg-light': '#F3F4F6',
+            'dark-rail': '#181A1F',
+            'lime-primary': '#E3FC87',
+            'text-main': '#111827',
+            'text-muted': '#6B7280',
+            'card-bg': '#FFFFFF',
+            'card-bg-subtle': '#F8F9FA'
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+<style data-purpose="custom-utilities">
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #E5E7EB; /* Slightly darker to frame the main app area */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+    
+    .app-container {
+      background-color: #F3F4F6;
+      border-radius: 32px;
+      overflow: hidden;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    }
+
+    .hide-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .hide-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body class="p-8">
+<!-- BEGIN: Main Application Container -->
+<div class="app-container flex w-full max-w-[1400px] h-[900px]">
+<!-- BEGIN: Left Sidebar (Rail) -->
+<aside class="w-20 bg-dark-rail flex flex-col items-center py-6 flex-shrink-0 relative rounded-l-[32px] rounded-r-[16px] my-2 ml-2 h-[calc(100%-16px)]">
+<!-- Logo placeholder -->
+<div class="w-12 h-12 bg-[#2D3036] rounded-xl flex items-center justify-center mb-8 border border-gray-700">
+<svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 4v16m8-8H4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</div>
+<!-- Navigation Icons -->
+<nav class="flex flex-col gap-6 flex-1 w-full items-center">
+<a class="text-gray-400 hover:text-white transition-colors" href="#">
+<svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</a>
+<a class="text-gray-400 hover:text-white transition-colors" href="#">
+<svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</a>
+<a class="bg-[#3A3D43] text-white p-3 rounded-xl transition-colors w-12 h-12 flex items-center justify-center" href="#">
+<svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</a>
+<a class="text-gray-400 hover:text-white transition-colors" href="#">
+<svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</a>
+<a class="text-gray-400 hover:text-white transition-colors" href="#">
+<svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</a>
+<a class="text-gray-400 hover:text-white transition-colors" href="#">
+<svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</a>
+</nav>
+<!-- Bottom Icons -->
+<div class="flex flex-col gap-6 w-full items-center mb-6">
+<a class="text-gray-400 hover:text-white transition-colors" href="#">
+<svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</a>
+<a class="text-gray-400 hover:text-white transition-colors" href="#">
+<svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</a>
+<a class="text-gray-400 hover:text-white transition-colors" href="#">
+<svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</a>
+</div>
+<!-- User Avatar -->
+<div class="w-10 h-10 rounded-full overflow-hidden border-2 border-transparent hover:border-white transition-colors cursor-pointer">
+<img alt="User Avatar" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAiaf9yfjjrqzMNGK-fX5X-2vvehuTMHHkcR2sCC0eEevTZNZvQ4l6bt69zMWFO2-B0ktY0q7HPwBj3agW5dvlJYmjLS5pVpaOmsFxlSFVnd30H3S6nUvpudwq9exTIyouWyDF73DPONq49Zd2A4RYqVfyOYwwaiIywJLF8BptiblyqZGkVLgYo0owcwE-NWmwASpRSXkK6y8nM8me3zPNv8qBx7sATxeOc5qauwvXSgmcSiQlX8zBH2KJSKr1Qg6LY9H2E7iEGQmff"/>
+</div>
+</aside>
+<!-- END: Left Sidebar -->
+<!-- BEGIN: Main Content Area -->
+<main class="flex-1 flex flex-col p-8 overflow-y-auto hide-scrollbar">
+<!-- BEGIN: Header -->
+<header class="flex justify-between items-start mb-8">
+<div>
+<h1 class="text-5xl font-semibold text-text-main leading-tight flex flex-wrap items-center gap-x-3 gap-y-2">
+            Managing 
+            <span class="inline-flex items-center justify-center w-12 h-12 bg-white rounded-2xl shadow-sm border border-gray-100">
+<svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></svg>
+</span>
+            Your Team <br/>
+            and 
+            <span class="inline-flex items-center justify-center px-4 py-1 bg-lime-primary rounded-xl text-2xl font-medium text-black gap-2">
+<svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</span>
+            Workflows
+          </h1>
+</div>
+<div class="flex items-center gap-4">
+<button class="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm border border-gray-100 hover:bg-gray-50 transition-colors">
+<svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></svg>
+</button>
+<button class="bg-[#181A1F] text-white px-6 py-3 rounded-2xl font-medium flex items-center gap-2 hover:bg-black transition-colors">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M12 4v16m8-8H4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+            Create a New Scenario
+          </button>
+</div>
+</header>
+<!-- END: Header -->
+<!-- BEGIN: Sub-Navigation -->
+<nav class="flex gap-2 overflow-x-auto pb-4 mb-4 hide-scrollbar">
+<a class="px-6 py-2.5 bg-dark-rail text-white rounded-full text-sm font-medium whitespace-nowrap" href="#">Organization</a>
+<a class="px-6 py-2.5 bg-white text-text-main rounded-full text-sm font-medium whitespace-nowrap hover:bg-gray-50 border border-transparent" href="#">Teams</a>
+<a class="px-6 py-2.5 bg-white text-text-main rounded-full text-sm font-medium whitespace-nowrap hover:bg-gray-50 border border-transparent" href="#">Users</a>
+<a class="px-6 py-2.5 bg-white text-text-main rounded-full text-sm font-medium whitespace-nowrap hover:bg-gray-50 border border-transparent" href="#">Subscription</a>
+<a class="px-6 py-2.5 bg-white text-text-main rounded-full text-sm font-medium whitespace-nowrap hover:bg-gray-50 border border-transparent" href="#">Payment</a>
+<a class="px-6 py-2.5 bg-white text-text-main rounded-full text-sm font-medium whitespace-nowrap hover:bg-gray-50 border border-transparent" href="#">Installed Apps</a>
+<a class="px-6 py-2.5 bg-white text-text-main rounded-full text-sm font-medium whitespace-nowrap hover:bg-gray-50 border border-transparent" href="#">Variables</a>
+<a class="px-6 py-2.5 bg-white text-text-main rounded-full text-sm font-medium whitespace-nowrap hover:bg-gray-50 border border-transparent" href="#">Scenario Properties</a>
+</nav>
+<!-- END: Sub-Navigation -->
+<!-- BEGIN: Top Cards Grid -->
+<div class="grid grid-cols-3 gap-6 mb-6">
+<!-- Operations Card -->
+<div class="bg-[#EEF0F2] rounded-[32px] p-6 flex flex-col justify-between relative border border-gray-200">
+<div class="flex justify-between items-start mb-6">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm">
+<svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></svg>
+</div>
+<span class="font-medium text-gray-800">Operations</span>
+</div>
+<button class="text-gray-400 hover:text-gray-600">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</button>
+</div>
+<div class="mb-6 relative">
+<div class="flex items-baseline gap-2">
+<span class="text-6xl font-semibold tracking-tight text-gray-900">780</span>
+<span class="text-gray-500 font-medium">/ 1 000</span>
+</div>
+<div class="absolute -top-4 right-0 bg-lime-primary px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1 border border-lime-200">
+              82%
+              <span class="w-2 h-2 rounded-full border border-black"></span>
+</div>
+</div>
+<div class="flex gap-1.5 h-12">
+<!-- Filled pills -->
+<div class="flex-1 bg-[#2D3036] rounded-full"></div>
+<div class="flex-1 bg-[#2D3036] rounded-full"></div>
+<div class="flex-1 bg-[#2D3036] rounded-full"></div>
+<div class="flex-1 bg-[#2D3036] rounded-full"></div>
+<div class="flex-1 bg-[#2D3036] rounded-full"></div>
+<!-- Empty pills -->
+<div class="flex-1 border-2 border-dashed border-gray-300 rounded-full"></div>
+<div class="flex-1 border-2 border-dashed border-gray-300 rounded-full"></div>
+</div>
+</div>
+<!-- Data Transfer Card -->
+<div class="bg-lime-primary rounded-[32px] p-6 flex flex-col justify-between relative shadow-sm">
+<div class="flex justify-between items-start mb-6">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm">
+<svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></svg>
+</div>
+<span class="font-medium text-gray-900">Data Transfer</span>
+</div>
+<button class="text-gray-700 hover:text-gray-900">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</button>
+</div>
+<div class="mb-6 relative">
+<div class="flex items-baseline gap-2">
+<span class="text-6xl font-semibold tracking-tight text-gray-900">163</span>
+<span class="text-gray-600 font-medium text-sm">/ 512.0 MB</span>
+</div>
+<div class="absolute -top-4 right-8 bg-white px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1 shadow-sm">
+              68%
+              <span class="w-2 h-2 rounded-full border border-gray-400"></span>
+</div>
+</div>
+<div class="flex gap-1.5 h-12">
+<!-- Filled pills -->
+<div class="flex-1 bg-[#2D3036] rounded-full"></div>
+<div class="flex-1 bg-[#2D3036] rounded-full"></div>
+<div class="flex-1 bg-[#2D3036] rounded-full"></div>
+<!-- Empty pills -->
+<div class="flex-1 border-2 border-dashed border-[#C5DC69] rounded-full"></div>
+<div class="flex-1 border-2 border-dashed border-[#C5DC69] rounded-full"></div>
+<div class="flex-1 border-2 border-dashed border-[#C5DC69] rounded-full"></div>
+<div class="flex-1 border-2 border-dashed border-[#C5DC69] rounded-full"></div>
+</div>
+</div>
+<!-- Promo Card -->
+<div class="bg-dark-rail rounded-[32px] overflow-hidden relative shadow-lg">
+<img alt="AI Automation Promo" class="absolute inset-0 w-full h-full object-cover opacity-60 mix-blend-overlay" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDQMOMwf7kJXRGHJYonAQYaRhBC8jzYkcvIN1gPlJI7v4H0KYVUSHL6x4wCuvouysOth6ZGKw8koX8jGuD7A5yUoJ1TimDILOYGH8AKriA6aySSa0cT3jyOOY6kp2hRjLhaOKC2_9RDUfJriO1t4Y_TPTuskKEUzSmzcSSVNwU3X4229_Vo06RsqZ8Iu4-WL9JybwQZAj4ZgkLiiVwxIIMWTTHr74K1iOZZHj54m5MwmyB2Q_GKA-G0WriArgct5ul7MFya3aVoOVkj" style="object-position: right center;"/>
+<div class="relative z-10 p-6 flex flex-col h-full justify-between">
+<h2 class="text-3xl font-semibold text-white leading-tight">
+                Take You <span class="inline-block"><svg class="w-5 h-5 text-lime-primary inline" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg></span><br/>
+                Automation<br/>
+                to the Next<br/>
+                Level
+              </h2>
+<button class="bg-white text-gray-900 px-6 py-3 rounded-full font-medium flex items-center justify-center gap-2 mt-4 hover:bg-gray-100 transition-colors w-fit">
+                Upgrade
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</button>
+</div>
+</div>
+</div>
+<!-- END: Top Cards Grid -->
+<!-- BEGIN: Statistics Chart -->
+<div class="bg-white rounded-[32px] p-6 flex-1 shadow-sm border border-gray-100">
+<div class="flex justify-between items-center mb-8">
+<div class="flex items-center gap-6">
+<h2 class="text-2xl font-semibold text-gray-900 flex items-center gap-3">
+<div class="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
+<svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</div>
+              Statistics
+            </h2>
+<div class="flex gap-4 text-sm font-medium">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-dark-rail"></span>
+<span class="text-gray-700">Operations</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-lime-primary"></span>
+<span class="text-gray-700">Data transfer</span>
+</div>
+</div>
+</div>
+<div class="relative">
+<select class="appearance-none bg-gray-50 border border-gray-200 text-gray-700 py-2 pl-4 pr-10 rounded-full focus:outline-none focus:ring-2 focus:ring-lime-primary text-sm font-medium">
+<option>2025</option>
+<option>2024</option>
+</select>
+<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-gray-500">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</div>
+</div>
+</div>
+<!-- Chart Area -->
+<div class="relative h-64 mt-4">
+<!-- Y-axis labels and grid lines -->
+<div class="absolute inset-0 flex flex-col justify-between text-xs text-gray-400">
+<div class="flex items-center w-full"><span class="w-8 text-right mr-4">1.0</span><div class="flex-1 border-t border-gray-100"></div></div>
+<div class="flex items-center w-full"><span class="w-8 text-right mr-4">0.9</span><div class="flex-1 border-t border-gray-100"></div></div>
+<div class="flex items-center w-full"><span class="w-8 text-right mr-4">0.8</span><div class="flex-1 border-t border-gray-100"></div></div>
+<div class="flex items-center w-full"><span class="w-8 text-right mr-4">0.7</span><div class="flex-1 border-t border-gray-100"></div></div>
+<div class="flex items-center w-full"><span class="w-8 text-right mr-4">0.6</span><div class="flex-1 border-t border-gray-100"></div></div>
+<div class="flex items-center w-full"><span class="w-8 text-right mr-4">0.5</span><div class="flex-1 border-t border-gray-100"></div></div>
+<div class="flex items-center w-full"><span class="w-8 text-right mr-4">0.4</span><div class="flex-1 border-t border-gray-100"></div></div>
+<div class="flex items-center w-full"><span class="w-8 text-right mr-4">0.3</span><div class="flex-1 border-t border-gray-100"></div></div>
+<div class="flex items-center w-full"><span class="w-8 text-right mr-4">0.2</span><div class="flex-1 border-t border-gray-100"></div></div>
+<div class="flex items-center w-full"><span class="w-8 text-right mr-4">0.1</span><div class="flex-1 border-t border-gray-100"></div></div>
+</div>
+<!-- Bars -->
+<div class="absolute inset-0 ml-12 flex justify-between items-end pb-[10%] px-8">
+<!-- 27 Jun -->
+<div class="relative w-8 h-[90%] flex flex-col-reverse group">
+<div class="w-full bg-lime-primary rounded-b-full h-[50%] flex justify-center items-end pb-2">
+<span class="w-2 h-2 rounded-full bg-black"></span>
+</div>
+<div class="w-full bg-dark-rail rounded-t-full h-[50%] flex justify-center items-start pt-2">
+<span class="w-2 h-2 rounded-full bg-white"></span>
+</div>
+</div>
+<!-- 28 Jun -->
+<div class="relative w-8 h-[60%] flex flex-col-reverse group">
+<div class="w-full bg-lime-primary rounded-b-full h-[40%] flex justify-center items-end pb-2">
+<span class="w-2 h-2 rounded-full bg-black"></span>
+</div>
+<div class="w-full bg-dark-rail rounded-t-full h-[60%] flex justify-center items-start pt-2">
+<span class="w-2 h-2 rounded-full bg-white"></span>
+</div>
+</div>
+<!-- 29 Jun -->
+<div class="relative w-8 h-[80%] flex flex-col-reverse group">
+<div class="w-full bg-lime-primary rounded-b-full h-[30%] flex justify-center items-end pb-2">
+<span class="w-2 h-2 rounded-full bg-black"></span>
+</div>
+<div class="w-full bg-dark-rail rounded-t-full h-[70%] flex justify-center items-start pt-2">
+<span class="w-2 h-2 rounded-full bg-white"></span>
+</div>
+</div>
+<!-- 30 Jun (Empty Dashed) -->
+<div class="relative w-8 h-[100%] border-2 border-dashed border-gray-300 rounded-full flex justify-center items-start pt-2">
+<span class="w-2 h-2 rounded-full bg-gray-400"></span>
+</div>
+<!-- 1 Jul -->
+<div class="relative w-8 h-[95%] flex flex-col-reverse group">
+<div class="w-full bg-lime-primary rounded-b-full h-[50%] flex justify-center items-end pb-2 relative">
+<span class="w-2 h-2 rounded-full bg-black"></span>
+<div class="absolute -left-10 top-1/2 -translate-y-1/2 bg-lime-primary px-2 py-0.5 rounded text-xs font-bold shadow-sm">32%</div>
+</div>
+<div class="w-full bg-dark-rail rounded-t-full h-[50%] flex justify-center items-start pt-2 relative">
+<span class="w-2 h-2 rounded-full bg-white"></span>
+<div class="absolute -right-12 top-1/4 bg-dark-rail text-white px-2 py-0.5 rounded text-xs font-bold shadow-sm">87%</div>
+</div>
+</div>
+<!-- 2 Jul (Empty Dashed) -->
+<div class="relative w-8 h-[100%] border-2 border-dashed border-gray-300 rounded-full flex justify-center items-start pt-2">
+<span class="w-2 h-2 rounded-full bg-gray-400"></span>
+</div>
+<!-- 3 Jul -->
+<div class="relative w-8 h-[75%] flex flex-col-reverse group">
+<div class="w-full bg-lime-primary rounded-b-full h-[60%] flex justify-center items-end pb-2">
+<span class="w-2 h-2 rounded-full bg-black"></span>
+</div>
+<div class="w-full bg-dark-rail rounded-t-full h-[40%] flex justify-center items-start pt-2">
+<span class="w-2 h-2 rounded-full bg-white"></span>
+</div>
+</div>
+<!-- 4 Jul -->
+<div class="relative w-8 h-[65%] flex flex-col-reverse group">
+<div class="w-full bg-lime-primary rounded-b-full h-[50%] flex justify-center items-end pb-2">
+<span class="w-2 h-2 rounded-full bg-black"></span>
+</div>
+<div class="w-full bg-dark-rail rounded-t-full h-[50%] flex justify-center items-start pt-2">
+<span class="w-2 h-2 rounded-full bg-white"></span>
+</div>
+</div>
+</div>
+<!-- X-axis labels -->
+<div class="absolute bottom-[-24px] ml-12 left-0 right-0 flex justify-between px-8 text-xs text-gray-500 font-medium">
+<span class="w-8 text-center">27 Jun</span>
+<span class="w-8 text-center">28 Jun</span>
+<span class="w-8 text-center">29 Jun</span>
+<span class="w-8 text-center">30 Jun</span>
+<span class="w-8 text-center text-gray-900 font-bold">1 jul</span>
+<span class="w-8 text-center">2 Jul</span>
+<span class="w-8 text-center">3 Jul</span>
+<span class="w-8 text-center">4 Jul</span>
+</div>
+</div>
+</div>
+<!-- END: Statistics Chart -->
+</main>
+<!-- END: Main Content Area -->
+<!-- BEGIN: Right Sidebar -->
+<aside class="w-[300px] bg-bg-light p-6 overflow-y-auto hide-scrollbar border-l border-gray-200">
+<!-- Top buttons -->
+<div class="flex gap-4 mb-6">
+<button class="flex-1 bg-[#EDF0F2] hover:bg-gray-200 rounded-3xl p-6 flex flex-col items-center justify-center gap-3 transition-colors border border-transparent">
+<div class="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm">
+<svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></svg>
+</div>
+<span class="font-medium text-gray-900 text-sm">Community</span>
+</button>
+<button class="flex-1 bg-[#EDF0F2] hover:bg-gray-200 rounded-3xl p-6 flex flex-col items-center justify-center gap-3 transition-colors border border-transparent">
+<div class="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm">
+<svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M12 14l9-5-9-5-9 5 9 5z" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M12 14v6" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></svg>
+</div>
+<span class="font-medium text-gray-900 text-sm">Academy</span>
+</button>
+</div>
+<!-- Info Cards List -->
+<div class="flex flex-col gap-4">
+<!-- Help Center -->
+<a class="bg-[#EDF0F2] hover:bg-gray-200 p-5 rounded-[24px] flex flex-col gap-2 transition-colors relative group" href="#">
+<div class="absolute top-5 right-5 text-gray-400 group-hover:text-gray-900 transition-colors">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M17 8l4 4m0 0l-4 4m4-4H3" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</div>
+<div class="w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-sm text-gray-700 font-bold text-sm mb-1">?</div>
+<h3 class="font-semibold text-gray-900">Help Center</h3>
+<p class="text-sm text-gray-500 line-clamp-1">Explore our detailed documentatio...</p>
+</a>
+<!-- Partner Directory -->
+<a class="bg-[#EDF0F2] hover:bg-gray-200 p-5 rounded-[24px] flex flex-col gap-2 transition-colors relative group" href="#">
+<div class="absolute top-5 right-5 text-gray-400 group-hover:text-gray-900 transition-colors">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M17 8l4 4m0 0l-4 4m4-4H3" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</div>
+<div class="w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-sm text-gray-700 mb-1">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></svg>
+</div>
+<h3 class="font-semibold text-gray-900">Partner Directory</h3>
+<p class="text-sm text-gray-500 line-clamp-1">Find the perfect partner to suppor...</p>
+</a>
+<!-- Blog -->
+<a class="bg-[#EDF0F2] hover:bg-gray-200 p-5 rounded-[24px] flex flex-col gap-2 transition-colors relative group" href="#">
+<div class="absolute top-5 right-5 text-gray-400 group-hover:text-gray-900 transition-colors">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M17 8l4 4m0 0l-4 4m4-4H3" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</div>
+<div class="w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-sm text-gray-700 mb-1">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></svg>
+</div>
+<h3 class="font-semibold text-gray-900">Blog</h3>
+<p class="text-sm text-gray-500 line-clamp-1">Access popular guides &amp; stories ab...</p>
+</a>
+<!-- Use Cases -->
+<a class="bg-[#EDF0F2] hover:bg-gray-200 p-5 rounded-[24px] flex flex-col gap-2 transition-colors relative group" href="#">
+<div class="absolute top-5 right-5 text-gray-400 group-hover:text-gray-900 transition-colors">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M17 8l4 4m0 0l-4 4m4-4H3" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</div>
+<div class="w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-sm text-gray-700 mb-1">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></svg>
+</div>
+<h3 class="font-semibold text-gray-900">Use Cases</h3>
+<p class="text-sm text-gray-500 line-clamp-1">Get inspired by all the ways you ca...</p>
+</a>
+</div>
+</aside>
+<!-- END: Right Sidebar -->
+</div>
+<!-- END: Main Application Container -->
+</body></html>
