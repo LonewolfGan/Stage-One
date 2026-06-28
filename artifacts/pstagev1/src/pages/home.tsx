@@ -852,7 +852,7 @@ export default function HomePage() {
             margin: "0 0 40px",
             maxWidth: 620,
           }}>
-            Votre beauté mérite<br />mieux qu'une attente.
+            Réservez en ligne,<br />profitez du moment,<br />oubliez l'attente.
           </h2>
         </Reveal>
         <Reveal delay={0.2}>
