@@ -8,9 +8,9 @@ import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { adaptProvider } from "@/lib/provider-adapter";
 import {
-  Star, Heart, Share2, MapPin, Phone,
+  Star, Heart, MapPin, Phone,
   ChevronLeft, ChevronRight, ChevronDown,
-  Navigation,
+  Navigation, ThumbsUp,
 } from "lucide-react";
 import { useBreakpoint } from "@/hooks/use-mobile";
 
@@ -154,11 +154,11 @@ function MiniCalendar({ onSelect }: { onSelect?: (date: Date) => void }) {
               style={{
                 width: "100%", aspectRatio: "1",
                 borderRadius: 6, border: "none", cursor: isPast ? "default" : "pointer",
-                fontSize: 11, fontWeight: isToday ? 600 : 400,
-                background: isSel ? "var(--ink)" : isToday ? "rgba(12,12,14,0.06)" : "none",
-                color: isSel ? "#fff" : isPast ? "var(--ink-tertiary)" : isToday ? "var(--ink)" : "var(--ink-secondary)",
+                fontSize: 12, fontWeight: isSel || isToday ? 600 : 400,
+                background: isSel ? "var(--ink)" : isToday ? "rgba(12,12,14,0.08)" : "none",
+                color: isSel ? "#fff" : isPast ? "var(--ink-tertiary)" : "var(--ink)",
                 transition: "background 120ms ease",
-                opacity: isPast ? 0.4 : 1,
+                opacity: isPast ? 0.35 : 1,
                 fontFamily: "var(--font)",
               }}
             >
@@ -274,15 +274,19 @@ function StaffCard({ member, providerSlug }: { member: any; providerSlug: string
     <button
       onClick={() => setLocation(`/booking/${providerSlug}?staffId=${member.id}`)}
       style={{
-        background: "none", border: "none", cursor: "pointer",
-        textAlign: "left", padding: 0, fontFamily: "var(--font)",
+        background: "#fff", border: "1px solid var(--hairline)",
+        borderRadius: 14, cursor: "pointer",
+        textAlign: "left", padding: 12, fontFamily: "var(--font)",
         display: "flex", flexDirection: "column", gap: 10,
+        width: "100%", transition: "border-color 140ms",
       }}
+      onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--hairline-strong)"; }}
+      onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--hairline)"; }}
     >
       {/* Square photo */}
       <div style={{
         width: "100%", aspectRatio: "1",
-        borderRadius: 12, overflow: "hidden",
+        borderRadius: 9, overflow: "hidden",
         background: "var(--surface-2)",
       }}>
         {member.photoUrl ? (
@@ -304,10 +308,10 @@ function StaffCard({ member, providerSlug }: { member: any; providerSlug: string
       </div>
       {/* Name + speciality */}
       <div>
-        <p style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)", margin: "0 0 3px", letterSpacing: "-0.01em" }}>
+        <p style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)", margin: "0 0 3px", letterSpacing: "-0.01em" }}>
           {member.firstName}
         </p>
-        <p style={{ fontSize: 12, color: "var(--ink-tertiary)", margin: 0, lineHeight: 1.4 }}>
+        <p style={{ fontSize: 11, color: "var(--ink-tertiary)", margin: 0, lineHeight: 1.4 }}>
           {member.speciality}
         </p>
       </div>
@@ -316,32 +320,54 @@ function StaffCard({ member, providerSlug }: { member: any; providerSlug: string
 }
 
 /* ─── ReviewItem ────────────────────────────────────── */
-function ReviewItem({ review, isFirst }: { review: any; isFirst: boolean }) {
+function ReviewItem({ review }: { review: any }) {
   return (
-    <div style={{ paddingBlock: 20, borderTop: isFirst ? "none" : "1px solid var(--hairline)" }}>
-      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 10 }}>
+    <div style={{
+      background: "#fff", border: "1px solid var(--hairline)",
+      borderRadius: 14, padding: "20px 20px 18px",
+    }}>
+      {/* Header */}
+      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 12 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <div style={{
-            width: 36, height: 36, borderRadius: "50%",
-            background: "rgba(12,12,14,0.07)", color: "var(--ink-secondary)",
+            width: 38, height: 38, borderRadius: "50%",
+            background: "var(--surface-2)", color: "var(--ink-secondary)",
             display: "flex", alignItems: "center", justifyContent: "center",
             fontSize: 12, fontWeight: 600, flexShrink: 0,
+            letterSpacing: "-0.01em",
           }}>
             {review.avatarInitials}
           </div>
           <div>
-            <p style={{ fontSize: 13, fontWeight: 500, color: "var(--ink)", margin: 0, letterSpacing: "-0.01em" }}>{review.author}</p>
-            <p style={{ fontSize: 11, color: "var(--ink-tertiary)", margin: "2px 0 0" }}>{review.date}</p>
+            <p style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)", margin: 0, letterSpacing: "-0.01em" }}>
+              {review.author}
+            </p>
+            <p style={{ fontSize: 11, color: "var(--ink-tertiary)", margin: "2px 0 0" }}>
+              {review.date}
+            </p>
           </div>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
-          <Star size={12} color="var(--rating)" fill="var(--rating)" />
-          <span style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)" }}>{review.rating}</span>
+        {/* Stars + score */}
+        <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
+          <Stars rating={review.rating} size={12} />
+          <span style={{
+            fontSize: 12, fontWeight: 600, color: "#fff",
+            background: "var(--rating)", borderRadius: 6,
+            padding: "2px 7px", letterSpacing: "-0.01em",
+          }}>
+            {review.rating}
+          </span>
         </div>
       </div>
-      <p style={{ fontSize: 14, color: "var(--ink-secondary)", lineHeight: 1.65, margin: 0 }}>
+      {/* Comment */}
+      <p style={{ fontSize: 14, color: "var(--ink-secondary)", lineHeight: 1.7, margin: "0 0 14px" }}>
         {review.comment}
       </p>
+      {/* Footer */}
+      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+        <ThumbsUp size={12} color="var(--ink-tertiary)" />
+        <span style={{ fontSize: 11, color: "var(--ink-tertiary)" }}>Avis vérifié</span>
+      </div>
     </div>
   );
 }
@@ -409,7 +435,7 @@ export default function ProviderProfilePage() {
         <HeroGallery photos={provider.photos} />
 
         {/* ── Content wrapper ── */}
-        <div style={{ maxWidth: 1120, margin: "0 auto", padding: "0 32px" }}>
+        <div style={{ width: "100%", padding: "0 48px" }}>
 
           {/* ── Breadcrumb + title ── */}
           <div style={{ paddingTop: 28, paddingBottom: 32, borderBottom: "1px solid var(--hairline)" }}>
@@ -450,31 +476,19 @@ export default function ProviderProfilePage() {
                   {provider.description}
                 </p>
               </div>
-              {/* Actions */}
-              <div style={{ display: "flex", gap: 8, flexShrink: 0, paddingTop: 4 }}>
-                <button
-                  onClick={() => setFavorited(f => !f)}
-                  style={{
-                    width: 40, height: 40,
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    border: "1px solid var(--hairline)", borderRadius: 10,
-                    background: favorited ? "var(--accent-tint)" : "#fff",
-                    cursor: "pointer", transition: "all 140ms",
-                  }}
-                >
-                  <Heart size={16} color={favorited ? "var(--accent)" : "var(--ink)"} fill={favorited ? "var(--accent)" : "none"} />
-                </button>
-                <button
-                  style={{
-                    width: 40, height: 40,
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    border: "1px solid var(--hairline)", borderRadius: 10,
-                    background: "#fff", cursor: "pointer",
-                  }}
-                >
-                  <Share2 size={16} color="var(--ink)" />
-                </button>
-              </div>
+              {/* Favori */}
+              <button
+                onClick={() => setFavorited(f => !f)}
+                style={{
+                  width: 40, height: 40, flexShrink: 0,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  border: "1px solid var(--hairline)", borderRadius: 10,
+                  background: favorited ? "var(--accent-tint)" : "#fff",
+                  cursor: "pointer", transition: "all 140ms",
+                }}
+              >
+                <Heart size={16} color={favorited ? "var(--accent)" : "var(--ink)"} fill={favorited ? "var(--accent)" : "none"} />
+              </button>
             </div>
           </div>
 
@@ -590,9 +604,11 @@ export default function ProviderProfilePage() {
                       style={{ overflow: "hidden" }}
                     >
                       {reviews.length > 0 ? (
-                        reviews.map((review, i) => (
-                          <ReviewItem key={review.id} review={review} isFirst={i === 0} />
-                        ))
+                        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                          {reviews.map((review) => (
+                            <ReviewItem key={review.id} review={review} />
+                          ))}
+                        </div>
                       ) : (
                         <p style={{ fontSize: 14, color: "var(--ink-tertiary)", paddingBlock: 20 }}>
                           Aucun avis pour le moment. Soyez le premier à laisser votre avis après votre visite.
@@ -666,41 +682,25 @@ export default function ProviderProfilePage() {
                   )}
                 </div>
 
-                {/* Y aller + Partager */}
-                <div style={{ borderTop: "1px solid var(--hairline)", padding: "12px 20px", display: "flex", gap: 8 }}>
+                {/* Y aller */}
+                <div style={{ borderTop: "1px solid var(--hairline)", padding: "12px 20px" }}>
                   <a
                     href={`https://www.google.com/maps/search/${encodeURIComponent((provider.address || "") + ", " + provider.city)}`}
                     target="_blank" rel="noopener noreferrer"
                     style={{
-                      flex: 1, height: 34, borderRadius: 8,
+                      display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+                      height: 36, borderRadius: 8,
                       border: "1px solid var(--hairline)",
-                      display: "flex", alignItems: "center", justifyContent: "center", gap: 5,
                       fontSize: 12, fontWeight: 500, color: "var(--ink-secondary)",
                       textDecoration: "none", background: "#fff",
                       transition: "border-color 120ms",
                     }}
-                    onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--ink)"; }}
-                    onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--hairline)"; }}
+                    onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--ink)"; e.currentTarget.style.color = "var(--ink)"; }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--hairline)"; e.currentTarget.style.color = "var(--ink-secondary)"; }}
                   >
-                    <Navigation size={11} />
-                    Y aller
+                    <Navigation size={12} />
+                    Y aller sur Google Maps
                   </a>
-                  <button
-                    onClick={() => navigator.share?.({ title: provider.name, url: window.location.href })}
-                    style={{
-                      flex: 1, height: 34, borderRadius: 8,
-                      border: "1px solid var(--hairline)", background: "#fff",
-                      display: "flex", alignItems: "center", justifyContent: "center", gap: 5,
-                      fontSize: 12, fontWeight: 500, color: "var(--ink-secondary)",
-                      cursor: "pointer", fontFamily: "var(--font)",
-                      transition: "border-color 120ms",
-                    }}
-                    onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--ink)"; }}
-                    onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--hairline)"; }}
-                  >
-                    <Share2 size={11} />
-                    Partager
-                  </button>
                 </div>
 
                 {/* Rating */}
