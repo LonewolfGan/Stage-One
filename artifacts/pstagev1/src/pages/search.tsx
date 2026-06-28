@@ -1371,13 +1371,28 @@ export default function SearchPage() {
   /* ════════════════════════
      DESKTOP
   ════════════════════════ */
-  const mapStickyTop = TOPBAR_H + filterBarH;
-  const mapHeight = `calc(100vh - ${mapStickyTop}px)`;
+  // TopBar is now position:sticky in flow, so map sticks below filterBar only
+  const mapStickyTop = filterBarH;
+  const mapHeight = `calc(100vh - ${TOPBAR_H + filterBarH}px)`;
   const listWidth = isLg ? 640 : 500;
+
+  /* dynamic title */
+  const pageTitle = (() => {
+    if (categoryLabel && cityId) return `${categoryLabel} à ${cityId}`;
+    if (categoryLabel) return `${categoryLabel} au Maroc`;
+    if (cityId) return `Beauté à ${cityId}`;
+    if (q) return `Résultats pour « ${q} »`;
+    return "Professionnels beauté";
+  })();
+  const pageSubtitle = (() => {
+    if (userCoords) return "Établissements proches de vous · disponibilités en temps réel";
+    if (cityId) return `${allResults.length} établissement${allResults.length !== 1 ? "s" : ""} à ${cityId} · réservation en ligne`;
+    return `${allResults.length} établissement${allResults.length !== 1 ? "s" : ""} au Maroc · réservation en ligne 24h/24`;
+  })();
 
   return (
     <div style={{ minHeight: "100dvh", background: "var(--canvas)" }}>
-      {/* ① TopBar */}
+      {/* ① TopBar — sticky in flow */}
       <TopBar />
 
       {/* ② Full-width filter bar */}
@@ -1386,8 +1401,34 @@ export default function SearchPage() {
       {/* ③ Two-column */}
       <div style={{ display: "flex", alignItems: "flex-start" }}>
         {/* Left — results */}
-        <div style={{ width: listWidth, flexShrink: 0, padding: "16px 20px 48px", borderRight: "1px solid rgba(12,12,14,0.06)" }}>
-          {resultsContent}
+        <div style={{ width: listWidth, flexShrink: 0, borderRight: "1px solid rgba(12,12,14,0.06)" }}>
+
+          {/* Column header — title + subtitle */}
+          <div style={{ padding: "24px 20px 20px" }}>
+            <h1 style={{
+              fontSize: 22, fontWeight: 600, color: "var(--ink)",
+              letterSpacing: "-0.025em", lineHeight: 1.18, margin: 0,
+            }}>
+              {loading
+                ? <span className="skeleton" style={{ width: 220, height: 22, borderRadius: 5, display: "inline-block" }} />
+                : pageTitle
+              }
+            </h1>
+            <p style={{
+              fontSize: 13, color: "var(--ink-tertiary)",
+              margin: "6px 0 0", lineHeight: 1.5, letterSpacing: "-0.005em",
+            }}>
+              {loading
+                ? <span className="skeleton" style={{ width: 280, height: 13, borderRadius: 4, display: "inline-block" }} />
+                : pageSubtitle
+              }
+            </p>
+          </div>
+
+          {/* Results */}
+          <div style={{ padding: "0 20px 48px" }}>
+            {resultsContent}
+          </div>
         </div>
 
         {/* Right — sticky map */}
