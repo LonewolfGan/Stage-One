@@ -66,7 +66,7 @@ async function buildAll() {
       "@google-cloud/*",
       "@google/*",
       "googleapis",
-      "firebase-admin",
+      // "firebase-admin", // installed in api-server — must be bundled, not externalized
       "@parcel/watcher",
       "@sentry/profiling-node",
       "@tree-sitter/*",
