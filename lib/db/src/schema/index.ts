@@ -10,3 +10,4 @@ export * from "./bookings";
 export * from "./reviews";
 export * from "./subscriptions";
 export * from "./email-verification-tokens";
+export * from "./notifications";

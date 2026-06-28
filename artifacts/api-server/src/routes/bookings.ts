@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
-import { db, bookingsTable, servicesTable, staffTable, providersTable, usersTable, reviewsTable } from "@workspace/db";
+import { db, bookingsTable, servicesTable, staffTable, providersTable, usersTable, reviewsTable, notificationsTable } from "@workspace/db";
 import { eq, and, sql, desc, isNotNull } from "drizzle-orm";
 import { requireAuth } from "../middlewares/auth";
 import { emitSlotUpdate, emitBookingConfirmed } from "../lib/socket";
@@ -278,6 +278,30 @@ router.post("/:bookingId/confirm", async (req, res) => {
     clientName: client?.name ?? "",
     startDatetime: booking.startDatetime.toISOString(),
   });
+
+  // Persist notification in DB for owner dashboard bell
+  const startFormatted = booking.startDatetime.toLocaleString("fr-MA", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "Africa/Casablanca",
+  });
+  await db.insert(notificationsTable).values({
+    providerId: booking.providerId,
+    type: "booking.confirmed",
+    title: "Nouvelle réservation confirmée",
+    body: `${client?.name ?? "Client"} — ${service?.name ?? "Prestation"} à ${startFormatted}`,
+    metadata: {
+      bookingId: booking.id,
+      staffId: booking.staffId,
+      staffName: staff?.name ?? null,
+      serviceName: service?.name ?? null,
+      clientName: client?.name ?? null,
+      startDatetime: booking.startDatetime.toISOString(),
+    },
+  }).catch((err) => req.log.error({ err }, "Failed to persist booking notification"));
 
   // Confirmation email — sent immediately
   enqueueEmailJob({ type: "booking_confirmation", bookingId: booking.id }).catch((err) =>

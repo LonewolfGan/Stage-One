@@ -11,8 +11,9 @@ import {
   usersTable,
   businessHoursTable,
   subscriptionsTable,
+  notificationsTable,
 } from "@workspace/db";
-import { eq, and, gte, lt, sql } from "drizzle-orm";
+import { eq, and, gte, lt, sql, desc } from "drizzle-orm";
 import { requireOwner, requirePlan } from "../middlewares/auth";
 import { emitSlotUpdate } from "../lib/socket";
 
@@ -270,6 +271,61 @@ router.get("/analytics", requireOwner, requirePlan("PRO"), async (req, res) => {
       .sort((a, b) => a.date.localeCompare(b.date)),
     topServices,
   });
+});
+
+// ── Notifications ─────────────────────────────────────────────────────────────
+
+// GET /dashboard/notifications — list last 50, unread first
+router.get("/notifications", requireOwner, async (req, res) => {
+  const provider = await getOwnedProvider(req.user!.sub);
+  if (!provider) { res.status(404).json({ code: "ERR-004", message: "Espace prestataire introuvable" }); return; }
+
+  const rows = await db
+    .select()
+    .from(notificationsTable)
+    .where(eq(notificationsTable.providerId, provider.id))
+    .orderBy(sql`is_read ASC`, desc(notificationsTable.createdAt))
+    .limit(50);
+
+  const unreadCount = rows.filter((n) => !n.isRead).length;
+
+  res.json({ notifications: rows, unreadCount });
+});
+
+// POST /dashboard/notifications/:id/read — mark one as read
+router.post("/notifications/:id/read", requireOwner, async (req, res) => {
+  const provider = await getOwnedProvider(req.user!.sub);
+  if (!provider) { res.status(404).json({ code: "ERR-004", message: "Espace prestataire introuvable" }); return; }
+
+  await db
+    .update(notificationsTable)
+    .set({ isRead: true })
+    .where(
+      and(
+        eq(notificationsTable.id, req.params.id),
+        eq(notificationsTable.providerId, provider.id),
+      ),
+    );
+
+  res.json({ success: true });
+});
+
+// POST /dashboard/notifications/read-all — mark all as read
+router.post("/notifications/read-all", requireOwner, async (req, res) => {
+  const provider = await getOwnedProvider(req.user!.sub);
+  if (!provider) { res.status(404).json({ code: "ERR-004", message: "Espace prestataire introuvable" }); return; }
+
+  await db
+    .update(notificationsTable)
+    .set({ isRead: true })
+    .where(
+      and(
+        eq(notificationsTable.providerId, provider.id),
+        eq(notificationsTable.isRead, false),
+      ),
+    );
+
+  res.json({ success: true });
 });
 
 export default router;

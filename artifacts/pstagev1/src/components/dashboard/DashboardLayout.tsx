@@ -1,12 +1,15 @@
-import { useState, type ReactNode } from "react";
+import { useState, useRef, useEffect, type ReactNode } from "react";
 import { Link, useLocation } from "wouter";
 import {
   Calendar, Scissors, Users, BarChart2,
-  Settings, Home, ChevronRight, Menu, X,
+  Settings, Home, ChevronRight, Menu, X, Bell,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useBreakpoint } from "@/hooks/use-mobile";
 import { Logo } from "@/components/ui/Logo";
+import { useNotifications } from "@/hooks/useNotifications";
+import { formatDistanceToNow } from "date-fns";
+import { fr } from "date-fns/locale";
 
 const NAV_ITEMS = [
   { name: "Agenda",       href: "/dashboard/agenda",    icon: Calendar   },
@@ -23,10 +26,180 @@ interface DashboardLayoutProps {
   breadcrumb?: string;
 }
 
+function NotificationPanel({
+  open,
+  onClose,
+}: {
+  open: boolean;
+  onClose: () => void;
+}) {
+  const { notifications, unreadCount, markRead, markAllRead } = useNotifications();
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) onClose();
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open, onClose]);
+
+  return (
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          ref={ref}
+          initial={{ opacity: 0, y: -8, scale: 0.97 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: -8, scale: 0.97 }}
+          transition={{ type: "spring", stiffness: 480, damping: 34 }}
+          style={{
+            position: "absolute",
+            top: "calc(100% + 8px)",
+            right: 0,
+            width: 340,
+            backgroundColor: "var(--surface-1)",
+            border: "1px solid var(--hairline)",
+            borderRadius: "var(--radius-panel)",
+            zIndex: 200,
+            overflow: "hidden",
+          }}
+        >
+          {/* Header */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              padding: "12px 16px",
+              borderBottom: "1px solid var(--hairline)",
+            }}
+          >
+            <span style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)" }}>
+              Notifications
+              {unreadCount > 0 && (
+                <span
+                  style={{
+                    marginLeft: 6,
+                    backgroundColor: "var(--accent)",
+                    color: "#fff",
+                    borderRadius: 10,
+                    fontSize: 10,
+                    fontWeight: 600,
+                    padding: "1px 6px",
+                    verticalAlign: "middle",
+                  }}
+                >
+                  {unreadCount}
+                </span>
+              )}
+            </span>
+            {unreadCount > 0 && (
+              <button
+                onClick={markAllRead}
+                style={{
+                  fontSize: 11,
+                  color: "var(--accent)",
+                  fontWeight: 500,
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  padding: 0,
+                }}
+              >
+                Tout marquer lu
+              </button>
+            )}
+          </div>
+
+          {/* List */}
+          <div style={{ maxHeight: 380, overflowY: "auto" }}>
+            {notifications.length === 0 ? (
+              <div
+                style={{
+                  padding: "32px 16px",
+                  textAlign: "center",
+                  color: "var(--ink-tertiary)",
+                  fontSize: 13,
+                }}
+              >
+                <Bell size={28} style={{ margin: "0 auto 10px", opacity: 0.3, display: "block" }} />
+                Aucune notification
+              </div>
+            ) : (
+              notifications.map((n) => (
+                <motion.div
+                  key={n.id}
+                  onClick={() => { if (!n.isRead) markRead(n.id); }}
+                  whileHover={{ backgroundColor: "rgba(12,12,14,0.025)" }}
+                  style={{
+                    padding: "12px 16px",
+                    borderBottom: "1px solid var(--hairline)",
+                    cursor: n.isRead ? "default" : "pointer",
+                    display: "flex",
+                    gap: 10,
+                    alignItems: "flex-start",
+                    backgroundColor: n.isRead ? "transparent" : "rgba(212,70,110,0.03)",
+                  }}
+                >
+                  {/* Unread dot */}
+                  <div
+                    style={{
+                      width: 7,
+                      height: 7,
+                      borderRadius: "50%",
+                      backgroundColor: n.isRead ? "transparent" : "var(--accent)",
+                      flexShrink: 0,
+                      marginTop: 5,
+                    }}
+                  />
+                  <div style={{ minWidth: 0 }}>
+                    <p
+                      style={{
+                        fontSize: 13,
+                        fontWeight: n.isRead ? 400 : 600,
+                        color: "var(--ink)",
+                        margin: 0,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {n.title}
+                    </p>
+                    <p
+                      style={{
+                        fontSize: 12,
+                        color: "var(--ink-secondary)",
+                        margin: "2px 0 4px",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {n.body}
+                    </p>
+                    <p style={{ fontSize: 11, color: "var(--ink-tertiary)", margin: 0 }}>
+                      {formatDistanceToNow(new Date(n.createdAt), { addSuffix: true, locale: fr })}
+                    </p>
+                  </div>
+                </motion.div>
+              ))
+            )}
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
 export function DashboardLayout({ children, title, actions, breadcrumb }: DashboardLayoutProps) {
   const [location] = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
   const { isLg } = useBreakpoint();
+  const { unreadCount } = useNotifications();
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", backgroundColor: "var(--canvas)" }}>
@@ -282,11 +455,55 @@ export function DashboardLayout({ children, title, actions, breadcrumb }: Dashbo
               <h1 className="ds-dash-page-title">{title}</h1>
             </div>
           </div>
-          {actions && (
-            <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-              {actions}
+
+          {/* Right side: actions + bell */}
+          <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+            {actions}
+
+            {/* Bell button */}
+            <div style={{ position: "relative" }}>
+              <motion.button
+                onClick={() => setNotifOpen((v) => !v)}
+                whileTap={{ scale: 0.91 }}
+                transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                style={{
+                  width: 34,
+                  height: 34,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  backgroundColor: notifOpen ? "rgba(12,12,14,0.06)" : "rgba(12,12,14,0.04)",
+                  border: "1px solid var(--hairline)",
+                  borderRadius: "var(--radius-control)",
+                  cursor: "pointer",
+                  color: "var(--ink-secondary)",
+                  position: "relative",
+                }}
+              >
+                <Bell size={15} />
+                {unreadCount > 0 && (
+                  <motion.span
+                    key={unreadCount}
+                    initial={{ scale: 0.4, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ type: "spring", stiffness: 500, damping: 22 }}
+                    style={{
+                      position: "absolute",
+                      top: 5,
+                      right: 5,
+                      width: 8,
+                      height: 8,
+                      borderRadius: "50%",
+                      backgroundColor: "var(--accent)",
+                      border: "1.5px solid var(--surface-1)",
+                    }}
+                  />
+                )}
+              </motion.button>
+
+              <NotificationPanel open={notifOpen} onClose={() => setNotifOpen(false)} />
             </div>
-          )}
+          </div>
         </motion.div>
 
         <motion.div
