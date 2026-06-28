@@ -2,7 +2,7 @@ import { useLocation } from "wouter";
 import { motion } from "framer-motion";
 import { TopBar } from "@/components/layout/TopBar";
 import { Footer } from "@/components/layout/Footer";
-import illustrationSrc from "@assets/404_Error_Page_not_Found_with_people_connecting_a_plug-cuate_(_1782672223512.svg";
+import illustrationSrc from "@assets/404_Error-pana_1782672606697.svg";
 
 const ease = [0.16, 1, 0.3, 1] as const;
 
@@ -36,7 +36,7 @@ export default function NotFoundPage() {
           initial={{ opacity: 0, y: 28 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.65, ease }}
-          style={{ width: "100%", maxWidth: 340 }}
+          style={{ width: "100%", maxWidth: 560 }}
         >
           <img
             src={illustrationSrc}
