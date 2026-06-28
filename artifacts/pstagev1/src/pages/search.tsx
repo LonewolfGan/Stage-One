@@ -1130,17 +1130,18 @@ export default function SearchPage() {
           <button
             onClick={resetFilters}
             style={{
-              flexShrink: 0, height: 36, paddingInline: 10,
-              border: "1px solid rgba(12,12,14,0.10)", borderRadius: 9,
-              background: "transparent", cursor: "pointer",
-              fontSize: 11, fontWeight: 600, color: "var(--ink-tertiary)",
-              fontFamily: "var(--font)", transition: "all 140ms ease",
-              display: "flex", alignItems: "center", gap: 4,
+              flexShrink: 0, height: 30, paddingInline: 12,
+              border: "none", borderRadius: 9999,
+              background: "var(--accent)", cursor: "pointer",
+              fontSize: 11, fontWeight: 600, color: "#fff",
+              fontFamily: "var(--font)", transition: "opacity 140ms ease",
+              display: "flex", alignItems: "center", gap: 5,
+              letterSpacing: "-0.01em",
             }}
-            onMouseEnter={e => { e.currentTarget.style.color = "var(--ink)"; e.currentTarget.style.borderColor = "rgba(12,12,14,0.24)"; }}
-            onMouseLeave={e => { e.currentTarget.style.color = "var(--ink-tertiary)"; e.currentTarget.style.borderColor = "rgba(12,12,14,0.10)"; }}
+            onMouseEnter={e => { e.currentTarget.style.opacity = "0.85"; }}
+            onMouseLeave={e => { e.currentTarget.style.opacity = "1"; }}
           >
-            <X size={10} />Réinit.
+            <X size={10} />Réinitialiser
           </button>
         )}
       </div>
@@ -1150,55 +1151,14 @@ export default function SearchPage() {
         <CategoryTabs value={categoryId} onChange={v => { setCategoryId(v); setPage(1); }} />
       </div>
 
-      {/* Row 3 — result count + active chips */}
-      <div style={{
-        paddingInline: 24, paddingBottom: 10,
-        display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap",
-      }}>
-        <span style={{ fontSize: 12, color: "var(--ink-tertiary)", letterSpacing: "-0.01em", flexShrink: 0 }}>
+      {/* Row 3 — result count only */}
+      <div style={{ paddingInline: 24, paddingBottom: 10 }}>
+        <span style={{ fontSize: 12, color: "var(--ink-tertiary)", letterSpacing: "-0.01em" }}>
           {loading
-            ? <span className="skeleton" style={{ width: 80, height: 12, borderRadius: 4, display: "inline-block" }} />
-            : <>
-                <strong style={{ color: "var(--ink-secondary)", fontWeight: 600 }}>{allResults.length}</strong>
-                {" "}établissement{allResults.length !== 1 ? "s" : ""}
-                {categoryLabel && <span> · {categoryLabel}</span>}
-                {cityId && <span> à {cityId}</span>}
-              </>
+            ? <span className="skeleton" style={{ width: 32, height: 12, borderRadius: 4, display: "inline-block" }} />
+            : <strong style={{ color: "var(--ink-secondary)", fontWeight: 600 }}>{allResults.length}</strong>
           }
         </span>
-        {categoryId && categoryLabel && (
-          <button onClick={() => setCategoryId("")} style={{
-            display: "inline-flex", alignItems: "center", gap: 3,
-            height: 20, paddingInline: "7px 5px", borderRadius: 9999,
-            background: "var(--ink)", border: "none",
-            fontSize: 10, fontWeight: 600, color: "#fff",
-            fontFamily: "var(--font)", cursor: "pointer",
-          }}>
-            {categoryLabel} <X size={8} />
-          </button>
-        )}
-        {cityId && (
-          <button onClick={() => setCityId("")} style={{
-            display: "inline-flex", alignItems: "center", gap: 3,
-            height: 20, paddingInline: "7px 5px", borderRadius: 9999,
-            background: "var(--ink)", border: "none",
-            fontSize: 10, fontWeight: 600, color: "#fff",
-            fontFamily: "var(--font)", cursor: "pointer",
-          }}>
-            {cityId} <X size={8} />
-          </button>
-        )}
-        {userCoords && (
-          <button onClick={() => { setUserCoords(null); setSortId("relevance"); }} style={{
-            display: "inline-flex", alignItems: "center", gap: 3,
-            height: 20, paddingInline: "7px 5px", borderRadius: 9999,
-            background: "var(--ink)", border: "none",
-            fontSize: 10, fontWeight: 600, color: "#fff",
-            fontFamily: "var(--font)", cursor: "pointer",
-          }}>
-            Près de moi <X size={8} />
-          </button>
-        )}
       </div>
 
       {/* Mobile expanded filters */}
@@ -1455,20 +1415,10 @@ export default function SearchPage() {
         </div>
       </div>
 
-      {/* ④ Extra sections */}
-      <ExtraSections
-        onCitySelect={city => {
-          setCityId(city); setPage(1);
-          window.scrollTo({ top: TOPBAR_H + filterBarH, behavior: "smooth" });
-        }}
-        onCategorySelect={cat => {
-          setCategoryId(cat); setPage(1);
-          window.scrollTo({ top: TOPBAR_H + filterBarH, behavior: "smooth" });
-        }}
-      />
-
-      {/* ⑤ Footer */}
-      <Footer />
+      {/* ④ Footer */}
+      <div style={{ paddingTop: 64 }}>
+        <Footer />
+      </div>
     </div>
   );
 }
