@@ -442,30 +442,52 @@
 
 /* ── Dashboard layout ── */
 .ds-dash-layout { display: flex; min-height: 100vh; background-color: var(--canvas); }
-.ds-dash-main   { flex: 1; padding: var(--space-4); min-width: 0; overflow: auto; }
-@media (min-width: 640px) {
-  .ds-dash-main { padding: var(--space-6); }
-}
-@media (min-width: 1024px) {
-  .ds-dash-main { padding: var(--space-8); }
-}
+.ds-dash-main   { flex: 1; min-width: 0; overflow: auto; display: flex; flex-direction: column; }
+
+/* Header — flush to top, border-radius only on bottom */
 .ds-dash-page-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: var(--space-6);
+  align-items: center;
   gap: var(--space-4);
   flex-wrap: wrap;
+  background-color: var(--surface-1);
+  border-bottom: 1px solid var(--hairline);
+  border-bottom-left-radius: 14px;
+  border-bottom-right-radius: 14px;
+  padding: 14px 20px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 @media (min-width: 640px) {
-  .ds-dash-page-header { margin-bottom: var(--space-8); align-items: center; }
+  .ds-dash-page-header { padding: 16px 28px; }
 }
+@media (min-width: 1024px) {
+  .ds-dash-page-header { padding: 18px 32px; }
+}
+
+/* Content area below header */
+.ds-dash-content {
+  padding: var(--space-4);
+  flex: 1;
+}
+@media (min-width: 640px) {
+  .ds-dash-content { padding: var(--space-6); }
+}
+@media (min-width: 1024px) {
+  .ds-dash-content { padding: var(--space-8); }
+}
+
 .ds-dash-page-title {
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 600;
   color: var(--ink);
   letter-spacing: -0.015em;
   margin: 0;
+}
+@media (min-width: 640px) {
+  .ds-dash-page-title { font-size: 22px; }
 }
 
 /* ── Table ── */

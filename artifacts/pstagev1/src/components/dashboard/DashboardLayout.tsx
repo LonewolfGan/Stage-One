@@ -414,12 +414,12 @@ export function DashboardLayout({ children, title, actions, breadcrumb }: Dashbo
         className="ds-dash-main"
         style={{ marginLeft: isLg ? 220 : 0, flex: 1, minWidth: 0, width: "100%" }}
       >
-        {/* Page header */}
+        {/* Page header — flush to top, rounded only on bottom */}
         <motion.div
           className="ds-dash-page-header"
-          initial={{ opacity: 0, y: -8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35, ease: [0.0, 0.0, 0.2, 1] }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.25, ease: [0.0, 0.0, 0.2, 1] }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
             {!isLg && (
@@ -507,7 +507,8 @@ export function DashboardLayout({ children, title, actions, breadcrumb }: Dashbo
         </motion.div>
 
         <motion.div
-          initial={{ opacity: 0, y: 12 }}
+          className="ds-dash-content"
+          initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, ease: [0.0, 0.0, 0.2, 1], delay: 0.1 }}
         >
