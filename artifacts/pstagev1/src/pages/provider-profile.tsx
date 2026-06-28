@@ -10,7 +10,7 @@ import { adaptProvider } from "@/lib/provider-adapter";
 import {
   Star, Heart, MapPin, Phone,
   ChevronLeft, ChevronRight, ChevronDown,
-  Navigation, ThumbsUp,
+  Navigation, ThumbsUp, Share2,
 } from "lucide-react";
 import { useBreakpoint } from "@/hooks/use-mobile";
 
@@ -683,25 +683,47 @@ export default function ProviderProfilePage() {
                   )}
                 </div>
 
-                {/* Y aller */}
-                <div style={{ borderTop: "1px solid var(--hairline)", padding: "12px 20px" }}>
+                {/* Y aller + Partager */}
+                <div style={{ borderTop: "1px solid var(--hairline)", padding: "12px 20px", display: "flex", gap: 8 }}>
                   <a
                     href={`https://www.google.com/maps/search/${encodeURIComponent((provider.address || "") + ", " + provider.city)}`}
                     target="_blank" rel="noopener noreferrer"
                     style={{
-                      display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
-                      height: 36, borderRadius: 8,
+                      flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 5,
+                      height: 34, borderRadius: 8,
                       border: "1px solid var(--hairline)",
                       fontSize: 12, fontWeight: 500, color: "var(--ink-secondary)",
                       textDecoration: "none", background: "#fff",
-                      transition: "border-color 120ms",
+                      transition: "border-color 120ms, color 120ms",
                     }}
                     onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--ink)"; e.currentTarget.style.color = "var(--ink)"; }}
                     onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--hairline)"; e.currentTarget.style.color = "var(--ink-secondary)"; }}
                   >
-                    <Navigation size={12} />
-                    Y aller sur Google Maps
+                    <Navigation size={11} />
+                    Y aller
                   </a>
+                  <button
+                    onClick={() => {
+                      if (navigator.share) {
+                        navigator.share({ title: provider.name, url: window.location.href });
+                      } else {
+                        navigator.clipboard.writeText(window.location.href);
+                      }
+                    }}
+                    style={{
+                      flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 5,
+                      height: 34, borderRadius: 8,
+                      border: "1px solid var(--hairline)", background: "#fff",
+                      fontSize: 12, fontWeight: 500, color: "var(--ink-secondary)",
+                      cursor: "pointer", fontFamily: "var(--font)",
+                      transition: "border-color 120ms, color 120ms",
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--ink)"; e.currentTarget.style.color = "var(--ink)"; }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--hairline)"; e.currentTarget.style.color = "var(--ink-secondary)"; }}
+                  >
+                    <Share2 size={11} />
+                    Partager
+                  </button>
                 </div>
 
                 {/* Rating */}
