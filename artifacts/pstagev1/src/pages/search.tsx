@@ -1,7 +1,10 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useSearch, useLocation } from "wouter";
 import { AnimatePresence, motion } from "framer-motion";
-import { MapContainer, TileLayer, Marker, Popup, useMap, ZoomControl, CircleMarker } from "react-leaflet";
+import {
+  MapContainer, TileLayer, Marker, Popup,
+  useMap, ZoomControl, CircleMarker,
+} from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { TopBar } from "@/components/layout/TopBar";
@@ -14,8 +17,9 @@ import { adaptProviderList } from "@/lib/provider-adapter";
 import { MOROCCO_CITIES, SERVICE_CATEGORIES, SORT_OPTIONS } from "@/lib/cities";
 import {
   MapPin, Star, ChevronLeft, ChevronRight,
-  Map, Satellite, X, Clock, CheckCircle2, Calendar, LocateFixed,
-  Search, SlidersHorizontal, List, Compass,
+  Map, X, Clock, CheckCircle2, Calendar,
+  Search, LocateFixed, LayoutGrid, List, Compass,
+  ArrowRight, SlidersHorizontal,
 } from "lucide-react";
 import { useBreakpoint } from "@/hooks/use-mobile";
 
@@ -26,38 +30,49 @@ const CITY_OPTIONS = [
   { id: "", label: "Toutes les villes" },
   ...MOROCCO_CITIES.map(c => ({ id: c, label: c })),
 ];
-const PER_PAGE = 8;
-const TOPBAR_HEIGHT = 56;
+const PER_PAGE = 9;
+const TOPBAR_H = 56;
 
 const TILES = {
   map: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
-  satellite: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
 };
-
-const PRICE_SYMBOLS: Record<number, string> = { 1: "MAD", 2: "MAD MAD", 3: "MAD MAD MAD" };
 
 /* ─────────────────────────────────────────────
    Custom map pin
 ───────────────────────────────────────────── */
-function makePin(selected: boolean) {
-  const bg = selected ? "#0C0C0E" : "#FFFFFF";
-  const iconColor = selected ? "#FFFFFF" : "#0C0C0E";
-  const border = selected ? "#0C0C0E" : "rgba(10,10,15,0.14)";
+function makePin(selected: boolean, price?: string) {
+  if (price && !selected) {
+    return L.divIcon({
+      className: "",
+      html: `<div style="
+        padding: 4px 10px; border-radius: 20px;
+        background: #0C0C0E; color: #fff;
+        font-size: 11px; font-weight: 600;
+        font-family: 'Inter', sans-serif;
+        letter-spacing: -0.01em; white-space: nowrap;
+        border: 1.5px solid rgba(255,255,255,0.2);
+        cursor: pointer;
+      ">${price}</div>`,
+      iconSize: [undefined as unknown as number, 28],
+      iconAnchor: [36, 14],
+      popupAnchor: [0, -18],
+    });
+  }
+  const bg = selected ? "#D4466E" : "#0C0C0E";
   return L.divIcon({
     className: "",
-    html: `<div style="width:36px;height:36px;border-radius:50%;background:${bg};border:2px solid ${border};display:flex;align-items:center;justify-content:center;transition:all .2s ease;box-shadow:none">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
-        <circle cx="6" cy="6" r="3" stroke="${iconColor}" stroke-width="2"/>
-        <circle cx="6" cy="18" r="3" stroke="${iconColor}" stroke-width="2"/>
-        <line x1="8.5" y1="8.5" x2="20" y2="4" stroke="${iconColor}" stroke-width="2" stroke-linecap="round"/>
-        <line x1="8.5" y1="15.5" x2="20" y2="20" stroke="${iconColor}" stroke-width="2" stroke-linecap="round"/>
-        <line x1="8.5" y1="8.5" x2="15" y2="12" stroke="${iconColor}" stroke-width="2" stroke-linecap="round"/>
-        <line x1="8.5" y1="15.5" x2="15" y2="12" stroke="${iconColor}" stroke-width="2" stroke-linecap="round"/>
+    html: `<div style="
+      width: 32px; height: 32px; border-radius: 50%;
+      background: ${bg}; border: 2px solid #fff;
+      display: flex; align-items: center; justify-content: center;
+    ">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="#fff"/>
       </svg>
     </div>`,
-    iconSize: [36, 36],
-    iconAnchor: [18, 18],
-    popupAnchor: [0, -22],
+    iconSize: [32, 32],
+    iconAnchor: [16, 16],
+    popupAnchor: [0, -20],
   });
 }
 
@@ -90,282 +105,372 @@ function UserLocationMarker({ coords }: { coords: { lat: number; lng: number } |
     <CircleMarker
       center={[coords.lat, coords.lng]}
       radius={9}
-      pathOptions={{ color: "#D4466E", fillColor: "#D4466E", fillOpacity: 0.25, weight: 2 }}
+      pathOptions={{ color: "#D4466E", fillColor: "#D4466E", fillOpacity: 0.22, weight: 2 }}
     />
   );
 }
 
 /* ─────────────────────────────────────────────
-   Star rating display
+   Stars
 ───────────────────────────────────────────── */
 function Stars({ rating }: { rating: number }) {
   return (
-    <div style={{ display: "flex", gap: 1.5 }}>
+    <span style={{ display: "inline-flex", gap: 1.5, alignItems: "center" }}>
       {[1, 2, 3, 4, 5].map(i => (
-        <Star
-          key={i}
-          size={11}
-          style={{
-            fill: i <= Math.round(rating) ? "var(--rating)" : "transparent",
-            color: "var(--rating)",
-          }}
-        />
+        <Star key={i} size={10} style={{
+          fill: i <= Math.round(rating) ? "var(--rating)" : "transparent",
+          color: "var(--rating)",
+          flexShrink: 0,
+        }} />
       ))}
-    </div>
+    </span>
   );
 }
 
 /* ─────────────────────────────────────────────
-   Result card — redesigned with better hierarchy
+   RESULT CARD — List view
 ───────────────────────────────────────────── */
-function ResultCard({
-  provider, isSelected, onHover, onLeave, index = 0,
+function ResultCardList({
+  provider, isSelected, onHover, onLeave, index,
 }: {
-  provider: Provider;
-  isSelected: boolean;
-  onHover: () => void;
-  onLeave: () => void;
-  index?: number;
+  provider: Provider; isSelected: boolean;
+  onHover: () => void; onLeave: () => void; index: number;
 }) {
-  const [, setLocation] = useLocation();
+  const [, nav] = useLocation();
+  const [hovered, setHovered] = useState(false);
   const nextSlot = getNextAvailable(provider);
-  const categoryLabel = SERVICE_CATEGORIES.find(c => c.id === provider.category)?.label ?? provider.category;
-  const topServices = provider.services.slice(0, 3);
+  const catLabel = SERVICE_CATEGORIES.find(c => c.id === provider.category)?.label ?? provider.category;
   const minPrice = provider.minPriceCents != null
     ? provider.minPriceCents / 100
     : provider.services.length > 0
       ? Math.min(...provider.services.map(s => s.priceCents)) / 100
       : null;
-  const minDuration = provider.minDurationMinutes != null
-    ? provider.minDurationMinutes
-    : provider.services.length > 0
-      ? Math.min(...provider.services.map(s => s.durationMinutes))
-      : null;
+
+  const active = isSelected || hovered;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 6 }}
+    <motion.article
+      initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.28, delay: index * 0.04, ease: [0.4, 0, 0.2, 1] }}
-      onMouseEnter={onHover}
-      onMouseLeave={onLeave}
-      className="result-card"
+      transition={{ duration: 0.28, delay: index * 0.05, ease: [0.16, 1, 0.3, 1] }}
+      onMouseEnter={() => { setHovered(true); onHover(); }}
+      onMouseLeave={() => { setHovered(false); onLeave(); }}
+      onClick={() => nav(`/${provider.slug}`)}
       style={{
-        backgroundColor: isSelected ? "rgba(12,12,14,0.03)" : "var(--surface-1)",
-        border: `1px solid ${isSelected ? "var(--hairline-strong)" : "var(--hairline)"}`,
-        borderRadius: 12,
-        overflow: "hidden",
         display: "flex",
-        flexDirection: "row",
-        transition: "border-color 0.2s ease, background-color 0.2s ease",
+        borderRadius: 14,
+        overflow: "hidden",
+        border: `1px solid ${active ? "rgba(12,12,14,0.18)" : "rgba(12,12,14,0.08)"}`,
+        backgroundColor: active ? "rgba(12,12,14,0.015)" : "#FFFFFF",
         cursor: "pointer",
+        transition: "border-color 200ms ease, background-color 200ms ease",
+        minHeight: 132,
       }}
     >
-      {/* ── Photo ── */}
-      <div
-        onClick={() => setLocation(`/${provider.slug}`)}
-        style={{
-          width: 156,
-          flexShrink: 0,
-          position: "relative",
-          overflow: "hidden",
-        }}
-      >
+      {/* Photo */}
+      <div style={{ width: 164, flexShrink: 0, position: "relative", overflow: "hidden" }}>
         <img
           src={provider.photos[0]}
           alt={provider.name}
           style={{
-            width: "100%",
-            height: "100%",
-            objectFit: "cover",
-            display: "block",
+            width: "100%", height: "100%", objectFit: "cover", display: "block",
+            transform: hovered ? "scale(1.04)" : "scale(1)",
+            transition: "transform 400ms cubic-bezier(0.16, 1, 0.3, 1)",
           }}
         />
-        {/* Gradient overlay */}
+        {/* gradient */}
         <div style={{
           position: "absolute", inset: 0,
-          background: "linear-gradient(180deg, transparent 50%, rgba(10,10,15,0.5) 100%)",
+          background: "linear-gradient(180deg, transparent 40%, rgba(10,10,15,0.52) 100%)",
           pointerEvents: "none",
         }} />
-        {/* Popular badge */}
+        {/* Populaire */}
         {provider.isPopular && (
           <span style={{
-            position: "absolute", top: 10, left: 10,
-            height: 20, paddingInline: 8,
+            position: "absolute", top: 9, left: 9,
+            height: 18, paddingInline: 7,
             display: "inline-flex", alignItems: "center",
-            backgroundColor: "#FFFFFF",
-            borderRadius: 9999, fontSize: 9, fontWeight: 600, color: "var(--ink)",
-            letterSpacing: "0.04em", pointerEvents: "none", textTransform: "uppercase",
+            background: "#fff", borderRadius: 9999,
+            fontSize: 9, fontWeight: 700, color: "var(--ink)",
+            letterSpacing: "0.06em", textTransform: "uppercase",
           }}>
-            Populaire
+            Top
           </span>
         )}
-        {/* Price badge at bottom */}
+        {/* Price badge */}
         {minPrice != null && (
           <span style={{
-            position: "absolute", bottom: 10, left: 10,
-            height: 22, paddingInline: 8,
+            position: "absolute", bottom: 9, left: 9,
+            height: 20, paddingInline: 7,
             display: "inline-flex", alignItems: "center",
-            backgroundColor: "rgba(10,10,15,0.72)",
-            backdropFilter: "blur(6px)",
-            borderRadius: 6, fontSize: 11, fontWeight: 600, color: "#FFFFFF",
-            letterSpacing: "-0.01em", pointerEvents: "none",
+            background: "rgba(10,10,15,0.68)", backdropFilter: "blur(8px)",
+            borderRadius: 6, fontSize: 11, fontWeight: 600, color: "#fff",
+            letterSpacing: "-0.01em",
           }}>
             dès {minPrice} MAD
           </span>
         )}
       </div>
 
-      {/* ── Info ── */}
-      <div
-        onClick={() => setLocation(`/${provider.slug}`)}
-        style={{
-          flex: 1, minWidth: 0,
-          padding: "14px 14px 14px 16px",
-          display: "flex", flexDirection: "column",
-          gap: 0,
-        }}
-      >
-        {/* Name row */}
-        <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
-          <p style={{
+      {/* Content */}
+      <div style={{
+        flex: 1, minWidth: 0,
+        padding: "14px 16px",
+        display: "flex", flexDirection: "column",
+      }}>
+        {/* Name + verified */}
+        <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 3 }}>
+          <h3 style={{
             fontSize: 15, fontWeight: 600, color: "var(--ink)",
-            letterSpacing: "-0.015em", lineHeight: 1.2,
-            margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+            letterSpacing: "-0.015em", lineHeight: 1.2, margin: 0,
+            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
           }}>
             {provider.name}
-          </p>
+          </h3>
           {provider.isVerified && (
-            <CheckCircle2 size={12} color="var(--ink-secondary)" style={{ flexShrink: 0 }} />
+            <CheckCircle2 size={12} color="var(--ink-tertiary)" style={{ flexShrink: 0 }} />
           )}
         </div>
 
-        {/* Category tag */}
+        {/* Category */}
         <span style={{
-          display: "inline-block", alignSelf: "flex-start",
-          fontSize: 10, fontWeight: 600, color: "var(--ink-secondary)",
-          backgroundColor: "rgba(12,12,14,0.06)",
-          paddingInline: 7, paddingBlock: 3, borderRadius: 5,
-          letterSpacing: "0.01em", marginBottom: 8,
+          alignSelf: "flex-start", marginBottom: 8,
+          fontSize: 10, fontWeight: 600,
+          color: "var(--ink-tertiary)",
+          letterSpacing: "0.04em", textTransform: "uppercase",
         }}>
-          {categoryLabel}
+          {catLabel}
         </span>
 
-        {/* Rating row */}
-        <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
+        {/* Rating + location */}
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: "auto" }}>
           <Stars rating={provider.rating} />
           <span style={{ fontSize: 12, fontWeight: 600, color: "var(--ink)" }}>{provider.rating}</span>
-          <span style={{ fontSize: 12, color: "var(--ink-tertiary)" }}>· {provider.reviewCount} avis</span>
-          <span style={{ width: 3, height: 3, borderRadius: "50%", backgroundColor: "var(--hairline-strong)", flexShrink: 0 }} />
-          <span style={{ fontSize: 11, color: "var(--ink-tertiary)", fontWeight: 500, letterSpacing: "0.01em" }}>
-            {PRICE_SYMBOLS[provider.priceLevel] ?? "MAD"}
-          </span>
-        </div>
-
-        {/* Address + distance */}
-        <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: "auto" }}>
+          <span style={{ fontSize: 12, color: "var(--ink-tertiary)" }}>({provider.reviewCount})</span>
+          <span style={{ width: 2, height: 2, borderRadius: "50%", background: "var(--ink-disabled)", flexShrink: 0 }} />
           <MapPin size={10} color="var(--ink-tertiary)" style={{ flexShrink: 0 }} />
-          <span style={{ fontSize: 12, color: "var(--ink-tertiary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-            {provider.address}, {provider.city}
+          <span style={{
+            fontSize: 12, color: "var(--ink-tertiary)",
+            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+          }}>
+            {provider.city}
+            {provider.distanceKm != null && (
+              <span style={{ color: "var(--ink-secondary)", fontWeight: 500 }}>
+                {" · "}{provider.distanceKm < 1 ? `${Math.round(provider.distanceKm * 1000)} m` : `${provider.distanceKm} km`}
+              </span>
+            )}
           </span>
-          {provider.distanceKm != null && (
-            <span style={{
-              flexShrink: 0, marginLeft: 4,
-              fontSize: 10, fontWeight: 600, color: "var(--ink-secondary)",
-              backgroundColor: "rgba(12,12,14,0.06)",
-              paddingInline: 6, paddingBlock: 2, borderRadius: 4,
-            }}>
-              {provider.distanceKm < 1
-                ? `${Math.round(provider.distanceKm * 1000)} m`
-                : `${provider.distanceKm} km`}
-            </span>
-          )}
         </div>
 
-        {/* Service chips + duration */}
-        <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 10 }}>
-          {topServices.map(s => (
-            <span key={s.id} style={{
-              fontSize: 11, fontWeight: 500, color: "var(--ink-secondary)",
-              backgroundColor: "rgba(12,12,14,0.04)",
-              border: "1px solid var(--hairline)",
-              paddingInline: 8, paddingBlock: 3, borderRadius: 6,
-              whiteSpace: "nowrap",
-            }}>
-              {s.name}
-            </span>
-          ))}
-          {minDuration != null && (
-            <span style={{
-              display: "flex", alignItems: "center", gap: 3,
-              fontSize: 11, color: "var(--ink-tertiary)", marginLeft: "auto",
-            }}>
-              <Clock size={10} />
-              {minDuration} min
-            </span>
-          )}
-        </div>
-      </div>
-
-      {/* ── CTA panel ── */}
-      <div style={{
-        flexShrink: 0,
-        width: 130,
-        borderLeft: "1px solid var(--hairline)",
-        display: "flex", flexDirection: "column",
-        alignItems: "center", justifyContent: "center",
-        padding: "14px 12px", gap: 10,
-      }}>
-        <button
-          onClick={e => { e.stopPropagation(); setLocation(`/booking/${provider.slug}`); }}
-          className="ds-btn ds-btn-primary ds-btn-sm"
-          style={{ width: "100%", fontFamily: "var(--font)" }}
-        >
-          Réserver
-        </button>
-        <div style={{ textAlign: "center" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 3, marginBottom: 2 }}>
-            <Calendar size= {9} color="var(--ink-tertiary)" />
-            <span style={{ fontSize: 9, fontWeight: 600, color: "var(--ink-tertiary)", letterSpacing: "-0.01em" }}>
-              Prochaine dispo
-            </span>
+        {/* Bottom row: services + dispo + CTA */}
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 12 }}>
+          {/* Services */}
+          <div style={{ display: "flex", gap: 4, flex: 1, minWidth: 0, overflow: "hidden" }}>
+            {provider.services.slice(0, 2).map(s => (
+              <span key={s.id} style={{
+                fontSize: 11, fontWeight: 500, color: "var(--ink-secondary)",
+                background: "rgba(12,12,14,0.04)",
+                border: "1px solid rgba(12,12,14,0.08)",
+                paddingInline: 7, paddingBlock: 3, borderRadius: 5,
+                whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+              }}>
+                {s.name}
+              </span>
+            ))}
           </div>
-          <span style={{ fontSize: 11, color: "var(--ink-secondary)", fontWeight: 500 }}>
-            {nextSlot}
-          </span>
+
+          {/* Dispo */}
+          <div style={{
+            display: "flex", alignItems: "center", gap: 3,
+            fontSize: 11, color: "var(--ink-tertiary)", flexShrink: 0,
+          }}>
+            <Calendar size={10} />
+            <span>{nextSlot}</span>
+          </div>
+
+          {/* CTA */}
+          <motion.button
+            onClick={e => { e.stopPropagation(); nav(`/booking/${provider.slug}`); }}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.97 }}
+            style={{
+              flexShrink: 0, height: 30, paddingInline: 14,
+              background: "var(--ink)", color: "#fff",
+              fontSize: 11, fontWeight: 600, letterSpacing: "-0.01em",
+              border: "none", borderRadius: 8, cursor: "pointer",
+              fontFamily: "var(--font)",
+              display: "flex", alignItems: "center", gap: 4,
+              transition: "background 200ms ease",
+            }}
+          >
+            Réserver
+          </motion.button>
         </div>
       </div>
-    </motion.div>
+    </motion.article>
   );
 }
 
 /* ─────────────────────────────────────────────
-   Skeleton card
+   RESULT CARD — Grid view
 ───────────────────────────────────────────── */
-function SkeletonCard() {
+function ResultCardGrid({
+  provider, isSelected, onHover, onLeave, index,
+}: {
+  provider: Provider; isSelected: boolean;
+  onHover: () => void; onLeave: () => void; index: number;
+}) {
+  const [, nav] = useLocation();
+  const [hovered, setHovered] = useState(false);
+  const nextSlot = getNextAvailable(provider);
+  const minPrice = provider.minPriceCents != null
+    ? provider.minPriceCents / 100
+    : provider.services.length > 0
+      ? Math.min(...provider.services.map(s => s.priceCents)) / 100
+      : null;
+  const catLabel = SERVICE_CATEGORIES.find(c => c.id === provider.category)?.label ?? provider.category;
+
   return (
-    <div style={{
-      borderRadius: 12, border: "1px solid var(--hairline)",
-      overflow: "hidden", display: "flex", height: 124,
-    }}>
-      <div className="skeleton" style={{ width: 132, flexShrink: 0 }} />
-      <div style={{ flex: 1, padding: "14px 16px", display: "flex", flexDirection: "column", gap: 8 }}>
-        <div className="skeleton" style={{ width: "55%", height: 14 }} />
-        <div className="skeleton" style={{ width: "35%", height: 10 }} />
-        <div className="skeleton" style={{ width: "70%", height: 10 }} />
-        <div style={{ marginTop: "auto", display: "flex", gap: 6 }}>
-          <div className="skeleton" style={{ width: 50, height: 18, borderRadius: 6 }} />
-          <div className="skeleton" style={{ width: 60, height: 18, borderRadius: 6 }} />
+    <motion.article
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, delay: index * 0.04, ease: [0.16, 1, 0.3, 1] }}
+      onMouseEnter={() => { setHovered(true); onHover(); }}
+      onMouseLeave={() => { setHovered(false); onLeave(); }}
+      onClick={() => nav(`/${provider.slug}`)}
+      style={{
+        borderRadius: 14, overflow: "hidden",
+        border: `1px solid ${(isSelected || hovered) ? "rgba(12,12,14,0.18)" : "rgba(12,12,14,0.08)"}`,
+        backgroundColor: "#fff",
+        cursor: "pointer",
+        transition: "border-color 200ms ease",
+        display: "flex", flexDirection: "column",
+      }}
+    >
+      {/* Photo */}
+      <div style={{ position: "relative", aspectRatio: "4/3", overflow: "hidden" }}>
+        <img
+          src={provider.photos[0]}
+          alt={provider.name}
+          style={{
+            width: "100%", height: "100%", objectFit: "cover", display: "block",
+            transform: hovered ? "scale(1.05)" : "scale(1)",
+            transition: "transform 400ms cubic-bezier(0.16, 1, 0.3, 1)",
+          }}
+        />
+        <div style={{
+          position: "absolute", inset: 0,
+          background: "linear-gradient(180deg, transparent 50%, rgba(10,10,15,0.6) 100%)",
+          pointerEvents: "none",
+        }} />
+        {/* Top badges */}
+        <div style={{ position: "absolute", top: 10, left: 10, right: 10, display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+          {provider.isPopular ? (
+            <span style={{
+              height: 18, paddingInline: 7,
+              display: "inline-flex", alignItems: "center",
+              background: "#fff", borderRadius: 9999,
+              fontSize: 9, fontWeight: 700, color: "var(--ink)",
+              letterSpacing: "0.06em", textTransform: "uppercase",
+            }}>
+              Top
+            </span>
+          ) : <span />}
+        </div>
+        {/* Bottom info on photo */}
+        <div style={{ position: "absolute", bottom: 10, left: 10, right: 10 }}>
+          <p style={{
+            fontSize: 14, fontWeight: 600, color: "#fff",
+            letterSpacing: "-0.015em", margin: 0, lineHeight: 1.2,
+            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+          }}>
+            {provider.name}
+          </p>
+          <div style={{ display: "flex", alignItems: "center", gap: 5, marginTop: 3 }}>
+            <Stars rating={provider.rating} />
+            <span style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.9)" }}>{provider.rating}</span>
+            <span style={{ fontSize: 11, color: "rgba(255,255,255,0.65)" }}>({provider.reviewCount})</span>
+          </div>
         </div>
       </div>
-      <div style={{
-        width: 120, flexShrink: 0,
-        borderLeft: "1px solid var(--hairline)",
-        padding: 14, display: "flex", flexDirection: "column", gap: 8,
-        alignItems: "center", justifyContent: "center",
-      }}>
-        <div className="skeleton" style={{ width: 80, height: 32, borderRadius: 8 }} />
-        <div className="skeleton" style={{ width: 60, height: 10 }} />
+
+      {/* Info */}
+      <div style={{ padding: "12px 14px", flex: 1, display: "flex", flexDirection: "column", gap: 8 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <span style={{
+            fontSize: 10, fontWeight: 600, color: "var(--ink-tertiary)",
+            letterSpacing: "0.04em", textTransform: "uppercase",
+          }}>
+            {catLabel}
+          </span>
+          {minPrice != null && (
+            <span style={{ fontSize: 12, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.01em" }}>
+              dès {minPrice} MAD
+            </span>
+          )}
+        </div>
+
+        <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+          <MapPin size={10} color="var(--ink-tertiary)" />
+          <span style={{ fontSize: 12, color: "var(--ink-tertiary)" }}>{provider.city}</span>
+        </div>
+
+        <div style={{ marginTop: "auto", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 3, fontSize: 11, color: "var(--ink-tertiary)" }}>
+            <Calendar size={10} />
+            <span>{nextSlot}</span>
+          </div>
+          <motion.button
+            onClick={e => { e.stopPropagation(); nav(`/booking/${provider.slug}`); }}
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
+            style={{
+              height: 28, paddingInline: 12,
+              background: "var(--ink)", color: "#fff",
+              fontSize: 11, fontWeight: 600,
+              border: "none", borderRadius: 7, cursor: "pointer",
+              fontFamily: "var(--font)",
+            }}
+          >
+            Réserver
+          </motion.button>
+        </div>
+      </div>
+    </motion.article>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   Skeleton cards
+───────────────────────────────────────────── */
+function SkeletonList() {
+  return (
+    <div style={{
+      borderRadius: 14, border: "1px solid rgba(12,12,14,0.08)",
+      overflow: "hidden", display: "flex", height: 132,
+    }}>
+      <div className="skeleton" style={{ width: 164, flexShrink: 0 }} />
+      <div style={{ flex: 1, padding: "14px 16px", display: "flex", flexDirection: "column", gap: 8 }}>
+        <div className="skeleton" style={{ width: "55%", height: 14, borderRadius: 4 }} />
+        <div className="skeleton" style={{ width: "30%", height: 10, borderRadius: 4 }} />
+        <div className="skeleton" style={{ width: "70%", height: 10, borderRadius: 4 }} />
+        <div style={{ marginTop: "auto", display: "flex", gap: 6 }}>
+          <div className="skeleton" style={{ width: 60, height: 22, borderRadius: 5 }} />
+          <div className="skeleton" style={{ width: 70, height: 22, borderRadius: 5 }} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SkeletonGrid() {
+  return (
+    <div style={{ borderRadius: 14, border: "1px solid rgba(12,12,14,0.08)", overflow: "hidden" }}>
+      <div className="skeleton" style={{ aspectRatio: "4/3", width: "100%" }} />
+      <div style={{ padding: "12px 14px", display: "flex", flexDirection: "column", gap: 8 }}>
+        <div className="skeleton" style={{ width: "50%", height: 10, borderRadius: 4 }} />
+        <div className="skeleton" style={{ width: "70%", height: 10, borderRadius: 4 }} />
+        <div className="skeleton" style={{ width: "40%", height: 10, borderRadius: 4 }} />
       </div>
     </div>
   );
@@ -376,16 +481,16 @@ function SkeletonCard() {
 ───────────────────────────────────────────── */
 function Pagination({ page, totalPages, onPage }: { page: number; totalPages: number; onPage: (p: number) => void }) {
   if (totalPages <= 1) return null;
-
   const base: React.CSSProperties = {
-    height: 32, minWidth: 32, paddingInline: 8, borderRadius: 7,
-    border: "1px solid var(--hairline)", backgroundColor: "var(--surface-1)",
-    fontSize: 13, fontWeight: 500, color: "var(--ink-secondary)", cursor: "pointer",
+    height: 32, minWidth: 32, paddingInline: 8, borderRadius: 8,
+    border: "1px solid rgba(12,12,14,0.10)",
+    backgroundColor: "#fff", fontSize: 13, fontWeight: 500,
+    color: "var(--ink-secondary)", cursor: "pointer",
     display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 4,
     transition: "all 0.15s ease", fontFamily: "var(--font)", letterSpacing: "-0.01em",
   };
-  const active: React.CSSProperties = { ...base, backgroundColor: "var(--ink)", borderColor: "var(--ink)", color: "#FFFFFF", fontWeight: 600 };
-  const disabled: React.CSSProperties = { ...base, opacity: 0.32, cursor: "not-allowed" };
+  const active: React.CSSProperties = { ...base, background: "var(--ink)", borderColor: "var(--ink)", color: "#fff", fontWeight: 600 };
+  const disabled: React.CSSProperties = { ...base, opacity: 0.3, cursor: "not-allowed" };
 
   const pages: (number | "…")[] = [];
   if (totalPages <= 7) { for (let i = 1; i <= totalPages; i++) pages.push(i); }
@@ -398,84 +503,23 @@ function Pagination({ page, totalPages, onPage }: { page: number; totalPages: nu
   }
 
   return (
-    <nav style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 4, paddingBlock: 24 }}>
+    <nav style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 4, padding: "20px 0 8px" }}>
       <button disabled={page === 1} onClick={() => onPage(page - 1)} style={page === 1 ? disabled : base}>
         <ChevronLeft size={13} />
       </button>
       {pages.map((p, i) =>
         p === "…" ? (
-          <span key={`e${i}`} style={{ ...base, border: "none", backgroundColor: "transparent", cursor: "default", color: "var(--ink-tertiary)" }}>…</span>
+          <span key={`e${i}`} style={{ ...base, border: "none", background: "transparent", cursor: "default", color: "var(--ink-tertiary)" }}>…</span>
         ) : (
-          <button
-            key={p}
-            onClick={() => onPage(p as number)}
-            style={p === page ? active : base}
-            onMouseEnter={e => { if (p !== page) e.currentTarget.style.backgroundColor = "rgba(12,12,14,0.04)"; }}
-            onMouseLeave={e => { if (p !== page) e.currentTarget.style.backgroundColor = "var(--surface-1)"; }}
-          >{p}</button>
+          <button key={p} onClick={() => onPage(p as number)} style={p === page ? active : base}>
+            {p}
+          </button>
         )
       )}
       <button disabled={page === totalPages} onClick={() => onPage(page + 1)} style={page === totalPages ? disabled : base}>
         <ChevronRight size={13} />
       </button>
     </nav>
-  );
-}
-
-/* ─────────────────────────────────────────────
-   Filter pills — show active filters
-───────────────────────────────────────────── */
-function ActiveFilterPills({
-  categoryId,
-  cityId,
-  userCoords,
-  categoryLabel,
-  cityLabel,
-  onRemoveCategory,
-  onRemoveCity,
-  onRemoveLocation,
-}: {
-  categoryId: string;
-  cityId: string;
-  userCoords: { lat: number; lng: number } | null;
-  categoryLabel: string | null;
-  cityLabel: string;
-  onRemoveCategory: () => void;
-  onRemoveCity: () => void;
-  onRemoveLocation: () => void;
-}) {
-  const pills: { label: string; onRemove: () => void }[] = [];
-  if (categoryId && categoryLabel) pills.push({ label: categoryLabel, onRemove: onRemoveCategory });
-  if (cityId) pills.push({ label: cityId, onRemove: onRemoveCity });
-  if (userCoords) pills.push({ label: "À proximité", onRemove: onRemoveLocation });
-
-  if (!pills.length) return null;
-
-  return (
-    <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-      {pills.map(pill => (
-        <button
-          key={pill.label}
-          onClick={pill.onRemove}
-          style={{
-            display: "inline-flex", alignItems: "center", gap: 4,
-            height: 26, paddingInline: "8px 6px",
-            borderRadius: 9999,
-            backgroundColor: "rgba(12,12,14,0.06)",
-            border: "none",
-            fontSize: 11, fontWeight: 500, color: "var(--ink-secondary)",
-            fontFamily: "var(--font)", cursor: "pointer",
-            whiteSpace: "nowrap",
-            transition: "all 0.15s ease",
-          }}
-          onMouseEnter={e => { e.currentTarget.style.backgroundColor = "rgba(12,12,14,0.1)"; }}
-          onMouseLeave={e => { e.currentTarget.style.backgroundColor = "rgba(12,12,14,0.06)"; }}
-        >
-          {pill.label}
-          <X size={10} style={{ flexShrink: 0 }} />
-        </button>
-      ))}
-    </div>
   );
 }
 
@@ -487,38 +531,43 @@ function EmptyState({ onReset }: { onReset: () => void }) {
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+      transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
       style={{
-        flex: 1,
         display: "flex", flexDirection: "column",
         alignItems: "center", justifyContent: "center",
-        textAlign: "center", paddingBlock: 80, paddingInline: 24,
+        textAlign: "center", paddingBlock: 72, paddingInline: 24,
       }}
     >
       <div style={{
-        width: 48, height: 48, borderRadius: "50%",
-        backgroundColor: "rgba(12,12,14,0.04)",
+        width: 52, height: 52, borderRadius: 14,
+        background: "rgba(12,12,14,0.04)",
         display: "flex", alignItems: "center", justifyContent: "center",
-        marginBottom: 16,
+        marginBottom: 18,
       }}>
-        <Compass size={20} color="var(--ink-tertiary)" />
+        <Compass size={22} color="var(--ink-tertiary)" strokeWidth={1.5} />
       </div>
       <h3 style={{
-        fontSize: 16, fontWeight: 600, color: "var(--ink)",
-        letterSpacing: "-0.015em", margin: "0 0 6px",
+        fontSize: 17, fontWeight: 600, color: "var(--ink)",
+        letterSpacing: "-0.02em", margin: "0 0 8px",
       }}>
         Aucun résultat
       </h3>
       <p style={{
         fontSize: 13, color: "var(--ink-tertiary)",
-        maxWidth: 260, margin: "0 0 20px", lineHeight: 1.5,
+        maxWidth: 280, margin: "0 0 22px", lineHeight: 1.55,
       }}>
-        Essayez de modifier vos filtres ou d'élargir votre zone de recherche.
+        Essayez d'élargir votre recherche ou de modifier les filtres actifs.
       </p>
       <button
         onClick={onReset}
-        className="ds-btn ds-btn-secondary ds-btn-sm"
-        style={{ fontFamily: "var(--font)" }}
+        style={{
+          height: 36, paddingInline: 18,
+          background: "var(--ink)", color: "#fff",
+          fontSize: 12, fontWeight: 600, letterSpacing: "-0.01em",
+          border: "none", borderRadius: 9, cursor: "pointer",
+          fontFamily: "var(--font)",
+          display: "flex", alignItems: "center", gap: 6,
+        }}
       >
         Réinitialiser les filtres
       </button>
@@ -527,77 +576,152 @@ function EmptyState({ onReset }: { onReset: () => void }) {
 }
 
 /* ─────────────────────────────────────────────
-   Search input component
+   Category tab pills
 ───────────────────────────────────────────── */
-function SearchInput({
-  value,
-  onChange,
-  onClear,
-}: {
-  value: string;
-  onChange: (v: string) => void;
-  onClear: () => void;
-}) {
+function CategoryTabs({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const cats = [
+    { id: "", label: "Tout" },
+    { id: "coiffeur", label: "Coiffeur" },
+    { id: "barbier", label: "Barbier" },
+    { id: "manucure", label: "Manucure" },
+    { id: "beaute", label: "Institut beauté" },
+    { id: "bien-etre", label: "Bien-être" },
+    { id: "maquillage", label: "Maquillage" },
+    { id: "epilation", label: "Épilation" },
+    { id: "soin", label: "Soins visage" },
+  ];
+
   return (
-    <div style={{
-      position: "relative",
-      flex: 1,
-      minWidth: 0,
-    }}>
-      <Search
-        size={14}
-        style={{
-          position: "absolute", left: 12, top: "50%",
-          transform: "translateY(-50%)",
-          color: "var(--ink-tertiary)",
-          pointerEvents: "none",
-        }}
-      />
-      <input
-        type="text"
-        placeholder="Rechercher un établissement, un service…"
-        value={value}
-        onChange={e => onChange(e.target.value)}
-        style={{
-          width: "100%",
-          height: 36,
-          paddingLeft: 34,
-          paddingRight: value ? 32 : 12,
-          backgroundColor: "rgba(12,12,14,0.04)",
-          border: "1px solid var(--hairline)",
-          borderRadius: 8,
-          color: "var(--ink)",
-          fontFamily: "var(--font)",
-          fontSize: 13,
-          outline: "none",
-          transition: "border-color 0.15s ease",
-          boxSizing: "border-box",
-        }}
-        onFocus={e => { e.currentTarget.style.borderColor = "var(--ink)"; }}
-        onBlur={e => { e.currentTarget.style.borderColor = "var(--hairline)"; }}
-      />
-      {value && (
-        <button
-          onClick={onClear}
-          style={{
-            position: "absolute", right: 8, top: "50%",
-            transform: "translateY(-50%)",
-            width: 20, height: 20,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            border: "none", backgroundColor: "transparent",
-            cursor: "pointer", color: "var(--ink-tertiary)",
-            padding: 0,
-          }}
-        >
-          <X size={12} />
-        </button>
-      )}
+    <div
+      ref={scrollRef}
+      style={{
+        display: "flex", gap: 6, overflowX: "auto", flexShrink: 0,
+        scrollbarWidth: "none", WebkitOverflowScrolling: "touch",
+        paddingBottom: 2,
+      }}
+    >
+      {cats.map(cat => {
+        const isActive = cat.id === value || (cat.id === "" && !value);
+        return (
+          <button
+            key={cat.id}
+            onClick={() => onChange(cat.id)}
+            style={{
+              whiteSpace: "nowrap", flexShrink: 0,
+              height: 30, paddingInline: 13,
+              borderRadius: 9999,
+              border: `1px solid ${isActive ? "var(--ink)" : "rgba(12,12,14,0.10)"}`,
+              background: isActive ? "var(--ink)" : "transparent",
+              color: isActive ? "#fff" : "var(--ink-secondary)",
+              fontSize: 12, fontWeight: isActive ? 600 : 500,
+              cursor: "pointer", fontFamily: "var(--font)",
+              transition: "all 160ms ease",
+              letterSpacing: "-0.01em",
+            }}
+          >
+            {cat.label}
+          </button>
+        );
+      })}
     </div>
   );
 }
 
 /* ─────────────────────────────────────────────
-   Main page
+   Map content (shared between mobile/desktop)
+───────────────────────────────────────────── */
+function MapContent({
+  mapProviders,
+  selectedId,
+  setSelectedId,
+  userCoords,
+  defaultCenter,
+  navigate,
+  isMobile,
+}: {
+  mapProviders: Provider[];
+  selectedId: string | null;
+  setSelectedId: (id: string | null) => void;
+  userCoords: { lat: number; lng: number } | null;
+  defaultCenter: [number, number];
+  navigate: (path: string) => void;
+  isMobile: boolean;
+}) {
+  return (
+    <>
+      {/* Map result count badge */}
+      {mapProviders.length > 0 && (
+        <div style={{
+          position: "absolute", top: 12, right: 12, zIndex: 800,
+          background: "rgba(255,255,255,0.96)", backdropFilter: "blur(12px)",
+          borderRadius: 9999, border: "1px solid rgba(12,12,14,0.10)",
+          paddingInline: 12, height: 30,
+          display: "flex", alignItems: "center", gap: 6,
+          fontSize: 11, fontWeight: 500, color: "var(--ink-secondary)",
+        }}>
+          <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--ink)", display: "inline-block" }} />
+          {mapProviders.length} résultat{mapProviders.length > 1 ? "s" : ""}
+        </div>
+      )}
+
+      <MapContainer
+        center={defaultCenter}
+        zoom={6}
+        style={{ width: "100%", height: "100%" }}
+        zoomControl={false}
+        attributionControl={false}
+        scrollWheelZoom={true}
+        key={`map-${isMobile ? "m" : "d"}`}
+      >
+        <ZoomControl position="bottomright" />
+        <TileLayer url={TILES.map} attribution="© CARTO" />
+        <MapFlyTo providers={mapProviders} />
+        <UserLocationMarker coords={userCoords} />
+        {mapProviders.map(p => {
+          const minPrice = p.minPriceCents != null
+            ? `${Math.round(p.minPriceCents / 100)} MAD`
+            : p.services.length > 0
+              ? `${Math.round(Math.min(...p.services.map(s => s.priceCents)) / 100)} MAD`
+              : undefined;
+          return (
+            <Marker
+              key={p.id}
+              position={[p.latitude!, p.longitude!]}
+              icon={makePin(selectedId === p.id, minPrice)}
+              eventHandlers={{
+                click: () => setSelectedId(selectedId === p.id ? null : p.id),
+                mouseover: () => setSelectedId(p.id),
+                mouseout: () => setSelectedId(null),
+              }}
+            >
+              <Popup closeButton={false} className="custom-popup" offset={[0, -20]}>
+                <div
+                  onClick={() => navigate(`/${p.slug}`)}
+                  style={{ width: 210, cursor: "pointer", fontFamily: "var(--font)", borderRadius: 12, overflow: "hidden" }}
+                >
+                  <img src={p.photos[0]} alt={p.name} style={{ width: "100%", height: 96, objectFit: "cover", display: "block" }} />
+                  <div style={{ padding: "10px 12px" }}>
+                    <p style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)", margin: "0 0 3px", letterSpacing: "-0.01em" }}>{p.name}</p>
+                    <p style={{ fontSize: 11, color: "var(--ink-tertiary)", margin: "0 0 6px" }}>{p.city}</p>
+                    <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                      <Stars rating={p.rating} />
+                      <span style={{ fontSize: 11, fontWeight: 600, color: "var(--ink)" }}>{p.rating}</span>
+                      <span style={{ fontSize: 11, color: "var(--ink-tertiary)" }}>({p.reviewCount})</span>
+                    </div>
+                  </div>
+                </div>
+              </Popup>
+            </Marker>
+          );
+        })}
+      </MapContainer>
+    </>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   MAIN PAGE
 ───────────────────────────────────────────── */
 export default function SearchPage() {
   const searchString = useSearch();
@@ -606,8 +730,8 @@ export default function SearchPage() {
   const { isMobile, isLg } = useBreakpoint();
   const listRef = useRef<HTMLDivElement>(null);
 
-  // ── State ──
-  const [searchQuery, setSearchQuery] = useState("");
+  // State
+  const [searchQuery, setSearchQuery] = useState(params.get("q") || "");
   const [categoryId, setCategoryId] = useState(params.get("category") || "");
   const [cityId, setCityId] = useState(params.get("city") || "");
   const [sortId, setSortId] = useState("relevance");
@@ -615,12 +739,13 @@ export default function SearchPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [pageDir, setPageDir] = useState<1 | -1>(1);
-  const [tileMode, setTileMode] = useState<"map" | "satellite">("map");
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [geoLoading, setGeoLoading] = useState(false);
   const [mobileMapOpen, setMobileMapOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<"list" | "grid">("list");
+  const [filterOpen, setFilterOpen] = useState(false);
 
-  // ── Data ──
+  // Data
   const { data: rawProviders, isLoading: apiLoading } = useQuery({
     queryKey: ["providers", cityId, userCoords?.lat, userCoords?.lng],
     queryFn: () => api.searchProviders({
@@ -632,48 +757,39 @@ export default function SearchPage() {
     staleTime: 30_000,
   });
 
-  useEffect(() => {
-    setLoading(apiLoading);
-  }, [apiLoading]);
-
-  // Loading timeout
+  useEffect(() => { setLoading(apiLoading); }, [apiLoading]);
   useEffect(() => {
     const t = setTimeout(() => setLoading(false), 400);
     return () => clearTimeout(t);
   }, [categoryId, cityId, searchQuery]);
 
-  // Sync URL params
   useEffect(() => {
     const p = new URLSearchParams();
     if (categoryId) p.set("category", categoryId);
     if (cityId) p.set("city", cityId);
+    if (searchQuery) p.set("q", searchQuery);
     navigate(`/search?${p.toString()}`, { replace: true });
     setPage(1);
-  }, [categoryId, cityId]);
+  }, [categoryId, cityId, searchQuery]);
 
-  // Scroll top on page change
   useEffect(() => {
     listRef.current?.scrollTo({ top: 0, behavior: "smooth" });
   }, [page]);
 
-  // ── Derived state ──
+  // Derived
   const adaptedProviders = adaptProviderList(rawProviders ?? []);
-
   const allResults = useMemo(() => {
     const q = searchQuery.toLowerCase().trim();
     return adaptedProviders
       .filter(p => {
-        // Text search filter
         if (q) {
-          const nameMatch = p.name.toLowerCase().includes(q);
-          const serviceMatch = p.services.some(s => s.name.toLowerCase().includes(q));
-          const cityMatch = p.city.toLowerCase().includes(q);
-          const catMatch = (SERVICE_CATEGORIES.find(c => c.id === p.category)?.label ?? "").toLowerCase().includes(q);
-          if (!nameMatch && !serviceMatch && !cityMatch && !catMatch) return false;
+          const match = p.name.toLowerCase().includes(q)
+            || p.services.some(s => s.name.toLowerCase().includes(q))
+            || p.city.toLowerCase().includes(q)
+            || (SERVICE_CATEGORIES.find(c => c.id === p.category)?.label ?? "").toLowerCase().includes(q);
+          if (!match) return false;
         }
-        // Category filter
         if (categoryId && categoryId !== "all" && p.category !== categoryId) return false;
-        // City filter (not used when geolocation is active)
         if (!userCoords && cityId && p.city.toLowerCase() !== cityId.toLowerCase()) return false;
         return true;
       })
@@ -690,7 +806,7 @@ export default function SearchPage() {
   const results = allResults.slice((page - 1) * PER_PAGE, page * PER_PAGE);
   const cityLabel = cityId || "Maroc";
   const categoryLabel = SERVICE_CATEGORIES.find(c => c.id === categoryId)?.label || null;
-  const hasActiveFilters = !!(categoryId || cityId || userCoords || searchQuery);
+  const hasFilters = !!(categoryId || cityId || userCoords || searchQuery);
 
   const goPage = useCallback((p: number) => {
     setPageDir(p > page ? 1 : -1);
@@ -705,17 +821,11 @@ export default function SearchPage() {
       ? [allMapProviders[0].latitude!, allMapProviders[0].longitude!]
       : [31.7917, -7.0926];
 
-  const slideVariants = {
-    enter: (dir: number) => ({ y: dir > 0 ? 16 : -16, opacity: 0 }),
-    center: { y: 0, opacity: 1 },
-    exit: (dir: number) => ({ y: dir > 0 ? -16 : 16, opacity: 0 }),
-  };
-
   const handleLocateMe = useCallback(() => {
     if (!navigator.geolocation) return;
     setGeoLoading(true);
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
+      pos => {
         setUserCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
         setSortId("nearest");
         setCityId("");
@@ -735,318 +845,472 @@ export default function SearchPage() {
     setUserCoords(null);
   }, []);
 
-  /* ── Shared map content ── */
-  const mapContent = (
-    <>
-      {/* Tile mode toggle */}
-      <div style={{
-        position: "absolute", top: 12, left: 12, zIndex: 800,
-        display: "flex",
-        backgroundColor: "rgba(255,255,255,0.96)", backdropFilter: "blur(12px)",
-        borderRadius: 9999, border: "1px solid var(--hairline)", padding: 3, gap: 2,
-      }}>
-        {(["map", "satellite"] as const).map(mode => (
-          <button key={mode} onClick={() => setTileMode(mode)} style={{
-            height: 28, paddingInline: 12, borderRadius: 9999, border: "none",
-            backgroundColor: tileMode === mode ? "var(--ink)" : "transparent",
-            color: tileMode === mode ? "#FFFFFF" : "var(--ink-secondary)",
-            fontSize: 11, fontWeight: 600, letterSpacing: "0.03em",
-            cursor: "pointer", fontFamily: "var(--font)", transition: "all 0.18s ease",
-            display: "flex", alignItems: "center", gap: 5,
-          }}>
-            {mode === "map" ? <><Map size={11} />Carte</> : <><Satellite size={11} />Satellite</>}
-          </button>
-        ))}
-      </div>
+  const slideVariants = {
+    enter: (dir: number) => ({ y: dir > 0 ? 14 : -14, opacity: 0 }),
+    center: { y: 0, opacity: 1 },
+    exit: (dir: number) => ({ y: dir > 0 ? -14 : 14, opacity: 0 }),
+  };
 
-      {/* Count badge */}
-      {!loading && mapProviders.length > 0 && (
-        <div style={{
-          position: "absolute", top: 12, right: 12, zIndex: 800,
-          backgroundColor: "rgba(255,255,255,0.96)", backdropFilter: "blur(12px)",
-          borderRadius: 9999, border: "1px solid var(--hairline)",
-          paddingInline: 12, height: 32,
-          display: "flex", alignItems: "center", gap: 6,
-          fontSize: 11, fontWeight: 500, color: "var(--ink-secondary)",
-        }}>
-          <span style={{ width: 6, height: 6, borderRadius: "50%", backgroundColor: "var(--ink)", display: "inline-block" }} />
-          {mapProviders.length} sur cette page
-        </div>
-      )}
-
-      <MapContainer
-        center={defaultCenter}
-        zoom={6}
-        style={{ width: "100%", height: "100%" }}
-        zoomControl={false}
-        attributionControl={false}
-        scrollWheelZoom={true}
-        key={`map-${isMobile ? "mobile" : "desktop"}`}
-      >
-        <ZoomControl position="bottomright" />
-        <TileLayer key={tileMode} url={TILES[tileMode]} attribution={tileMode === "map" ? "© CARTO" : "© Esri"} />
-        <MapFlyTo providers={mapProviders} />
-        <UserLocationMarker coords={userCoords} />
-        {mapProviders.map(provider => (
-          <Marker
-            key={provider.id}
-            position={[provider.latitude!, provider.longitude!]}
-            icon={makePin(selectedId === provider.id)}
-            eventHandlers={{
-              click: () => setSelectedId(selectedId === provider.id ? null : provider.id),
-              mouseover: () => setSelectedId(provider.id),
-              mouseout: () => setSelectedId(null),
-            }}
-          >
-            <Popup closeButton={false} className="custom-popup" offset={[0, -20]}>
-              <div
-                onClick={() => navigate(`/${provider.slug}`)}
-                style={{ width: 210, cursor: "pointer", fontFamily: "var(--font)", borderRadius: 10, overflow: "hidden" }}
-              >
-                <img src={provider.photos[0]} alt={provider.name} style={{ width: "100%", height: 90, objectFit: "cover", display: "block" }} />
-                <div style={{ padding: "10px 12px" }}>
-                  <p style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)", margin: "0 0 3px", letterSpacing: "-0.01em" }}>{provider.name}</p>
-                  <p style={{ fontSize: 11, color: "var(--ink-tertiary)", margin: "0 0 6px" }}>{provider.city}</p>
-                  <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                    <Stars rating={provider.rating} />
-                    <span style={{ fontSize: 11, fontWeight: 600, color: "var(--ink)" }}>{provider.rating}</span>
-                    <span style={{ fontSize: 11, color: "var(--ink-tertiary)" }}>({provider.reviewCount})</span>
-                  </div>
-                </div>
-              </div>
-            </Popup>
-          </Marker>
-        ))}
-      </MapContainer>
-    </>
-  );
-
-  /* ── Shared filter bar — used on both mobile and desktop ── */
+  /* ── FILTER BAR ── */
   const filterBar = (
     <div style={{
-      position: "sticky", top: TOPBAR_HEIGHT, zIndex: 100,
-      backgroundColor: "rgba(251,251,252,0.97)", backdropFilter: "blur(12px)",
-      WebkitBackdropFilter: "blur(12px)",
-      borderBottom: "1px solid var(--hairline)",
-      padding: "12px 20px",
+      position: "sticky", top: isMobile ? TOPBAR_H : 0, zIndex: 100,
+      background: "rgba(255,255,255,0.97)",
+      backdropFilter: "blur(16px)",
+      WebkitBackdropFilter: "blur(16px)",
+      borderBottom: "1px solid rgba(12,12,14,0.08)",
       flexShrink: 0,
     }}>
-      {/* Top row: title + results count + reset */}
-      <div style={{
-        display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 10,
-      }}>
-        <div>
-          <h1 style={{
-            fontSize: 15, fontWeight: 600, color: "var(--ink)",
-            letterSpacing: "-0.015em", lineHeight: 1.2, margin: 0,
-          }}>
-            {categoryLabel ? `${categoryLabel}` : "Établissements beauté"}
-            {" à "}
-            {cityLabel}
-          </h1>
-          <p style={{ fontSize: 11, color: "var(--ink-tertiary)", margin: "2px 0 0" }}>
-            {loading ? "Chargement…" : `${allResults.length} résultat${allResults.length !== 1 ? "s" : ""}`}
-            {sortId === "nearest" && userCoords && " · Triés par proximité"}
-          </p>
-        </div>
-        {hasActiveFilters && (
-          <button
-            onClick={resetFilters}
+      {/* Top row: search + locate + sort + view toggle */}
+      <div style={{ padding: "10px 20px", display: "flex", alignItems: "center", gap: 8 }}>
+        {/* Search */}
+        <div style={{
+          flex: 1, position: "relative", minWidth: 0,
+        }}>
+          <Search size={13} style={{
+            position: "absolute", left: 11, top: "50%", transform: "translateY(-50%)",
+            color: "var(--ink-tertiary)", pointerEvents: "none",
+          }} />
+          <input
+            type="text"
+            placeholder="Salon, prestation, ville…"
+            value={searchQuery}
+            onChange={e => { setSearchQuery(e.target.value); setPage(1); }}
             style={{
-              display: "flex", alignItems: "center", gap: 4,
-              height: 26, paddingInline: 9,
-              border: "1px solid var(--hairline)", borderRadius: 6,
-              backgroundColor: "transparent", cursor: "pointer",
-              fontSize: 10, fontWeight: 600, color: "var(--ink-tertiary)",
-              fontFamily: "var(--font)", whiteSpace: "nowrap",
-              transition: "all 0.15s ease",
+              width: "100%", height: 36,
+              paddingLeft: 32, paddingRight: searchQuery ? 32 : 12,
+              background: "rgba(12,12,14,0.04)",
+              border: "1px solid rgba(12,12,14,0.10)",
+              borderRadius: 9, outline: "none",
+              fontSize: 13, color: "var(--ink)",
+              fontFamily: "var(--font)", transition: "border-color 160ms ease",
             }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--hairline-strong)"; e.currentTarget.style.color = "var(--ink)"; }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--hairline)"; e.currentTarget.style.color = "var(--ink-tertiary)"; }}
+            onFocus={e => { e.currentTarget.style.borderColor = "rgba(12,12,14,0.24)"; e.currentTarget.style.background = "#fff"; }}
+            onBlur={e => { e.currentTarget.style.borderColor = "rgba(12,12,14,0.10)"; e.currentTarget.style.background = "rgba(12,12,14,0.04)"; }}
+          />
+          {searchQuery && (
+            <button onClick={() => setSearchQuery("")} style={{
+              position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)",
+              background: "none", border: "none", cursor: "pointer",
+              color: "var(--ink-tertiary)", display: "flex", alignItems: "center",
+              padding: 2,
+            }}>
+              <X size={12} />
+            </button>
+          )}
+        </div>
+
+        {/* City select */}
+        {!isMobile && (
+          <div style={{ width: 148, flexShrink: 0 }}>
+            <NiceSelect
+              options={CITY_OPTIONS}
+              value={cityId}
+              onChange={v => { setCityId(v); setUserCoords(null); }}
+              placeholder="Ville"
+              searchable
+            />
+          </div>
+        )}
+
+        {/* Sort */}
+        {!isMobile && (
+          <div style={{ width: 148, flexShrink: 0 }}>
+            <NiceSelect options={SORT_OPTIONS} value={sortId} onChange={setSortId} placeholder="Trier" />
+          </div>
+        )}
+
+        {/* Mobile filters button */}
+        {isMobile && (
+          <button
+            onClick={() => setFilterOpen(!filterOpen)}
+            style={{
+              flexShrink: 0, height: 36, paddingInline: 12,
+              border: `1px solid ${hasFilters ? "var(--ink)" : "rgba(12,12,14,0.10)"}`,
+              background: hasFilters ? "var(--ink)" : "transparent",
+              borderRadius: 9, cursor: "pointer",
+              display: "flex", alignItems: "center", gap: 5,
+              fontSize: 12, fontWeight: 600,
+              color: hasFilters ? "#fff" : "var(--ink-secondary)",
+              fontFamily: "var(--font)", transition: "all 160ms ease",
+            }}
           >
-            <X size={10} />Réinitialiser
+            <SlidersHorizontal size={13} />
+            Filtres
+            {hasFilters && (
+              <span style={{
+                width: 16, height: 16, borderRadius: "50%",
+                background: "rgba(255,255,255,0.25)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: 9, fontWeight: 700,
+              }}>
+                {[categoryId, cityId, userCoords, searchQuery].filter(Boolean).length}
+              </span>
+            )}
           </button>
         )}
-      </div>
 
-      {/* Filter controls row */}
-      <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-        {/* Search input */}
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <SearchInput value={searchQuery} onChange={v => { setSearchQuery(v); setPage(1); }} onClear={() => { setSearchQuery(""); setPage(1); }} />
-        </div>
-        {/* Category */}
-        <div style={{ flex: 0.75, minWidth: 0 }}>
-          <NiceSelect options={SERVICE_CATEGORIES} value={categoryId || "all"} onChange={id => setCategoryId(id === "all" ? "" : id)} placeholder="Catégorie" />
-        </div>
-        {/* City */}
-        <div style={{ flex: 0.75, minWidth: 0 }}>
-          <NiceSelect options={CITY_OPTIONS} value={cityId} onChange={v => { setCityId(v); setUserCoords(null); }} placeholder="Ville" searchable />
-        </div>
-        {/* Sort */}
-        <div style={{ width: 130, flexShrink: 0, display: isMobile ? "none" : "block" }}>
-          <NiceSelect options={SORT_OPTIONS} value={sortId} onChange={setSortId} placeholder="Trier" />
-        </div>
         {/* Locate me */}
         <button
           onClick={handleLocateMe}
           disabled={geoLoading}
-          title="Rechercher près de moi"
+          title="Près de moi"
           style={{
-            flexShrink: 0, height: 36, paddingInline: 10,
-            border: `1px solid ${userCoords ? "var(--accent)" : "var(--hairline)"}`,
-            borderRadius: 8, cursor: geoLoading ? "wait" : "pointer",
-            display: "flex", alignItems: "center", gap: 5,
-            backgroundColor: userCoords ? "var(--accent-tint)" : "transparent",
-            fontSize: 12, fontWeight: 600,
-            color: userCoords ? "var(--accent)" : "var(--ink-tertiary)",
-            fontFamily: "var(--font)", transition: "all 0.15s ease",
-            whiteSpace: "nowrap",
+            flexShrink: 0, width: 36, height: 36,
+            border: `1px solid ${userCoords ? "var(--ink)" : "rgba(12,12,14,0.10)"}`,
+            borderRadius: 9, cursor: geoLoading ? "wait" : "pointer",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            background: userCoords ? "var(--ink)" : "transparent",
+            color: userCoords ? "#fff" : "var(--ink-tertiary)",
+            transition: "all 160ms ease",
           }}
           onMouseEnter={e => { if (!userCoords) e.currentTarget.style.borderColor = "var(--ink)"; }}
-          onMouseLeave={e => { if (!userCoords) e.currentTarget.style.borderColor = "var(--hairline)"; }}
+          onMouseLeave={e => { if (!userCoords) e.currentTarget.style.borderColor = "rgba(12,12,14,0.10)"; }}
         >
-          <LocateFixed size={13} />
-          {geoLoading ? "…" : isMobile ? "" : "Près de moi"}
+          <LocateFixed size={14} />
         </button>
+
+        {/* View toggle — desktop only */}
+        {!isMobile && (
+          <div style={{
+            display: "flex", gap: 2,
+            background: "rgba(12,12,14,0.04)",
+            borderRadius: 8, padding: 2,
+          }}>
+            {([["list", List], ["grid", LayoutGrid]] as const).map(([mode, Icon]) => (
+              <button
+                key={mode}
+                onClick={() => setViewMode(mode)}
+                style={{
+                  width: 30, height: 30, borderRadius: 6,
+                  cursor: "pointer",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  background: viewMode === mode ? "#fff" : "transparent",
+                  color: viewMode === mode ? "var(--ink)" : "var(--ink-tertiary)",
+                  transition: "all 140ms ease",
+                  border: viewMode === mode ? "1px solid rgba(12,12,14,0.10)" : "1px solid transparent",
+                } as React.CSSProperties}
+              >
+                <Icon size={13} />
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Reset */}
+        {hasFilters && !isMobile && (
+          <button
+            onClick={resetFilters}
+            style={{
+              flexShrink: 0, height: 36, paddingInline: 10,
+              border: "1px solid rgba(12,12,14,0.10)", borderRadius: 9,
+              background: "transparent", cursor: "pointer",
+              fontSize: 11, fontWeight: 600, color: "var(--ink-tertiary)",
+              fontFamily: "var(--font)", transition: "all 140ms ease",
+              display: "flex", alignItems: "center", gap: 4,
+            }}
+            onMouseEnter={e => { e.currentTarget.style.color = "var(--ink)"; e.currentTarget.style.borderColor = "rgba(12,12,14,0.24)"; }}
+            onMouseLeave={e => { e.currentTarget.style.color = "var(--ink-tertiary)"; e.currentTarget.style.borderColor = "rgba(12,12,14,0.10)"; }}
+          >
+            <X size={10} />
+            Réinit.
+          </button>
+        )}
       </div>
 
-      {/* Active filter pills */}
-      {(categoryId || cityId || userCoords) && (
-        <div style={{ marginTop: 8 }}>
-          <ActiveFilterPills
-            categoryId={categoryId}
-            cityId={cityId}
-            userCoords={userCoords}
-            categoryLabel={categoryLabel}
-            cityLabel={cityLabel}
-            onRemoveCategory={() => setCategoryId("")}
-            onRemoveCity={() => setCityId("")}
-            onRemoveLocation={() => { setUserCoords(null); setSortId("relevance"); }}
-          />
-        </div>
-      )}
+      {/* Category tabs row */}
+      <div style={{ paddingInline: 20, paddingBottom: 10 }}>
+        <CategoryTabs value={categoryId} onChange={v => { setCategoryId(v); setPage(1); }} />
+      </div>
+
+      {/* Mobile expanded filters */}
+      <AnimatePresence>
+        {isMobile && filterOpen && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
+            style={{ overflow: "hidden", borderTop: "1px solid rgba(12,12,14,0.08)" }}
+          >
+            <div style={{ padding: "12px 20px", display: "flex", flexDirection: "column", gap: 8 }}>
+              <div style={{ display: "flex", gap: 8 }}>
+                <div style={{ flex: 1 }}>
+                  <NiceSelect
+                    options={CITY_OPTIONS}
+                    value={cityId}
+                    onChange={v => { setCityId(v); setUserCoords(null); setFilterOpen(false); }}
+                    placeholder="Ville"
+                    searchable
+                  />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <NiceSelect options={SORT_OPTIONS} value={sortId} onChange={v => { setSortId(v); setFilterOpen(false); }} placeholder="Trier" />
+                </div>
+              </div>
+              {hasFilters && (
+                <button
+                  onClick={() => { resetFilters(); setFilterOpen(false); }}
+                  style={{
+                    height: 36, width: "100%",
+                    border: "1px solid rgba(12,12,14,0.10)", borderRadius: 9,
+                    background: "transparent", cursor: "pointer",
+                    fontSize: 12, fontWeight: 600, color: "var(--ink-tertiary)",
+                    fontFamily: "var(--font)", display: "flex", alignItems: "center", justifyContent: "center", gap: 4,
+                  }}
+                >
+                  <X size={11} />Réinitialiser tous les filtres
+                </button>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Result count bar */}
+      <div style={{
+        paddingInline: 20, paddingBottom: 8,
+        display: "flex", alignItems: "center", gap: 8,
+      }}>
+        <span style={{ fontSize: 12, color: "var(--ink-tertiary)", letterSpacing: "-0.01em" }}>
+          {loading ? (
+            <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <span className="skeleton" style={{ width: 80, height: 12, borderRadius: 4, display: "inline-block" }} />
+            </span>
+          ) : (
+            <>
+              <strong style={{ color: "var(--ink-secondary)", fontWeight: 600 }}>{allResults.length}</strong>
+              {" "}établissement{allResults.length > 1 ? "s" : ""}
+              {categoryLabel && <span> · {categoryLabel}</span>}
+              {cityLabel !== "Maroc" && <span> à {cityLabel}</span>}
+              {sortId === "nearest" && userCoords && <span> · Triés par proximité</span>}
+            </>
+          )}
+        </span>
+        {/* Active filter pills */}
+        {(categoryId || cityId || userCoords) && (
+          <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+            {categoryId && categoryLabel && (
+              <button onClick={() => setCategoryId("")} style={{
+                display: "inline-flex", alignItems: "center", gap: 3,
+                height: 20, paddingInline: "6px 4px", borderRadius: 9999,
+                background: "var(--ink)", border: "none",
+                fontSize: 10, fontWeight: 600, color: "#fff",
+                fontFamily: "var(--font)", cursor: "pointer",
+              }}>
+                {categoryLabel} <X size={8} />
+              </button>
+            )}
+            {cityId && (
+              <button onClick={() => setCityId("")} style={{
+                display: "inline-flex", alignItems: "center", gap: 3,
+                height: 20, paddingInline: "6px 4px", borderRadius: 9999,
+                background: "var(--ink)", border: "none",
+                fontSize: 10, fontWeight: 600, color: "#fff",
+                fontFamily: "var(--font)", cursor: "pointer",
+              }}>
+                {cityId} <X size={8} />
+              </button>
+            )}
+            {userCoords && (
+              <button onClick={() => { setUserCoords(null); setSortId("relevance"); }} style={{
+                display: "inline-flex", alignItems: "center", gap: 3,
+                height: 20, paddingInline: "6px 4px", borderRadius: 9999,
+                background: "var(--ink)", border: "none",
+                fontSize: 10, fontWeight: 600, color: "#fff",
+                fontFamily: "var(--font)", cursor: "pointer",
+              }}>
+                Près de moi <X size={8} />
+              </button>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 
-  /* ── Results list ── */
+  /* ── RESULTS LIST ── */
   const resultsList = (
     <>
-      {/* Skeleton loading */}
+      {/* Skeleton */}
       {loading && (
-        <div style={{ padding: "16px 20px 8px" }}>
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {Array(5).fill(0).map((_, i) => <SkeletonCard key={i} />)}
-          </div>
+        <div style={{ padding: "12px 20px", display: "flex", flexDirection: "column", gap: 8 }}>
+          {viewMode === "grid" ? (
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+              {Array(6).fill(0).map((_, i) => <SkeletonGrid key={i} />)}
+            </div>
+          ) : (
+            Array(5).fill(0).map((_, i) => <SkeletonList key={i} />)
+          )}
         </div>
       )}
 
       {/* Results */}
       {!loading && results.length > 0 && (
-        <div style={{ padding: "16px 20px 8px", flex: 1, display: "flex", flexDirection: "column" }}>
+        <div style={{ padding: "12px 20px 8px", flex: 1 }}>
           <AnimatePresence mode="wait" custom={pageDir}>
             <motion.div
-              key={`page-${page}`}
+              key={`page-${page}-${viewMode}`}
               custom={pageDir}
               variants={slideVariants}
               initial="enter"
               animate="center"
               exit="exit"
-              transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
-              style={{ display: "flex", flexDirection: "column", gap: 10 }}
+              transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
+              style={viewMode === "grid" ? {
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))",
+                gap: 10,
+              } : {
+                display: "flex", flexDirection: "column", gap: 8,
+              }}
             >
-              {results.map((provider, i) => (
-                <ResultCard
-                  key={provider.id}
-                  provider={provider}
-                  isSelected={selectedId === provider.id}
-                  onHover={() => setSelectedId(provider.id)}
-                  onLeave={() => setSelectedId(null)}
-                  index={i}
-                />
-              ))}
+              {results.map((provider, i) =>
+                viewMode === "grid" ? (
+                  <ResultCardGrid
+                    key={provider.id}
+                    provider={provider}
+                    isSelected={selectedId === provider.id}
+                    onHover={() => setSelectedId(provider.id)}
+                    onLeave={() => setSelectedId(null)}
+                    index={i}
+                  />
+                ) : (
+                  <ResultCardList
+                    key={provider.id}
+                    provider={provider}
+                    isSelected={selectedId === provider.id}
+                    onHover={() => setSelectedId(provider.id)}
+                    onLeave={() => setSelectedId(null)}
+                    index={i}
+                  />
+                )
+              )}
             </motion.div>
           </AnimatePresence>
-
-          {!loading && results.length > 0 && (
-            <Pagination page={page} totalPages={totalPages} onPage={goPage} />
-          )}
+          <Pagination page={page} totalPages={totalPages} onPage={goPage} />
         </div>
       )}
 
-      {/* Empty state */}
+      {/* Empty */}
       {!loading && results.length === 0 && (
-        <div style={{ padding: "16px 20px" }}>
-          <EmptyState onReset={resetFilters} />
-        </div>
+        <EmptyState onReset={resetFilters} />
       )}
     </>
   );
 
   /* ══════════════════════════════════════════
-     MOBILE LAYOUT (< 768px)
+     MOBILE LAYOUT
      ══════════════════════════════════════════ */
   if (isMobile) {
     return (
-      <div style={{ minHeight: "100vh", backgroundColor: "var(--canvas)" }}>
+      <div style={{ minHeight: "100dvh", background: "var(--canvas)" }}>
         <TopBar />
         {filterBar}
 
-        {/* Mobile: collapsible map */}
-        <div style={{ paddingLeft: 16, paddingRight: 16, paddingTop: 12, paddingBottom: 0 }}>
-          <button
-            onClick={() => setMobileMapOpen(!mobileMapOpen)}
-            style={{
-              display: "flex", alignItems: "center", justifyContent: "space-between",
-              width: "100%", height: 36,
-              paddingInline: 14,
-              backgroundColor: "rgba(12,12,14,0.04)",
-              border: "1px solid var(--hairline)", borderRadius: 8,
-              cursor: "pointer", fontFamily: "var(--font)",
-              fontSize: 12, fontWeight: 600, color: "var(--ink-secondary)",
-              transition: "all 0.15s ease",
-            }}
-          >
-            <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              <Map size={13} />
-              {mobileMapOpen ? "Masquer la carte" : "Afficher la carte"}
-            </span>
-            <span style={{
-              display: "flex", alignItems: "center", gap: 4,
-              fontSize: 11, color: "var(--ink-tertiary)",
-            }}>
-              {mapProviders.length} établissements
-              <motion.span
-                animate={{ rotate: mobileMapOpen ? 180 : 0 }}
-                transition={{ duration: 0.2 }}
-                style={{ display: "flex" }}
-              >
-                <ChevronLeft size={12} style={{ transform: "rotate(-90deg)" }} />
-              </motion.span>
-            </span>
-          </button>
+        {/* Results */}
+        <div style={{ paddingBottom: 90 }}>
+          {resultsList}
         </div>
 
+        {/* Mobile map modal */}
         <AnimatePresence>
           {mobileMapOpen && (
             <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 220, opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
-              style={{ overflow: "hidden", position: "relative" }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              style={{
+                position: "fixed", inset: 0, zIndex: 200,
+                background: "rgba(0,0,0,0.5)",
+              }}
+              onClick={() => setMobileMapOpen(false)}
             >
-              <div style={{ height: 220, borderBottom: "1px solid var(--hairline)", marginTop: 8, position: "relative" }}>
-                {mapContent}
-              </div>
+              <motion.div
+                initial={{ y: "100%" }}
+                animate={{ y: 0 }}
+                exit={{ y: "100%" }}
+                transition={{ type: "spring", stiffness: 380, damping: 38 }}
+                onClick={e => e.stopPropagation()}
+                style={{
+                  position: "absolute",
+                  bottom: 0, left: 0, right: 0,
+                  height: "75dvh",
+                  borderRadius: "20px 20px 0 0",
+                  overflow: "hidden",
+                  background: "#fff",
+                }}
+              >
+                {/* Drag handle */}
+                <div style={{
+                  position: "absolute", top: 10, left: "50%", transform: "translateX(-50%)",
+                  zIndex: 10, width: 36, height: 4, borderRadius: 9999,
+                  background: "rgba(12,12,14,0.12)",
+                }} />
+                {/* Close */}
+                <button
+                  onClick={() => setMobileMapOpen(false)}
+                  style={{
+                    position: "absolute", top: 12, right: 12, zIndex: 801,
+                    width: 32, height: 32, borderRadius: "50%",
+                    background: "rgba(255,255,255,0.96)",
+                    border: "1px solid rgba(12,12,14,0.10)",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    cursor: "pointer",
+                  }}
+                >
+                  <X size={13} color="var(--ink)" />
+                </button>
+                <div style={{ width: "100%", height: "100%", position: "relative" }}>
+                  <MapContent
+                    mapProviders={mapProviders}
+                    selectedId={selectedId}
+                    setSelectedId={setSelectedId}
+                    userCoords={userCoords}
+                    defaultCenter={defaultCenter}
+                    navigate={navigate}
+                    isMobile={true}
+                  />
+                </div>
+              </motion.div>
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* Mobile results */}
-        <div style={{ paddingBottom: 32 }}>
-          {resultsList}
-        </div>
+        {/* Floating map CTA */}
+        <motion.button
+          onClick={() => setMobileMapOpen(true)}
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.4, duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+          whileHover={{ scale: 1.04 }}
+          whileTap={{ scale: 0.96 }}
+          style={{
+            position: "fixed", bottom: 24, left: "50%",
+            transform: "translateX(-50%)",
+            zIndex: 150,
+            height: 44, paddingInline: 20,
+            background: "var(--ink)", color: "#fff",
+            border: "none", borderRadius: 9999,
+            display: "flex", alignItems: "center", gap: 8,
+            fontSize: 13, fontWeight: 600, letterSpacing: "-0.01em",
+            fontFamily: "var(--font)", cursor: "pointer",
+            whiteSpace: "nowrap",
+          }}
+        >
+          <Map size={14} />
+          Voir la carte
+          {mapProviders.length > 0 && (
+            <span style={{
+              background: "rgba(255,255,255,0.2)",
+              borderRadius: 9999, paddingInline: 6, paddingBlock: 2,
+              fontSize: 11, fontWeight: 700,
+            }}>
+              {mapProviders.length}
+            </span>
+          )}
+        </motion.button>
 
         <Footer />
       </div>
@@ -1054,47 +1318,54 @@ export default function SearchPage() {
   }
 
   /* ══════════════════════════════════════════
-     DESKTOP LAYOUT (≥ 768px)
+     DESKTOP LAYOUT
      ══════════════════════════════════════════ */
   return (
-    <div style={{ minHeight: "100vh", backgroundColor: "var(--canvas)" }}>
+    <div style={{ minHeight: "100dvh", background: "var(--canvas)" }}>
       <TopBar />
 
-      <div style={{ display: "flex", paddingTop: 0 }}>
-
-        {/* ── LEFT PANEL ── */}
+      <div style={{
+        display: "flex",
+        height: `calc(100dvh - ${TOPBAR_H}px)`,
+        overflow: "hidden",
+      }}>
+        {/* LEFT PANEL */}
         <div
           ref={listRef}
           style={{
-            width: isLg ? 660 : 540,
+            width: isLg ? 660 : 520,
             flexShrink: 0,
             display: "flex",
             flexDirection: "column",
-            borderRight: "1px solid var(--hairline)",
-            backgroundColor: "var(--canvas)",
+            borderRight: "1px solid rgba(12,12,14,0.08)",
+            background: "#FAFAFA",
             overflow: "auto",
-            maxHeight: `calc(100vh - ${TOPBAR_HEIGHT}px)`,
           }}
         >
           {filterBar}
-          <div style={{ flex: 1, overflow: "auto" }}>
+          <div style={{ flex: 1 }}>
             {resultsList}
+            {!loading && results.length > 0 && <div style={{ height: 24 }} />}
           </div>
         </div>
 
-        {/* ── RIGHT PANEL — sticky map ── */}
+        {/* RIGHT PANEL — sticky map */}
         <div style={{
           flex: 1,
-          position: "sticky",
-          top: TOPBAR_HEIGHT,
-          height: `calc(100vh - ${TOPBAR_HEIGHT}px)`,
-          alignSelf: "flex-start",
+          position: "relative",
+          overflow: "hidden",
         }}>
-          {mapContent}
+          <MapContent
+            mapProviders={mapProviders}
+            selectedId={selectedId}
+            setSelectedId={setSelectedId}
+            userCoords={userCoords}
+            defaultCenter={defaultCenter}
+            navigate={navigate}
+            isMobile={false}
+          />
         </div>
       </div>
-
-      <Footer />
     </div>
   );
 }
