@@ -235,7 +235,7 @@ function ResultCardList({ provider, isSelected, onHover, onLeave, index }: {
             onClick={e => { e.stopPropagation(); nav(`/booking/${provider.slug}`); }}
             whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
             style={{
-              height: 30, paddingInline: 14, background: "var(--ink)", color: "#fff",
+              height: 30, paddingInline: 14, background: "var(--accent)", color: "#fff",
               fontSize: 11, fontWeight: 600, letterSpacing: "-0.01em",
               border: "none", borderRadius: 8, cursor: "pointer", fontFamily: "var(--font)",
             }}
@@ -333,7 +333,7 @@ function ResultCardGrid({ provider, isSelected, onHover, onLeave, index }: {
             onClick={e => { e.stopPropagation(); nav(`/booking/${provider.slug}`); }}
             whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
             style={{
-              height: 28, paddingInline: 12, background: "var(--ink)", color: "#fff",
+              height: 28, paddingInline: 12, background: "var(--accent)", color: "#fff",
               fontSize: 11, fontWeight: 600, border: "none", borderRadius: 7,
               cursor: "pointer", fontFamily: "var(--font)",
             }}

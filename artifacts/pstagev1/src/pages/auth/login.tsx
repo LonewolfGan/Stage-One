@@ -195,8 +195,8 @@ export default function LoginPage() {
               style={{
                 width: "100%",
                 height: 44,
-                backgroundColor: canSubmit && !loading ? "var(--ink)" : "rgba(12,12,14,0.12)",
-                color: canSubmit && !loading ? "#FFFFFF" : "var(--ink-tertiary)",
+                backgroundColor: canSubmit && !loading ? "var(--accent)" : "rgba(212,70,110,0.28)",
+                color: "#FFFFFF",
                 fontSize: 14,
                 fontWeight: 600,
                 letterSpacing: "-0.01em",

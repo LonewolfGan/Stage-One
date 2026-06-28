@@ -1,5 +1,5 @@
 - [PSTAGEV1 Phase 1 build](pstagev1-phase1.md) — Full Awwwards redesign complete; accent #D4466E; frontend on port 5000 BASE_PATH=/.
-- [Accent color usage rule](accent-usage-rule.md) — After full audit: ink #0C0C0E is primary CTA everywhere; rose #D4466E max 1 per screen, only semantic (notification dot, favorited heart). Never on CTAs, borders, labels, or section backgrounds.
+- [Button hierarchy rule](button-hierarchy-rule.md) — Primary CTA (confirm, reserve, search, save, login) = rose var(--accent); secondary = dark/outline. DSButton variant="primary" now uses var(--accent) in index.css.
 - [API Server workflow quirks](api-server-workflow.md) — Use port 8000 (not 8080), pre-build binary in bash then start with node directly; Vite proxy /api → localhost:8000.
 - [UI component casing convention](ui-casing-convention.md) — Custom DS components use PascalCase (Badge.tsx, DSButton.tsx, Input.tsx); shadcn uses lowercase (button.tsx, input.tsx). Never import Badge/Button across the casing boundary.
 - [Mock data migration](mock-data-migration.md) — mock-data.ts deleted; all pages use real API via useQuery + adaptProvider/adaptProviderList; dashboard 401s are expected (auth required).

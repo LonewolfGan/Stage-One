@@ -79,7 +79,7 @@ export default function VerifyEmailPage() {
               href="/"
               style={{
                 display: "inline-block",
-                background: "var(--ink)",
+                background: "var(--accent)",
                 color: "#fff",
                 fontSize: 14,
                 fontWeight: 500,
@@ -111,7 +111,7 @@ export default function VerifyEmailPage() {
               href="/auth/login"
               style={{
                 display: "inline-block",
-                background: "var(--ink)",
+                background: "var(--accent)",
                 color: "#fff",
                 fontSize: 14,
                 fontWeight: 500,

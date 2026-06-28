@@ -117,7 +117,7 @@ export default function NotFoundPage() {
               style={{
                 height: 40,
                 paddingInline: 24,
-                background: "var(--ink)",
+                background: "var(--accent)",
                 color: "#fff",
                 fontSize: 13,
                 fontWeight: 600,
@@ -130,11 +130,11 @@ export default function NotFoundPage() {
               }}
               onMouseEnter={e =>
                 ((e.currentTarget as HTMLButtonElement).style.background =
-                  "rgba(12,12,14,0.82)")
+                  "var(--accent-hover)")
               }
               onMouseLeave={e =>
                 ((e.currentTarget as HTMLButtonElement).style.background =
-                  "var(--ink)")
+                  "var(--accent)")
               }
             >
               Retour à l'accueil

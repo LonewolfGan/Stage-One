@@ -299,7 +299,7 @@ export function HeroSection() {
                   width: 38,
                   backgroundColor: "var(--accent)",
                   color: "#FFFFFF",
-                  borderRadius: 9999,
+                  borderRadius: "var(--radius-control)",
                   border: "none",
                   cursor: "pointer",
                 }}
@@ -555,7 +555,7 @@ export function HeroSection() {
                 fontSize: 13,
                 fontWeight: 600,
                 letterSpacing: "-0.01em",
-                borderRadius: 9999,
+                borderRadius: "var(--radius-control)",
                 border: "none",
                 cursor: "pointer",
                 whiteSpace: "nowrap",

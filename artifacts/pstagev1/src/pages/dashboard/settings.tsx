@@ -178,7 +178,7 @@ export default function SettingsPage() {
                 onClick={() => toast.success("Profil enregistré")}
                 style={{
                   display: "flex", alignItems: "center", gap: 7, padding: "9px 18px",
-                  background: "var(--ink)", color: "#fff", border: "none",
+                  background: "var(--accent)", color: "#fff", border: "none",
                   borderRadius: 8, fontSize: 12, fontWeight: 500, cursor: "pointer",
                   transition: "opacity 140ms ease",
                 }}
@@ -256,7 +256,7 @@ export default function SettingsPage() {
             disabled={mutation.isPending || isLoading}
             style={{
               marginTop: 12, display: "flex", alignItems: "center", gap: 7,
-              padding: "9px 18px", background: "var(--ink)", color: "#fff",
+              padding: "9px 18px", background: "var(--accent)", color: "#fff",
               border: "none", borderRadius: 8, fontSize: 12, fontWeight: 500,
               cursor: mutation.isPending ? "not-allowed" : "pointer",
               opacity: mutation.isPending ? 0.7 : 1, transition: "opacity 140ms ease",
@@ -308,7 +308,7 @@ export default function SettingsPage() {
                 onClick={() => toast.success("Mot de passe modifié")}
                 style={{
                   display: "flex", alignItems: "center", gap: 7, padding: "9px 18px",
-                  background: "var(--ink)", color: "#fff", border: "none",
+                  background: "var(--accent)", color: "#fff", border: "none",
                   borderRadius: 8, fontSize: 12, fontWeight: 500, cursor: "pointer",
                   transition: "opacity 140ms ease",
                 }}

@@ -581,15 +581,15 @@ export default function ProviderProfilePage() {
                     onClick={() => setLocation(`/booking/${provider.slug}`)}
                     style={{
                       width: "100%", height: 46,
-                      backgroundColor: "var(--ink)", color: "#FFFFFF",
+                      backgroundColor: "var(--accent)", color: "#FFFFFF",
                       border: "none", borderRadius: 10,
                       fontSize: 15, fontWeight: 600,
                       cursor: "pointer", fontFamily: "var(--font)",
                       letterSpacing: "-0.01em",
                       transition: "background-color 0.15s",
                     }}
-                    onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = "rgba(12,12,14,0.80)"; }}
-                    onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = "var(--ink)"; }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = "var(--accent-hover)"; }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = "var(--accent)"; }}
                   >
                     Réserver maintenant
                   </button>
@@ -658,7 +658,7 @@ export default function ProviderProfilePage() {
             onClick={() => setLocation(`/booking/${provider.slug}`)}
             style={{
               height: 42, paddingInline: 28,
-              backgroundColor: "var(--ink)", color: "#FFFFFF",
+              backgroundColor: "var(--accent)", color: "#FFFFFF",
               border: "none", borderRadius: 10,
               fontSize: 14, fontWeight: 600,
               cursor: "pointer", fontFamily: "var(--font)",
