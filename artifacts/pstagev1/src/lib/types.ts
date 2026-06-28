@@ -20,6 +20,7 @@ export type Provider = {
   businessHours: BusinessHours[];
   latitude?: number;
   longitude?: number;
+  distanceKm?: number;
 };
 
 export type StaffMember = {

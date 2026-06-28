@@ -11,8 +11,23 @@ import {
   subscriptionsTable,
   usersTable,
 } from "@workspace/db";
-import { eq, and, ilike, sql } from "drizzle-orm";
+import { eq, and, sql } from "drizzle-orm";
 import { requireOwner } from "../middlewares/auth";
+
+type ProviderRow = {
+  id: string;
+  type: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  phone: string;
+  city: string;
+  latitude: number | null;
+  longitude: number | null;
+  logoUrl: string | null;
+  status: string;
+  distanceKm?: number | null;
+};
 
 const router = Router();
 
@@ -26,29 +41,59 @@ function slugify(name: string): string {
 }
 
 router.get("/", async (req, res) => {
-  const { city, type, q } = req.query as Record<string, string>;
+  const { city, type, q, lat, lng, radius } = req.query as Record<string, string>;
 
-  let query = db
-    .select({
-      id: providersTable.id,
-      type: providersTable.type,
-      name: providersTable.name,
-      slug: providersTable.slug,
-      description: providersTable.description,
-      phone: providersTable.phone,
-      city: providersTable.city,
-      latitude: providersTable.latitude,
-      longitude: providersTable.longitude,
-      logoUrl: providersTable.logoUrl,
-      status: providersTable.status,
-    })
-    .from(providersTable)
-    .where(eq(providersTable.status, "ACTIVE"));
+  const userLat = lat ? parseFloat(lat) : null;
+  const userLng = lng ? parseFloat(lng) : null;
+  const radiusKm = Math.min(parseFloat(radius ?? "25") || 25, 100);
+  const useGeo = userLat !== null && userLng !== null && !isNaN(userLat) && !isNaN(userLng);
 
-  const providers = await query;
+  let providers: ProviderRow[];
+
+  if (useGeo) {
+    const result = await db.execute(sql`
+      SELECT
+        id, type, name, slug, description, phone, city,
+        latitude, longitude, logo_url AS "logoUrl", status,
+        ROUND(
+          (ST_Distance(
+            location,
+            ST_SetSRID(ST_MakePoint(${userLng}, ${userLat}), 4326)::geography
+          ) / 1000.0)::numeric,
+          1
+        )::float AS "distanceKm"
+      FROM providers
+      WHERE status = 'ACTIVE'
+        AND location IS NOT NULL
+        AND ST_DWithin(
+          location,
+          ST_SetSRID(ST_MakePoint(${userLng}, ${userLat}), 4326)::geography,
+          ${radiusKm * 1000}
+        )
+      ORDER BY "distanceKm" ASC
+    `);
+    providers = result.rows as ProviderRow[];
+  } else {
+    providers = await db
+      .select({
+        id: providersTable.id,
+        type: providersTable.type,
+        name: providersTable.name,
+        slug: providersTable.slug,
+        description: providersTable.description,
+        phone: providersTable.phone,
+        city: providersTable.city,
+        latitude: providersTable.latitude,
+        longitude: providersTable.longitude,
+        logoUrl: providersTable.logoUrl,
+        status: providersTable.status,
+      })
+      .from(providersTable)
+      .where(eq(providersTable.status, "ACTIVE"));
+  }
 
   let filtered = providers;
-  if (city) filtered = filtered.filter((p) => p.city.toLowerCase().includes(city.toLowerCase()));
+  if (!useGeo && city) filtered = filtered.filter((p) => p.city.toLowerCase().includes(city.toLowerCase()));
   if (type) filtered = filtered.filter((p) => p.type === type.toUpperCase());
   if (q) filtered = filtered.filter((p) => p.name.toLowerCase().includes(q.toLowerCase()));
 
@@ -64,7 +109,16 @@ router.get("/", async (req, res) => {
         : null;
       const minPriceCents = serviceList.length > 0 ? Math.min(...serviceList.map((s) => s.priceCents)) : null;
       const minDurationMinutes = serviceList.length > 0 ? Math.min(...serviceList.map((s) => s.durationMinutes)) : null;
-      return { ...p, staffCount: staffList.length, serviceCount: serviceList.length, avgRating, reviewCount: reviews.length, minPriceCents, minDurationMinutes };
+      return {
+        ...p,
+        staffCount: staffList.length,
+        serviceCount: serviceList.length,
+        avgRating,
+        reviewCount: reviews.length,
+        minPriceCents,
+        minDurationMinutes,
+        distanceKm: p.distanceKm ?? null,
+      };
     }),
   );
 

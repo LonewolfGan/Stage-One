@@ -70,6 +70,7 @@ export function adaptProvider(api: ApiProvider): Provider {
     photos: api.logoUrl ? [api.logoUrl] : [],
     latitude: api.latitude ?? undefined,
     longitude: api.longitude ?? undefined,
+    distanceKm: api.distanceKm ?? undefined,
     staff,
     services,
     businessHours,

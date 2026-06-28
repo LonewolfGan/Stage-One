@@ -101,6 +101,7 @@ export interface ApiProvider {
   reviewCount?: number;
   minPriceCents?: number | null;
   minDurationMinutes?: number | null;
+  distanceKm?: number | null;
   // full profile fields
   staff?: ApiStaff[];
   services?: ApiService[];
@@ -205,11 +206,14 @@ export const api = {
   me: () => apiFetch<AuthUser>("/auth/me"),
 
   // Providers
-  searchProviders: (params: { city?: string; type?: string; q?: string } = {}) => {
+  searchProviders: (params: { city?: string; type?: string; q?: string; lat?: number; lng?: number; radius?: number } = {}) => {
     const qs = new URLSearchParams();
     if (params.city) qs.set("city", params.city);
     if (params.type) qs.set("type", params.type);
     if (params.q) qs.set("q", params.q);
+    if (params.lat != null) qs.set("lat", String(params.lat));
+    if (params.lng != null) qs.set("lng", String(params.lng));
+    if (params.radius != null) qs.set("radius", String(params.radius));
     return apiFetch<ApiProvider[]>(`/providers?${qs}`);
   },
 

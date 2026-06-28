@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useSearch, useLocation } from "wouter";
 import { AnimatePresence, motion } from "framer-motion";
-import { MapContainer, TileLayer, Marker, Popup, useMap, ZoomControl } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, useMap, ZoomControl, CircleMarker } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { TopBar } from "@/components/layout/TopBar";
@@ -14,7 +14,7 @@ import { adaptProviderList } from "@/lib/provider-adapter";
 import { MOROCCO_CITIES, SERVICE_CATEGORIES, SORT_OPTIONS } from "@/lib/cities";
 import {
   MapPin, Star, ChevronLeft, ChevronRight,
-  Map, Satellite, X, Clock, CheckCircle2, Calendar,
+  Map, Satellite, X, Clock, CheckCircle2, Calendar, LocateFixed,
 } from "lucide-react";
 import { useBreakpoint } from "@/hooks/use-mobile";
 
@@ -79,6 +79,20 @@ function MapFlyTo({ providers }: { providers: Provider[] }) {
     );
   }, [providers.map(p => p.id).join(",")]);
   return null;
+}
+
+/* ─────────────────────────────────────────────
+   User location marker
+───────────────────────────────────────────── */
+function UserLocationMarker({ coords }: { coords: { lat: number; lng: number } | null }) {
+  if (!coords) return null;
+  return (
+    <CircleMarker
+      center={[coords.lat, coords.lng]}
+      radius={9}
+      pathOptions={{ color: "#2563EB", fillColor: "#3B82F6", fillOpacity: 0.5, weight: 2 }}
+    />
+  );
 }
 
 /* ─────────────────────────────────────────────
@@ -227,12 +241,24 @@ function ResultCard({
             </span>
           </div>
 
-          {/* Address */}
+          {/* Address + distance */}
           <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 10 }}>
             <MapPin size={10} color="var(--ink-tertiary)" style={{ flexShrink: 0 }} />
             <span style={{ fontSize: 12, color: "var(--ink-tertiary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
               {provider.address}, {provider.city}
             </span>
+            {provider.distanceKm != null && (
+              <span style={{
+                flexShrink: 0, marginLeft: 4,
+                fontSize: 10, fontWeight: 600, color: "#2563EB",
+                backgroundColor: "rgba(37,99,235,0.08)",
+                paddingInline: 6, paddingBlock: 2, borderRadius: 4,
+              }}>
+                {provider.distanceKm < 1
+                  ? `${Math.round(provider.distanceKm * 1000)} m`
+                  : `${provider.distanceKm} km`}
+              </span>
+            )}
           </div>
 
           {/* Service chips */}
@@ -395,10 +421,17 @@ export default function SearchPage() {
   const [page, setPage] = useState(1);
   const [pageDir, setPageDir] = useState<1 | -1>(1);
   const [tileMode, setTileMode] = useState<"map" | "satellite">("map");
+  const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [geoLoading, setGeoLoading] = useState(false);
 
   const { data: rawProviders, isLoading: apiLoading } = useQuery({
-    queryKey: ["providers", cityId],
-    queryFn: () => api.searchProviders({ city: cityId || undefined }),
+    queryKey: ["providers", cityId, userCoords?.lat, userCoords?.lng],
+    queryFn: () => api.searchProviders({
+      city: userCoords ? undefined : (cityId || undefined),
+      lat: userCoords?.lat,
+      lng: userCoords?.lng,
+      radius: 25,
+    }),
     staleTime: 30_000,
   });
 
@@ -425,17 +458,29 @@ export default function SearchPage() {
 
   const adaptedProviders = adaptProviderList(rawProviders ?? []);
 
-  const allResults = adaptedProviders.filter(p => {
-    if (categoryId && categoryId !== "all" && p.category !== categoryId) return false;
-    if (cityId && p.city.toLowerCase() !== cityId.toLowerCase()) return false;
-    return true;
-  });
+  const allResults = adaptedProviders
+    .filter(p => {
+      if (userCoords) {
+        if (categoryId && categoryId !== "all" && p.category !== categoryId) return false;
+        return true;
+      }
+      if (categoryId && categoryId !== "all" && p.category !== categoryId) return false;
+      if (cityId && p.city.toLowerCase() !== cityId.toLowerCase()) return false;
+      return true;
+    })
+    .sort((a, b) => {
+      if (sortId === "nearest") return (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity);
+      if (sortId === "rating") return (b.rating ?? 0) - (a.rating ?? 0);
+      if (sortId === "price-asc") return (a.minPriceCents ?? Infinity) - (b.minPriceCents ?? Infinity);
+      if (sortId === "price-desc") return (b.minPriceCents ?? 0) - (a.minPriceCents ?? 0);
+      return 0;
+    });
 
   const totalPages = Math.ceil(allResults.length / PER_PAGE);
   const results = allResults.slice((page - 1) * PER_PAGE, page * PER_PAGE);
   const cityLabel = cityId || "Maroc";
   const categoryLabel = SERVICE_CATEGORIES.find(c => c.id === categoryId)?.label || null;
-  const hasActiveFilters = !!(categoryId || cityId);
+  const hasActiveFilters = !!(categoryId || cityId || userCoords);
 
   const goPage = useCallback((p: number) => {
     setPageDir(p > page ? 1 : -1);
@@ -455,7 +500,23 @@ export default function SearchPage() {
     exit: (dir: number) => ({ y: dir > 0 ? -16 : 16, opacity: 0 }),
   };
 
-  const resetFilters = () => { setCategoryId(""); setCityId(""); setSortId("relevance"); };
+  const handleLocateMe = useCallback(() => {
+    if (!navigator.geolocation) return;
+    setGeoLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setUserCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        setSortId("nearest");
+        setCityId("");
+        setPage(1);
+        setGeoLoading(false);
+      },
+      () => setGeoLoading(false),
+      { timeout: 10000 }
+    );
+  }, []);
+
+  const resetFilters = () => { setCategoryId(""); setCityId(""); setSortId("relevance"); setUserCoords(null); };
 
   /* ── Mobile layout ── */
   if (isMobile) {
@@ -474,8 +535,22 @@ export default function SearchPage() {
               <NiceSelect options={SERVICE_CATEGORIES} value={categoryId || "all"} onChange={id => setCategoryId(id === "all" ? "" : id)} placeholder="Catégorie" />
             </div>
             <div style={{ flex: 1 }}>
-              <NiceSelect options={CITY_OPTIONS} value={cityId} onChange={v => setCityId(v)} placeholder="Ville" searchable />
+              <NiceSelect options={CITY_OPTIONS} value={cityId} onChange={v => { setCityId(v); setUserCoords(null); }} placeholder="Ville" searchable />
             </div>
+            <button
+              onClick={handleLocateMe}
+              disabled={geoLoading}
+              title="Rechercher près de moi"
+              style={{
+                width: 34, height: 34, flexShrink: 0,
+                border: `1px solid ${userCoords ? "#2563EB" : "var(--hairline)"}`,
+                borderRadius: 8, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+                backgroundColor: userCoords ? "rgba(37,99,235,0.08)" : "transparent",
+                transition: "all 0.15s ease",
+              }}
+            >
+              <LocateFixed size={14} color={userCoords ? "#2563EB" : "var(--ink-tertiary)"} />
+            </button>
             {hasActiveFilters && (
               <button onClick={resetFilters} style={{ width: 34, height: 34, border: "1px solid var(--hairline)", borderRadius: 8, backgroundColor: "transparent", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                 <X size={14} color="var(--ink-tertiary)" />
@@ -489,6 +564,7 @@ export default function SearchPage() {
               <ZoomControl position="bottomright" />
               <TileLayer key={tileMode} url={TILES[tileMode]} />
               <MapFlyTo providers={mapProviders} />
+              <UserLocationMarker coords={userCoords} />
               {mapProviders.map(p => (
                 <Marker key={p.id} position={[p.latitude!, p.longitude!]} icon={makePin(selectedId === p.id)} eventHandlers={{ click: () => setSelectedId(selectedId === p.id ? null : p.id) }} />
               ))}
@@ -572,16 +648,37 @@ export default function SearchPage() {
             </div>
 
             {/* Filter selects */}
-            <div style={{ display: "flex", gap: 8 }}>
+            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
               <div style={{ flex: 1 }}>
                 <NiceSelect options={SERVICE_CATEGORIES} value={categoryId || "all"} onChange={id => setCategoryId(id === "all" ? "" : id)} placeholder="Catégorie" />
               </div>
               <div style={{ flex: 1 }}>
-                <NiceSelect options={CITY_OPTIONS} value={cityId} onChange={v => setCityId(v)} placeholder="Toutes les villes" searchable />
+                <NiceSelect options={CITY_OPTIONS} value={cityId} onChange={v => { setCityId(v); setUserCoords(null); }} placeholder="Toutes les villes" searchable />
               </div>
               <div style={{ width: 130, flexShrink: 0 }}>
                 <NiceSelect options={SORT_OPTIONS} value={sortId} onChange={setSortId} placeholder="Trier" />
               </div>
+              <button
+                onClick={handleLocateMe}
+                disabled={geoLoading}
+                title="Rechercher près de moi"
+                style={{
+                  flexShrink: 0, height: 34, paddingInline: 10,
+                  border: `1px solid ${userCoords ? "#2563EB" : "var(--hairline)"}`,
+                  borderRadius: 8, cursor: geoLoading ? "wait" : "pointer",
+                  display: "flex", alignItems: "center", gap: 5,
+                  backgroundColor: userCoords ? "rgba(37,99,235,0.08)" : "transparent",
+                  fontSize: 12, fontWeight: 600,
+                  color: userCoords ? "#2563EB" : "var(--ink-tertiary)",
+                  fontFamily: "var(--font)", transition: "all 0.15s ease",
+                  whiteSpace: "nowrap",
+                }}
+                onMouseEnter={e => { if (!userCoords) e.currentTarget.style.borderColor = "#2563EB"; }}
+                onMouseLeave={e => { if (!userCoords) e.currentTarget.style.borderColor = "var(--hairline)"; }}
+              >
+                <LocateFixed size={13} />
+                {geoLoading ? "…" : "Près de moi"}
+              </button>
             </div>
           </div>
 
@@ -693,6 +790,7 @@ export default function SearchPage() {
             <ZoomControl position="bottomright" />
             <TileLayer key={tileMode} url={TILES[tileMode]} attribution={tileMode === "map" ? "© CARTO" : "© Esri"} />
             <MapFlyTo providers={mapProviders} />
+            <UserLocationMarker coords={userCoords} />
             {mapProviders.map(provider => (
               <Marker
                 key={provider.id}

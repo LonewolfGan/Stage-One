@@ -4,6 +4,7 @@ import { logger } from "./lib/logger";
 import { initSocket } from "./lib/socket";
 import { startBookingExpiryJob } from "./lib/booking-expiry";
 import { startEmailWorker } from "./lib/email-worker";
+import { setupPostgis } from "./lib/postgis-setup";
 
 const rawPort = process.env["PORT"];
 
@@ -18,7 +19,12 @@ if (Number.isNaN(port) || port <= 0) {
 
 const httpServer = createServer(app);
 initSocket(httpServer);
-startBookingExpiryJob();
+
+setupPostgis().then(() => {
+  startBookingExpiryJob();
+}).catch(() => {
+  startBookingExpiryJob();
+});
 
 httpServer.listen(port, () => {
   logger.info({ port }, "Server listening");
