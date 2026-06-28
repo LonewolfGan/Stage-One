@@ -844,14 +844,15 @@ export default function HomePage() {
       >
         <Reveal delay={0.05}>
           <h2 style={{
-            fontSize: "clamp(28px, 4vw, 48px)",
+            fontSize: "clamp(32px, 4.5vw, 56px)",
             fontWeight: 600,
             color: "var(--ink)",
-            letterSpacing: "-0.025em",
-            lineHeight: 1.1,
+            letterSpacing: "-0.03em",
+            lineHeight: 1.08,
             margin: "0 0 40px",
+            maxWidth: 620,
           }}>
-            Prêt à commencer ?
+            Votre beauté mérite<br />mieux qu'une attente.
           </h2>
         </Reveal>
         <Reveal delay={0.2}>
