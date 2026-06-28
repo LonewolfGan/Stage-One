@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Planned Absences Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<style data-purpose="custom-styles">
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #f1f4f2;
+      color: #171d1b;
+    }
+    
+    .glass-panel {
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    }
+    
+    .glass-panel-solid {
+      background: #ffffff;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
+    }
+
+    /* Custom scrollbar for horizontal scrolling area */
+    .hide-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .hide-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    /* Gradient Backgrounds for Leave Pills */
+    .bg-gradient-purple {
+      background: linear-gradient(135deg, #a855f7 0%, #8b5cf6 100%);
+    }
+    .bg-gradient-green {
+      background: linear-gradient(135deg, #22c55e 0%, #10b981 100%);
+    }
+    .bg-gradient-blue {
+      background: linear-gradient(135deg, #93c5fd 0%, #3b82f6 100%);
+    }
+    .bg-gradient-yellow {
+      background: linear-gradient(135deg, #fcd34d 0%, #f59e0b 100%);
+    }
+
+    /* Striped Background for Weekends */
+    .bg-striped {
+      background-image: repeating-linear-gradient(
+        45deg,
+        #f1f4f2,
+        #f1f4f2 10px,
+        #ffffff 10px,
+        #ffffff 20px
+      );
+    }
+  </style>
+<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            surface: '#f7faf8',
+            'surface-dim': '#d7dbd9',
+            'surface-container-low': '#f1f4f2',
+            primary: '#171d1b',
+            secondary: '#4f5552',
+          },
+          borderRadius: {
+            '8xl': '2rem',
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="h-screen w-screen overflow-hidden flex p-4 gap-4">
+<!-- BEGIN: Sidebar -->
+<aside class="w-20 flex-shrink-0 flex flex-col items-center py-6 glass-panel-solid rounded-3xl justify-between" data-purpose="main-sidebar">
+<!-- Logo -->
+<div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-500 mb-8 cursor-pointer shadow-sm">
+<svg class="w-6 h-6" fill="currentColor" viewbox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"></path></svg>
+</div>
+<!-- Navigation Icons -->
+<nav class="flex flex-col gap-6 flex-1 w-full items-center">
+<button class="w-12 h-12 rounded-full flex items-center justify-center bg-gray-100 text-gray-800 shadow-sm transition-colors hover:bg-gray-200">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</button>
+<button class="w-12 h-12 rounded-full flex items-center justify-center text-gray-400 hover:text-gray-800 transition-colors">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</button>
+<button class="w-12 h-12 rounded-full flex items-center justify-center text-gray-400 hover:text-gray-800 transition-colors">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</button>
+<button class="w-12 h-12 rounded-full flex items-center justify-center text-gray-400 hover:text-gray-800 transition-colors">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</button>
+<button class="w-12 h-12 rounded-full flex items-center justify-center text-gray-400 hover:text-gray-800 transition-colors">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</button>
+</nav>
+<!-- Bottom Settings Icon -->
+<button class="w-12 h-12 rounded-full flex items-center justify-center text-gray-400 hover:text-gray-800 transition-colors">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</button>
+</aside>
+<!-- END: Sidebar -->
+<!-- BEGIN: Main Content Area -->
+<main class="flex-1 flex flex-col gap-4 overflow-hidden" data-purpose="main-content">
+<!-- BEGIN: Top Navigation Bar -->
+<header class="flex justify-between items-center glass-panel-solid rounded-full px-6 py-3" data-purpose="top-header">
+<!-- Left: Tabs & Search -->
+<div class="flex items-center gap-4">
+<div class="flex bg-gray-100/80 rounded-full p-1 border border-gray-200/50">
+<button class="px-5 py-2 text-sm font-semibold rounded-full bg-white shadow-sm flex items-center gap-2 text-gray-800">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+            Dashboard
+          </button>
+<button class="px-5 py-2 text-sm font-medium rounded-full text-gray-500 hover:text-gray-800 flex items-center gap-2 transition-colors">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+            Employees
+          </button>
+<button class="px-5 py-2 text-sm font-medium rounded-full text-gray-500 hover:text-gray-800 flex items-center gap-2 transition-colors">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+            Reports
+          </button>
+</div>
+<button class="w-10 h-10 rounded-full bg-white border border-gray-200/50 flex items-center justify-center text-gray-400 hover:text-gray-800 shadow-sm">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</button>
+</div>
+<!-- Right: User & Actions -->
+<div class="flex items-center gap-4">
+<!-- Employee Avatars Group -->
+<div class="flex -space-x-2">
+<img alt="Employee" class="w-8 h-8 rounded-full border-2 border-white object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBtnnl-amQBjDoOufKaUx18TcNdKBSowAJ-I1MSSGIKAhKIfAwIWXstGl7R-fUZb7JBnhcDB0lGek_RDFLId_0YzVlaI7mgAU9DABOjllfMrJpIIcP3Q9CwTKarlVHSMgaZEDyeaeJSX3ym324reaC6bFPNncZLvDY7hajmI5zc-asQCspjhHzFypMYQHoWBvLpzo7gWKOORg0y-VG1TWT6050o8nkvcfzkbu1CqOd6FjKhmmhYA0xEmY8UePjavhKMz3rJUBQ-L0B2"/>
+<img alt="Employee" class="w-8 h-8 rounded-full border-2 border-white object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAUQ0QKmJnL3Zs8FTxrq52r8CxKvcmG9ULKHb5NRLd9kkQ6wKRkLf6kRg_79l_sv84oIJEncLau0e80_cGjkyfbdEkZduzQ6d3Y2gSdwjZQOSjKc9YHOeVh-ddTIKBm1TGjlXUlSKlbNZaX6tlOAnmT0sdxjF6pDQ78FnHTztVcvC6xWP-4r2WkgdSuqyrkuuOPNaKAVMPnU9bqcd164VXHCL3PZxWeDD6IKejdIgW-UoK4Zvs6fPcjMX7W-ErtF-9d-EnWhuYmRrno"/>
+<img alt="Employee" class="w-8 h-8 rounded-full border-2 border-white object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAMZYrKFBPKWan6TBE6IkpW8zMGBrwdZ6mZxSuo3tfqq7ZwOg8dliyKP6brdch6trPudkl4Q658E7fikjEhfgHRaZ5iy0g2SyMRkyPeE4o7NJGAwrlBL0O40u7Q2Y32VOYktMl1FFp8E-LireoX-Lr2XDAQYZo5UV8aV7KZ_yemrfi6m29Fhah4NZoYB8DInPZcVokXDfGQz_bfTlD2pvP4kAzYvVnT21LEC8v7YXRol34hs9kKCOgvVro0jixDU0ZYJ3FW641rOsfM"/>
+<div class="w-8 h-8 rounded-full border-2 border-white bg-gray-100 flex items-center justify-center text-xs font-medium text-gray-600">8+</div>
+</div>
+<button class="px-4 py-2 text-sm font-medium rounded-full bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 flex items-center gap-2 shadow-sm">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M12 4v16m8-8H4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+          Add Employee
+        </button>
+<div class="h-6 w-px bg-gray-200 mx-2"></div>
+<div class="flex items-center gap-3">
+<img alt="User Profile" class="w-10 h-10 rounded-full border-2 border-white object-cover shadow-sm" src="https://lh3.googleusercontent.com/aida-public/AB6AXuASArltwky2T4qB2bAvFoMBXS91Wnkw89kIA1ySJAjQNQEOjFvXC0gLMDoipiTXR7IU4yNyk6eFjpZQJQESDrRRMMq8YAmSUYqF80SPhUjUbmsiCoOL_J-b332LuhWwZLdu96t9XTsV7_2sCuvoLAgRp8ChOAqGdv3MLCmGPUV15vo_JBQ5xF9pL2-abHj-sd3NL2mCS2G4Gcaz-cSj1bFSzzfwfA5kMWiWpnLEVgIPV_acRJ31O9H8foElQJ1ederpb1pnsx89iQT_"/>
+<button class="w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-500 hover:text-gray-800 shadow-sm relative">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<span class="absolute top-2 right-2.5 w-2 h-2 bg-red-500 rounded-full"></span>
+</button>
+</div>
+</div>
+</header>
+<!-- END: Top Navigation Bar -->
+<!-- Scrollable Content Area -->
+<div class="flex-1 overflow-y-auto hide-scrollbar flex flex-col gap-4 pb-4">
+<!-- BEGIN: Planned Absences Board -->
+<section class="glass-panel-solid rounded-3xl p-6" data-purpose="planned-absences">
+<!-- Header -->
+<div class="flex justify-between items-end mb-6">
+<div>
+<h1 class="text-3xl font-semibold mb-1">Planned Absences</h1>
+</div>
+<div class="flex gap-3">
+<button class="px-4 py-2 text-sm font-medium rounded-full bg-white border border-gray-200 text-gray-700 flex items-center gap-2 shadow-sm">
+<svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2-2v12a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+                December 15, 2025
+                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</button>
+<button class="px-4 py-2 text-sm font-medium rounded-full bg-white border border-gray-200 text-gray-700 flex items-center gap-2 shadow-sm">
+<svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+                Filter
+             </button>
+<button class="px-4 py-2 text-sm font-medium rounded-full bg-white border border-gray-200 text-gray-700 flex items-center gap-2 shadow-sm">
+<svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+                View all
+             </button>
+</div>
+</div>
+<!-- Calendar Grid container -->
+<div class="relative w-full overflow-x-auto hide-scrollbar">
+<div class="min-w-[1000px] border-t border-gray-100 pt-4 relative">
+<!-- Current Day Line -->
+<div class="absolute top-0 bottom-0 left-[62%] w-px border-l-2 border-dashed border-blue-400 z-10 pointer-events-none"></div>
+<!-- Header Row: Dates -->
+<div class="flex mb-4 relative z-0">
+<div class="w-56 flex-shrink-0 text-sm font-medium text-gray-500 py-2">
+                Employees
+              </div>
+<div class="flex flex-1">
+<!-- Repeated date cells -->
+<div class="flex-1 flex flex-col items-center justify-center text-xs text-gray-500"><span>Mon</span><span class="font-medium text-gray-700">1</span></div>
+<div class="flex-1 flex flex-col items-center justify-center text-xs text-gray-500"><span>Tue</span><span class="font-medium text-gray-700">2</span></div>
+<div class="flex-1 flex flex-col items-center justify-center text-xs text-gray-500"><span>Wed</span><span class="font-medium text-gray-700">3</span></div>
+<div class="flex-1 flex flex-col items-center justify-center text-xs text-gray-500"><span>Thu</span><span class="font-medium text-gray-700">4</span></div>
+<div class="flex-1 flex flex-col items-center justify-center text-xs text-gray-500"><span>Fri</span><span class="font-medium text-gray-700">5</span></div>
+<div class="flex-1 flex flex-col items-center justify-center text-xs text-gray-500 bg-gray-200/50 rounded-lg mx-1 py-1"><span>Sat</span><span class="font-medium text-gray-700">6</span></div>
+<div class="flex-1 flex flex-col items-center justify-center text-xs text-gray-500 bg-gray-200/50 rounded-lg mx-1 py-1"><span>Sun</span><span class="font-medium text-gray-700">7</span></div>
+<div class="flex-1 flex flex-col items-center justify-center text-xs text-gray-500"><span>Mon</span><span class="font-medium text-gray-700">8</span></div>
+<div class="flex-1 flex flex-col items-center justify-center text-xs text-blue-600 bg-blue-100 rounded-lg mx-1 py-1 shadow-sm"><span>Tue</span><span class="font-bold">9</span></div>
+<div class="flex-1 flex flex-col items-center justify-center text-xs text-gray-500"><span>Wed</span><span class="font-medium text-gray-700">10</span></div>
+<div class="flex-1 flex flex-col items-center justify-center text-xs text-gray-500"><span>Thu</span><span class="font-medium text-gray-700">11</span></div>
+<div class="flex-1 flex flex-col items-center justify-center text-xs text-gray-500"><span>Fri</span><span class="font-medium text-gray-700">12</span></div>
+<div class="flex-1 flex flex-col items-center justify-center text-xs text-gray-500 bg-gray-200/50 rounded-lg mx-1 py-1"><span>Sat</span><span class="font-medium text-gray-700">13</span></div>
+<div class="flex-1 flex flex-col items-center justify-center text-xs text-gray-500 bg-gray-200/50 rounded-lg mx-1 py-1"><span>Sun</span><span class="font-medium text-gray-700">14</span></div>
+<div class="flex-1 flex flex-col items-center justify-center text-xs text-gray-500"><span>Mon</span><span class="font-medium text-gray-700">15</span></div>
+<div class="flex-1 flex flex-col items-center justify-center text-xs text-gray-500"><span>Tue</span><span class="font-medium text-gray-700">16</span></div>
+</div>
+</div>
+<!-- Employee Rows -->
+<div class="flex flex-col gap-2 relative z-0">
+<!-- Ethan Parker -->
+<div class="flex items-center group h-14">
+<div class="w-56 flex-shrink-0 flex items-center gap-3">
+<img alt="Ethan Parker" class="w-10 h-10 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBJhdt-vC9p-QoBhxegzHaDrTpvmP-gJJJpJ3pleCX6qxMSX6sWilMStCy74epSuseu8FpeFcFJBpSSbfHsR3HyFJy8I6EJVMgJfGQfhAYMte4exu2nfgOELsCmN77j_W1NixsNWTbnzTmueqRdTuvCg__0-IFOApB9hAtm97xhhst_EzeO2bhalBvt0QonEs0qcE5sP-ZkpB2MGttL5sGuxL-RtaP-cO4lo4tixYvvSMmOI0IWpxS934ADpAOm_9I56IRhPAuZDpKV"/>
+<div>
+<div class="text-sm font-semibold text-gray-800">Ethan Parker</div>
+<div class="text-xs text-gray-500">Software Engineer</div>
+</div>
+</div>
+<!-- Grid Cells -->
+<div class="flex flex-1 relative h-full bg-white rounded-xl border border-gray-100 overflow-hidden">
+<!-- Grid Lines -->
+<div class="absolute inset-0 flex">
+<div class="flex-1 border-r border-gray-50"></div><div class="flex-1 border-r border-gray-50"></div><div class="flex-1 border-r border-gray-50"></div><div class="flex-1 border-r border-gray-50"></div><div class="flex-1 border-r border-gray-50"></div>
+<div class="flex-1 border-r border-white bg-striped opacity-50"></div><div class="flex-1 border-r border-white bg-striped opacity-50"></div>
+<div class="flex-1 border-r border-gray-50"></div><div class="flex-1 border-r border-gray-50"></div><div class="flex-1 border-r border-gray-50"></div><div class="flex-1 border-r border-gray-50"></div><div class="flex-1 border-r border-gray-50"></div>
+<div class="flex-1 border-r border-white bg-striped opacity-50"></div><div class="flex-1 border-r border-white bg-striped opacity-50"></div>
+<div class="flex-1 border-r border-gray-50"></div><div class="flex-1"></div>
+</div>
+<!-- Leave Pill: Ethan - Vacation -->
+<div class="absolute top-1 bottom-1 left-[87.5%] right-0 bg-gradient-green rounded-xl p-2 flex items-center text-white shadow-md z-10 border border-white/20">
+<svg class="w-4 h-4 mr-2 opacity-80" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<span class="text-sm font-medium">Vacation</span>
+</div>
+</div>
+</div>
+<!-- Liam Carter -->
+<div class="flex items-center group h-14">
+<div class="w-56 flex-shrink-0 flex items-center gap-3">
+<img alt="Liam Carter" class="w-10 h-10 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCE1BKwb9RVqIGfgOcWnQLNgb3r7t8ylW3EXK-PfVpAUZoeVmP7w3krbRxMYTeSLCsmc3NeErRJ4dd_iaizj3L5T0xiAkaZDMV_LHkXJsH4KJ1BpVtbjBcMJy6mSH7qG2ss-1o08CB7BENGBFFlzBnZJ0Hobofcjh6Jjc57h1IpfuYN2SlEI8kPJu3lm3AixvOH0kR8rgkTLi8fGQsAl1wri5p9mNVVQh1WCJDm6W5_AfnZW3qUnd9DJfR8ifWrl_BfUGh7m_JX4pze"/>
+<div>
+<div class="text-sm font-semibold text-gray-800">Liam Carter</div>
+<div class="text-xs text-gray-500">UI/UX Designer</div>
+</div>
+</div>
+<!-- Grid Cells -->
+<div class="flex flex-1 relative h-full bg-white rounded-xl border border-gray-100 overflow-hidden">
+<!-- Grid Lines -->
+<div class="absolute inset-0 flex">
+<div class="flex-1 border-r border-gray-50"></div><div class="flex-1 border-r border-gray-50"></div><div class="flex-1 border-r border-gray-50"></div><div class="flex-1 border-r border-gray-50"></div><div class="flex-1 border-r border-gray-50"></div>
+<div class="flex-1 border-r border-white bg-striped opacity-50"></div><div class="flex-1 border-r border-white bg-striped opacity-50"></div>
+<div class="flex-1 border-r border-gray-50"></div><div class="flex-1 border-r border-gray-50"></div><div class="flex-1 border-r border-gray-50"></div><div class="flex-1 border-r border-gray-50"></div><div class="flex-1 border-r border-gray-50"></div>
+<div class="flex-1 border-r border-white bg-striped opacity-50"></div><div class="flex-1 border-r border-white bg-striped opacity-50"></div>
+<div class="flex-1 border-r border-gray-50"></div><div class="flex-1"></div>
+</div>
+<!-- Leave Pill: Liam - Paid Leave -->
+<div class="absolute top-1 bottom-1 left-[12.5%] w-[25%] bg-gradient-purple rounded-xl p-2 flex items-center justify-between text-white shadow-md z-10 border border-white/20">
+<div class="flex items-center">
+<svg class="w-4 h-4 mr-2 opacity-80" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<span class="text-sm font-medium">Paid Leave</span>
+</div>
+<span class="bg-white/20 text-[10px] px-2 py-0.5 rounded-full font-medium">Approved</span>
+</div>
+</div>
+</div>
+<!-- Additional Employees omitted for brevity, following same pattern -->
+<div class="flex items-center group h-14 opacity-50">
+<div class="w-56 flex-shrink-0 flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-gray-200"></div>
+<div class="w-24 h-4 bg-gray-200 rounded"></div>
+</div>
+<div class="flex flex-1 relative h-full bg-white rounded-xl border border-gray-100 overflow-hidden">
+<div class="absolute inset-0 flex">
+<div class="flex-1 border-r border-gray-50"></div><div class="flex-1 border-r border-gray-50"></div><div class="flex-1 border-r border-gray-50"></div><div class="flex-1 border-r border-gray-50"></div><div class="flex-1 border-r border-gray-50"></div>
+<div class="flex-1 border-r border-white bg-striped opacity-50"></div><div class="flex-1 border-r border-white bg-striped opacity-50"></div>
+<div class="flex-1 border-r border-gray-50"></div><div class="flex-1 border-r border-gray-50"></div><div class="flex-1 border-r border-gray-50"></div><div class="flex-1 border-r border-gray-50"></div><div class="flex-1 border-r border-gray-50"></div>
+<div class="flex-1 border-r border-white bg-striped opacity-50"></div><div class="flex-1 border-r border-white bg-striped opacity-50"></div>
+<div class="flex-1 border-r border-gray-50"></div><div class="flex-1"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- END: Planned Absences Board -->
+<!-- Bottom Row Containers -->
+<div class="flex gap-4 min-h-[300px]">
+<!-- BEGIN: Future Events -->
+<section class="flex-1 glass-panel-solid rounded-3xl p-6 flex flex-col" data-purpose="future-events">
+<div class="flex justify-between items-center mb-4">
+<h2 class="text-xl font-semibold">Future Events</h2>
+<button class="text-xs font-medium text-gray-500 hover:text-gray-800 flex items-center gap-1 bg-gray-50 px-3 py-1 rounded-full border border-gray-100">
+<svg class="w-3 h-3" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+                View all
+             </button>
+</div>
+<div class="flex flex-col gap-3 flex-1 overflow-y-auto hide-scrollbar">
+<!-- Event Card 1 (Active) -->
+<div class="bg-gradient-yellow p-4 rounded-2xl text-gray-800 shadow-sm relative overflow-hidden">
+<div class="absolute top-3 right-3 bg-white/50 backdrop-blur-sm text-[10px] font-bold px-2 py-1 rounded-full flex items-center gap-1 border border-white/30">
+<div class="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></div> In 15 min
+               </div>
+<h3 class="font-bold mb-1">Tech Innovations Summit</h3>
+<p class="text-xs opacity-80 mb-3">Cutting-edge AI trends</p>
+<div class="flex items-center justify-between mt-auto">
+<div class="flex gap-2">
+<div class="bg-white/30 px-2 py-1 rounded-lg text-xs font-medium flex items-center gap-1 backdrop-blur-sm">
+<svg class="w-3 h-3" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg> 14:00 - 15:00
+                   </div>
+<div class="bg-white/30 px-2 py-1 rounded-lg text-xs font-medium flex items-center gap-1 backdrop-blur-sm">
+<svg class="w-3 h-3" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2-2v12a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg> December, 5
+                   </div>
+</div>
+<div class="flex -space-x-1">
+<img alt="Att" class="w-6 h-6 rounded-full border-2 border-yellow-300 object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBR6joZfUKgJQMJyDeVQd_il9Zcpq9qmlhVt_bKdCLZu21vwk9Zc_JsJUQ2C4JjKl-o1Tb-bjkmhZzFtkuNq4zr3ODL0wF3vLmEAsDEwGSlh6H7cTIRB3K-zyrPvJw69jQ_gHzfbKj4mvql2iNjr2sL4TYJ1s4RwOSOVfnoNJfLkNNoG-gW4RYw80C3R23Pgqf6P-EuGL6RTKFE2csuAlQ3BWDjUvaNxLl2B7TpPmTi-DOn6tWzqxYYZgMmuqNe9iI437hFUBJZaqlg"/>
+<img alt="Att" class="w-6 h-6 rounded-full border-2 border-yellow-300 object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuATW3pbRehmdAsHaXKEH-umwzOhHwLrsXD4oOoDk6YXeWflOt-UnxyIVPDJqOtj4qpjhIXjiU03WLkZpxEs7lC_xheuSfJE_uSzcCs3z-UcluBL-S06HulgUjr16ltX0p7Ios21klZFgIKctD4pqDNVv-P96wPtdoENTU222Lg_4Hs5oXBnDEmbs3jcCsgTfRMo_U_9xOXNKihpz8G1aAacuGMYc0ystnoy5qaitzv3djKiy1T4undYddEFzf7yisf_hHHq3ui95tRX"/>
+<div class="w-6 h-6 rounded-full border-2 border-yellow-300 bg-white/50 flex items-center justify-center text-[10px] font-bold">8+</div>
+</div>
+</div>
+</div>
+<!-- Event Card 2 -->
+<div class="bg-white p-4 rounded-2xl text-gray-800 border border-gray-100 shadow-sm">
+<h3 class="font-bold mb-1">Software Dev Meetup</h3>
+<p class="text-xs text-gray-500 mb-3 truncate">A practical session focused on modern development workflows</p>
+<div class="flex items-center justify-between">
+<div class="flex gap-2">
+<div class="bg-gray-50 border border-gray-100 px-2 py-1 rounded-lg text-xs font-medium flex items-center gap-1 text-gray-600">
+<svg class="w-3 h-3" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg> 14:00 - 15:00
+                   </div>
+<div class="bg-gray-50 border border-gray-100 px-2 py-1 rounded-lg text-xs font-medium flex items-center gap-1 text-gray-600">
+<svg class="w-3 h-3" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2-2v12a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg> December, 5
+                   </div>
+</div>
+<div class="flex -space-x-1">
+<img alt="Att" class="w-6 h-6 rounded-full border-2 border-white object-cover shadow-sm" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAaiBMVh9A-am8qtxnNpe16eIlFshffDC5TPdbgCHsLuzH7GxX22qfIpDDW7x19FZiWb6OpjB_qPnR2Oqo8wbJSgpJDJOQT5glxV2nQcGVsFBeS_UtQwaxYlQC3J8dMXuHyHcI3S9iw5HA4sK2_HCU_jzc-yRZ5-ZmF5ZgP4Pn80yNaDJ7QsYazZH5mRYlm5ltYIhtiwazu6M1SrG7PbQkeWqi0cBvkxPPKBKiCMw4bW6dJJzia1So9kFa9fp7A3Aeo6d2wtvyu9rqP"/>
+<img alt="Att" class="w-6 h-6 rounded-full border-2 border-white object-cover shadow-sm" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDh8mf6ceGtQrmPgABkMLBNtQ0k7b6Sh9k5dj5spGkkHliaBJW9Dyeq8y4z9I8pVYgCwDrVLACA_4NbxsoM0oToVMfYUIcT4qORvdVm9m9fqZPDLT_0GkwYq3NESDre9fkaLllM_klmk4BhfsSfQ4qq6O4gpABOnbRiipiBwyw_OQMEh8BQe0HGHKRKNguDrWkJ_eTZbPnFxqfyhM5jLnVyoPsojWaYEkDmChif-AUzcILbN07gUmbzCoXDcdjXz95RfDgPLRdNlVKM"/>
+<div class="w-6 h-6 rounded-full border-2 border-white bg-gray-100 flex items-center justify-center text-[10px] font-bold text-gray-600 z-10 shadow-sm">12+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- END: Future Events -->
+<!-- BEGIN: Onboarding -->
+<section class="flex-1 glass-panel-solid rounded-3xl p-6 flex flex-col" data-purpose="onboarding-progress">
+<div class="flex justify-between items-center mb-4">
+<h2 class="text-xl font-semibold">Onboarding</h2>
+<button class="text-xs font-medium text-gray-500 hover:text-gray-800 flex items-center gap-1 bg-gray-50 px-3 py-1 rounded-full border border-gray-100">
+<svg class="w-3 h-3" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+                View all
+             </button>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<!-- Onboarding Card 1 -->
+<div class="bg-white border border-gray-100 rounded-2xl p-4 flex flex-col items-center text-center shadow-sm">
+<img alt="Sophia Adams" class="w-12 h-12 rounded-full mb-2 object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDagYUsz9UZpmxfMFLqVUGD-2LciBA2D1jxpK_epGZOt16hf9pylDL_mPJ2xDntNtD1DSPd0qe_bnDtbs5OxsQccbTE5gfIPZHlFANNcyy2RklDwcfvoZtdGU5tS59ZshT7_ZxOqEKZF-z6_EP0LAQXwe7B1nSd_uMwtvYrzI0qIbrghz7HZrxmaA8OxDlFgkgBYbAgC2fvU0jBqIZoA3rQtrYOB9Adx8MOxZ9WFqsCJ98pSe4rUO7bpAiu4X3m6sfAtUW28WupXyTv"/>
+<div class="font-semibold text-sm text-gray-800">Sophia Adams</div>
+<div class="text-[10px] text-gray-500 mb-3">UI/UX Designer</div>
+<div class="bg-gray-100 text-gray-600 text-[10px] font-medium px-2 py-1 rounded w-full flex items-center justify-center gap-1 border border-gray-200/50">
+<svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+                 5/10 tasks done
+              </div>
+</div>
+<!-- Onboarding Card 2 -->
+<div class="bg-white border border-gray-100 rounded-2xl p-4 flex flex-col items-center text-center shadow-sm">
+<img alt="Lucas Morgan" class="w-12 h-12 rounded-full mb-2 object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCUCt2FxsDmGWevdmo4BDriChOV_Qqf75JoBNBl2RHQz7hjTTk_8HIIcsEkhSyyA2s6kFbD5zxfJI1SJV_mraVzYIG3wSyGk-3UlBCaL4o1UvJEsOFDA0dpukYrxCqhBVU8Lm2cs9e5Xfx4apWAohNiBjfMvKFY0IWWkAW1yO_-J9rixVMMDsNUIx6zNh_Pa5R-pIMxCfdfBxGawgpnDmuYp0iyuOhlq7-0lBKH_8flIHzKT7iwU-Mt5am1F8l6CVzUo7Ry7HvyRnlY"/>
+<div class="font-semibold text-sm text-gray-800">Lucas Morgan</div>
+<div class="text-[10px] text-gray-500 mb-3">Mobile Developer</div>
+<div class="bg-gray-100 text-gray-600 text-[10px] font-medium px-2 py-1 rounded w-full flex items-center justify-center gap-1 border border-gray-200/50">
+<svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+                 5/10 tasks done
+              </div>
+</div>
+</div>
+</section>
+<!-- END: Onboarding -->
+<!-- BEGIN: AI Assistant -->
+<section class="flex-1 glass-panel-solid rounded-3xl p-6 flex flex-col items-center justify-center text-center relative overflow-hidden" data-purpose="ai-assistant">
+<!-- Decorative Background Blob -->
+<div class="absolute -top-10 -right-10 w-40 h-40 bg-blue-100 rounded-full blur-3xl opacity-50 pointer-events-none"></div>
+<!-- Abstract Sphere Placeholder -->
+<div class="w-24 h-24 rounded-full bg-gradient-to-br from-blue-200 to-blue-500 shadow-inner mb-4 relative z-10 flex items-center justify-center">
+<div class="w-20 h-20 rounded-full bg-white/20 backdrop-blur-sm border border-white/50"></div>
+</div>
+<h2 class="text-xl font-bold mb-1 relative z-10">Welcome, Emily</h2>
+<p class="text-gray-500 text-sm mb-6 relative z-10">What can I help with today?</p>
+<!-- Quick Actions -->
+<div class="flex gap-2 w-full justify-center mb-6 relative z-10">
+<button class="bg-white border border-gray-200 text-gray-700 text-xs font-medium px-3 py-2 rounded-xl flex flex-col items-center gap-1 shadow-sm hover:bg-gray-50 flex-1">
+<svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+               Create a profile
+             </button>
+<button class="bg-white border border-gray-200 text-gray-700 text-xs font-medium px-3 py-2 rounded-xl flex flex-col items-center gap-1 shadow-sm hover:bg-gray-50 flex-1">
+<svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+               Get reports
+             </button>
+<button class="bg-white border border-gray-200 text-gray-700 text-xs font-medium px-3 py-2 rounded-xl flex flex-col items-center gap-1 shadow-sm hover:bg-gray-50 flex-1">
+<svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+               Manage users
+             </button>
+</div>
+<!-- Input Area -->
+<div class="w-full bg-gray-50 border border-gray-200 rounded-2xl p-2 relative z-10">
+<div class="flex items-center justify-between px-2 pt-1 pb-2">
+<input class="bg-transparent border-none text-sm w-full focus:ring-0 text-gray-700 placeholder-gray-400 p-0" placeholder="Ask me anything" type="text"/>
+<button class="text-gray-400 hover:text-gray-800">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</button>
+</div>
+<div class="flex justify-between items-center px-1 border-t border-gray-200/50 pt-2">
+<div class="flex gap-1">
+<button class="text-gray-500 hover:bg-gray-200 p-1.5 rounded-lg transition-colors flex items-center gap-1 text-[10px] font-medium bg-gray-100">
+<svg class="w-3 h-3" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+                      Attach file
+                    </button>
+<button class="text-gray-500 hover:bg-gray-200 p-1.5 rounded-lg transition-colors flex items-center gap-1 text-[10px] font-medium bg-gray-100">
+<svg class="w-3 h-3" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+                      Create
+                    </button>
+<button class="text-gray-500 hover:bg-gray-200 p-1.5 rounded-lg transition-colors bg-gray-100">
+<svg class="w-3 h-3" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</button>
+</div>
+<span class="text-[10px] text-gray-400">0/300</span>
+</div>
+</div>
+</section>
+<!-- END: AI Assistant -->
+</div>
+</div>
+</main>
+<!-- END: Main Content Area -->
+</body></html>
