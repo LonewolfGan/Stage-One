@@ -4,6 +4,7 @@ import { db, bookingsTable, servicesTable, staffTable, usersTable } from "@works
 import { eq, and } from "drizzle-orm";
 import { emitBookingConfirmed, emitSlotUpdate } from "../lib/socket";
 import { logger } from "../lib/logger";
+import { enqueueEmailJob } from "../lib/email-worker";
 
 export async function stripeWebhookHandler(req: Request, res: Response): Promise<void> {
   if (!stripe) {
