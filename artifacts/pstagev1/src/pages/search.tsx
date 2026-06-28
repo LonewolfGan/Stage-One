@@ -1,4 +1,6 @@
-import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import {
+  useState, useEffect, useCallback, useRef, useMemo,
+} from "react";
 import { useSearch, useLocation } from "wouter";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -17,9 +19,9 @@ import { adaptProviderList } from "@/lib/provider-adapter";
 import { MOROCCO_CITIES, SERVICE_CATEGORIES, SORT_OPTIONS } from "@/lib/cities";
 import {
   MapPin, Star, ChevronLeft, ChevronRight,
-  Map, X, Clock, CheckCircle2, Calendar,
-  Search, LocateFixed, LayoutGrid, List, Compass,
-  ArrowRight, SlidersHorizontal,
+  Map, X, Calendar, Search, LocateFixed,
+  LayoutGrid, List, Compass, CheckCircle2,
+  SlidersHorizontal,
 } from "lucide-react";
 import { useBreakpoint } from "@/hooks/use-mobile";
 
@@ -31,27 +33,27 @@ const CITY_OPTIONS = [
   ...MOROCCO_CITIES.map(c => ({ id: c, label: c })),
 ];
 const PER_PAGE = 9;
-const TOPBAR_H = 56;
-
-const TILES = {
-  map: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
-};
+const TOPBAR_H = 56; // px — hauteur de la TopBar
 
 /* ─────────────────────────────────────────────
-   Custom map pin
+   Map tiles
+───────────────────────────────────────────── */
+const CARTO_LIGHT = "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png";
+
+/* ─────────────────────────────────────────────
+   Map pin factory
 ───────────────────────────────────────────── */
 function makePin(selected: boolean, price?: string) {
   if (price && !selected) {
     return L.divIcon({
       className: "",
       html: `<div style="
-        padding: 4px 10px; border-radius: 20px;
-        background: #0C0C0E; color: #fff;
-        font-size: 11px; font-weight: 600;
-        font-family: 'Inter', sans-serif;
-        letter-spacing: -0.01em; white-space: nowrap;
-        border: 1.5px solid rgba(255,255,255,0.2);
-        cursor: pointer;
+        padding:4px 10px;border-radius:20px;
+        background:#0C0C0E;color:#fff;
+        font-size:11px;font-weight:600;
+        font-family:'Inter',sans-serif;letter-spacing:-0.01em;
+        white-space:nowrap;border:1.5px solid rgba(255,255,255,0.18);
+        cursor:pointer;
       ">${price}</div>`,
       iconSize: [undefined as unknown as number, 28],
       iconAnchor: [36, 14],
@@ -61,11 +63,7 @@ function makePin(selected: boolean, price?: string) {
   const bg = selected ? "#D4466E" : "#0C0C0E";
   return L.divIcon({
     className: "",
-    html: `<div style="
-      width: 32px; height: 32px; border-radius: 50%;
-      background: ${bg}; border: 2px solid #fff;
-      display: flex; align-items: center; justify-content: center;
-    ">
+    html: `<div style="width:32px;height:32px;border-radius:50%;background:${bg};border:2.5px solid #fff;display:flex;align-items:center;justify-content:center;">
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
         <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="#fff"/>
       </svg>
@@ -90,16 +88,16 @@ function MapFlyTo({ providers }: { providers: Provider[] }) {
     }
     map.fitBounds(
       L.latLngBounds(valid.map(p => [p.latitude!, p.longitude!] as [number, number])),
-      { padding: [60, 60], animate: true }
+      { padding: [64, 64], animate: true },
     );
   }, [providers.map(p => p.id).join(",")]);
   return null;
 }
 
 /* ─────────────────────────────────────────────
-   User location marker
+   User location dot
 ───────────────────────────────────────────── */
-function UserLocationMarker({ coords }: { coords: { lat: number; lng: number } | null }) {
+function UserDot({ coords }: { coords: { lat: number; lng: number } | null }) {
   if (!coords) return null;
   return (
     <CircleMarker
@@ -113,11 +111,11 @@ function UserLocationMarker({ coords }: { coords: { lat: number; lng: number } |
 /* ─────────────────────────────────────────────
    Stars
 ───────────────────────────────────────────── */
-function Stars({ rating }: { rating: number }) {
+function Stars({ rating, size = 10 }: { rating: number; size?: number }) {
   return (
     <span style={{ display: "inline-flex", gap: 1.5, alignItems: "center" }}>
       {[1, 2, 3, 4, 5].map(i => (
-        <Star key={i} size={10} style={{
+        <Star key={i} size={size} style={{
           fill: i <= Math.round(rating) ? "var(--rating)" : "transparent",
           color: "var(--rating)",
           flexShrink: 0,
@@ -128,7 +126,7 @@ function Stars({ rating }: { rating: number }) {
 }
 
 /* ─────────────────────────────────────────────
-   RESULT CARD — List view
+   ResultCard — List view
 ───────────────────────────────────────────── */
 function ResultCardList({
   provider, isSelected, onHover, onLeave, index,
@@ -137,54 +135,51 @@ function ResultCardList({
   onHover: () => void; onLeave: () => void; index: number;
 }) {
   const [, nav] = useLocation();
-  const [hovered, setHovered] = useState(false);
-  const nextSlot = getNextAvailable(provider);
+  const [hov, setHov] = useState(false);
   const catLabel = SERVICE_CATEGORIES.find(c => c.id === provider.category)?.label ?? provider.category;
   const minPrice = provider.minPriceCents != null
     ? provider.minPriceCents / 100
     : provider.services.length > 0
       ? Math.min(...provider.services.map(s => s.priceCents)) / 100
       : null;
-
-  const active = isSelected || hovered;
+  const active = isSelected || hov;
+  const nextSlot = getNextAvailable(provider);
 
   return (
     <motion.article
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.28, delay: index * 0.05, ease: [0.16, 1, 0.3, 1] }}
-      onMouseEnter={() => { setHovered(true); onHover(); }}
-      onMouseLeave={() => { setHovered(false); onLeave(); }}
+      onMouseEnter={() => { setHov(true); onHover(); }}
+      onMouseLeave={() => { setHov(false); onLeave(); }}
       onClick={() => nav(`/${provider.slug}`)}
       style={{
         display: "flex",
         borderRadius: 14,
         overflow: "hidden",
         border: `1px solid ${active ? "rgba(12,12,14,0.18)" : "rgba(12,12,14,0.08)"}`,
-        backgroundColor: active ? "rgba(12,12,14,0.015)" : "#FFFFFF",
+        backgroundColor: active ? "rgba(12,12,14,0.012)" : "#FFFFFF",
         cursor: "pointer",
         transition: "border-color 200ms ease, background-color 200ms ease",
-        minHeight: 132,
+        minHeight: 136,
       }}
     >
       {/* Photo */}
-      <div style={{ width: 164, flexShrink: 0, position: "relative", overflow: "hidden" }}>
+      <div style={{ width: 168, flexShrink: 0, position: "relative", overflow: "hidden" }}>
         <img
-          src={provider.photos[0]}
+          src={provider.photos[0] || "https://images.unsplash.com/photo-1560066984-138dadb4c035?w=400&q=80"}
           alt={provider.name}
           style={{
             width: "100%", height: "100%", objectFit: "cover", display: "block",
-            transform: hovered ? "scale(1.04)" : "scale(1)",
-            transition: "transform 400ms cubic-bezier(0.16, 1, 0.3, 1)",
+            transform: hov ? "scale(1.04)" : "scale(1)",
+            transition: "transform 420ms cubic-bezier(0.16, 1, 0.3, 1)",
           }}
         />
-        {/* gradient */}
         <div style={{
           position: "absolute", inset: 0,
-          background: "linear-gradient(180deg, transparent 40%, rgba(10,10,15,0.52) 100%)",
+          background: "linear-gradient(180deg, transparent 40%, rgba(10,10,15,0.54) 100%)",
           pointerEvents: "none",
         }} />
-        {/* Populaire */}
         {provider.isPopular && (
           <span style={{
             position: "absolute", top: 9, left: 9,
@@ -197,7 +192,6 @@ function ResultCardList({
             Top
           </span>
         )}
-        {/* Price badge */}
         {minPrice != null && (
           <span style={{
             position: "absolute", bottom: 9, left: 9,
@@ -215,10 +209,9 @@ function ResultCardList({
       {/* Content */}
       <div style={{
         flex: 1, minWidth: 0,
-        padding: "14px 16px",
+        padding: "14px 16px 12px",
         display: "flex", flexDirection: "column",
       }}>
-        {/* Name + verified */}
         <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 3 }}>
           <h3 style={{
             fontSize: 15, fontWeight: 600, color: "var(--ink)",
@@ -231,76 +224,68 @@ function ResultCardList({
             <CheckCircle2 size={12} color="var(--ink-tertiary)" style={{ flexShrink: 0 }} />
           )}
         </div>
-
-        {/* Category */}
         <span style={{
-          alignSelf: "flex-start", marginBottom: 8,
           fontSize: 10, fontWeight: 600,
           color: "var(--ink-tertiary)",
-          letterSpacing: "0.04em", textTransform: "uppercase",
+          letterSpacing: "0.05em", textTransform: "uppercase",
+          marginBottom: 8,
         }}>
           {catLabel}
         </span>
 
-        {/* Rating + location */}
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: "auto" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
           <Stars rating={provider.rating} />
           <span style={{ fontSize: 12, fontWeight: 600, color: "var(--ink)" }}>{provider.rating}</span>
           <span style={{ fontSize: 12, color: "var(--ink-tertiary)" }}>({provider.reviewCount})</span>
           <span style={{ width: 2, height: 2, borderRadius: "50%", background: "var(--ink-disabled)", flexShrink: 0 }} />
           <MapPin size={10} color="var(--ink-tertiary)" style={{ flexShrink: 0 }} />
-          <span style={{
-            fontSize: 12, color: "var(--ink-tertiary)",
-            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-          }}>
+          <span style={{ fontSize: 12, color: "var(--ink-tertiary)" }}>
             {provider.city}
             {provider.distanceKm != null && (
               <span style={{ color: "var(--ink-secondary)", fontWeight: 500 }}>
-                {" · "}{provider.distanceKm < 1 ? `${Math.round(provider.distanceKm * 1000)} m` : `${provider.distanceKm} km`}
+                {" · "}
+                {provider.distanceKm < 1
+                  ? `${Math.round(provider.distanceKm * 1000)} m`
+                  : `${provider.distanceKm} km`}
               </span>
             )}
           </span>
         </div>
 
-        {/* Bottom row: services + dispo + CTA */}
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 12 }}>
-          {/* Services */}
-          <div style={{ display: "flex", gap: 4, flex: 1, minWidth: 0, overflow: "hidden" }}>
-            {provider.services.slice(0, 2).map(s => (
-              <span key={s.id} style={{
-                fontSize: 11, fontWeight: 500, color: "var(--ink-secondary)",
-                background: "rgba(12,12,14,0.04)",
-                border: "1px solid rgba(12,12,14,0.08)",
-                paddingInline: 7, paddingBlock: 3, borderRadius: 5,
-                whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
-              }}>
-                {s.name}
-              </span>
-            ))}
-          </div>
+        {/* Services chips */}
+        <div style={{ display: "flex", gap: 4, marginTop: 8, flexWrap: "wrap" }}>
+          {provider.services.slice(0, 3).map(s => (
+            <span key={s.id} style={{
+              fontSize: 11, fontWeight: 500, color: "var(--ink-secondary)",
+              background: "rgba(12,12,14,0.04)",
+              border: "1px solid rgba(12,12,14,0.08)",
+              paddingInline: 7, paddingBlock: 3, borderRadius: 5,
+              whiteSpace: "nowrap",
+            }}>
+              {s.name}
+            </span>
+          ))}
+        </div>
 
-          {/* Dispo */}
+        {/* Bottom */}
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: "auto", paddingTop: 10 }}>
           <div style={{
             display: "flex", alignItems: "center", gap: 3,
-            fontSize: 11, color: "var(--ink-tertiary)", flexShrink: 0,
+            fontSize: 11, color: "var(--ink-tertiary)", flex: 1,
           }}>
             <Calendar size={10} />
             <span>{nextSlot}</span>
           </div>
-
-          {/* CTA */}
           <motion.button
             onClick={e => { e.stopPropagation(); nav(`/booking/${provider.slug}`); }}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.97 }}
             style={{
-              flexShrink: 0, height: 30, paddingInline: 14,
+              height: 30, paddingInline: 14,
               background: "var(--ink)", color: "#fff",
               fontSize: 11, fontWeight: 600, letterSpacing: "-0.01em",
               border: "none", borderRadius: 8, cursor: "pointer",
               fontFamily: "var(--font)",
-              display: "flex", alignItems: "center", gap: 4,
-              transition: "background 200ms ease",
             }}
           >
             Réserver
@@ -312,7 +297,7 @@ function ResultCardList({
 }
 
 /* ─────────────────────────────────────────────
-   RESULT CARD — Grid view
+   ResultCard — Grid view
 ───────────────────────────────────────────── */
 function ResultCardGrid({
   provider, isSelected, onHover, onLeave, index,
@@ -321,63 +306,57 @@ function ResultCardGrid({
   onHover: () => void; onLeave: () => void; index: number;
 }) {
   const [, nav] = useLocation();
-  const [hovered, setHovered] = useState(false);
-  const nextSlot = getNextAvailable(provider);
+  const [hov, setHov] = useState(false);
+  const catLabel = SERVICE_CATEGORIES.find(c => c.id === provider.category)?.label ?? provider.category;
   const minPrice = provider.minPriceCents != null
     ? provider.minPriceCents / 100
     : provider.services.length > 0
       ? Math.min(...provider.services.map(s => s.priceCents)) / 100
       : null;
-  const catLabel = SERVICE_CATEGORIES.find(c => c.id === provider.category)?.label ?? provider.category;
+  const nextSlot = getNextAvailable(provider);
 
   return (
     <motion.article
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: index * 0.04, ease: [0.16, 1, 0.3, 1] }}
-      onMouseEnter={() => { setHovered(true); onHover(); }}
-      onMouseLeave={() => { setHovered(false); onLeave(); }}
+      onMouseEnter={() => { setHov(true); onHover(); }}
+      onMouseLeave={() => { setHov(false); onLeave(); }}
       onClick={() => nav(`/${provider.slug}`)}
       style={{
         borderRadius: 14, overflow: "hidden",
-        border: `1px solid ${(isSelected || hovered) ? "rgba(12,12,14,0.18)" : "rgba(12,12,14,0.08)"}`,
-        backgroundColor: "#fff",
-        cursor: "pointer",
+        border: `1px solid ${(isSelected || hov) ? "rgba(12,12,14,0.18)" : "rgba(12,12,14,0.08)"}`,
+        backgroundColor: "#fff", cursor: "pointer",
         transition: "border-color 200ms ease",
         display: "flex", flexDirection: "column",
       }}
     >
-      {/* Photo */}
       <div style={{ position: "relative", aspectRatio: "4/3", overflow: "hidden" }}>
         <img
-          src={provider.photos[0]}
+          src={provider.photos[0] || "https://images.unsplash.com/photo-1560066984-138dadb4c035?w=400&q=80"}
           alt={provider.name}
           style={{
             width: "100%", height: "100%", objectFit: "cover", display: "block",
-            transform: hovered ? "scale(1.05)" : "scale(1)",
-            transition: "transform 400ms cubic-bezier(0.16, 1, 0.3, 1)",
+            transform: hov ? "scale(1.05)" : "scale(1)",
+            transition: "transform 420ms cubic-bezier(0.16, 1, 0.3, 1)",
           }}
         />
         <div style={{
           position: "absolute", inset: 0,
-          background: "linear-gradient(180deg, transparent 50%, rgba(10,10,15,0.6) 100%)",
+          background: "linear-gradient(180deg, transparent 45%, rgba(10,10,15,0.65) 100%)",
           pointerEvents: "none",
         }} />
-        {/* Top badges */}
-        <div style={{ position: "absolute", top: 10, left: 10, right: 10, display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-          {provider.isPopular ? (
-            <span style={{
-              height: 18, paddingInline: 7,
-              display: "inline-flex", alignItems: "center",
-              background: "#fff", borderRadius: 9999,
-              fontSize: 9, fontWeight: 700, color: "var(--ink)",
-              letterSpacing: "0.06em", textTransform: "uppercase",
-            }}>
-              Top
-            </span>
-          ) : <span />}
-        </div>
-        {/* Bottom info on photo */}
+        {provider.isPopular && (
+          <span style={{
+            position: "absolute", top: 10, left: 10,
+            height: 18, paddingInline: 7, display: "inline-flex", alignItems: "center",
+            background: "#fff", borderRadius: 9999,
+            fontSize: 9, fontWeight: 700, color: "var(--ink)",
+            letterSpacing: "0.06em", textTransform: "uppercase",
+          }}>
+            Top
+          </span>
+        )}
         <div style={{ position: "absolute", bottom: 10, left: 10, right: 10 }}>
           <p style={{
             fontSize: 14, fontWeight: 600, color: "#fff",
@@ -394,12 +373,11 @@ function ResultCardGrid({
         </div>
       </div>
 
-      {/* Info */}
       <div style={{ padding: "12px 14px", flex: 1, display: "flex", flexDirection: "column", gap: 8 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <span style={{
             fontSize: 10, fontWeight: 600, color: "var(--ink-tertiary)",
-            letterSpacing: "0.04em", textTransform: "uppercase",
+            letterSpacing: "0.05em", textTransform: "uppercase",
           }}>
             {catLabel}
           </span>
@@ -409,12 +387,10 @@ function ResultCardGrid({
             </span>
           )}
         </div>
-
         <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
           <MapPin size={10} color="var(--ink-tertiary)" />
           <span style={{ fontSize: 12, color: "var(--ink-tertiary)" }}>{provider.city}</span>
         </div>
-
         <div style={{ marginTop: "auto", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 3, fontSize: 11, color: "var(--ink-tertiary)" }}>
             <Calendar size={10} />
@@ -441,22 +417,19 @@ function ResultCardGrid({
 }
 
 /* ─────────────────────────────────────────────
-   Skeleton cards
+   Skeleton
 ───────────────────────────────────────────── */
 function SkeletonList() {
   return (
-    <div style={{
-      borderRadius: 14, border: "1px solid rgba(12,12,14,0.08)",
-      overflow: "hidden", display: "flex", height: 132,
-    }}>
-      <div className="skeleton" style={{ width: 164, flexShrink: 0 }} />
-      <div style={{ flex: 1, padding: "14px 16px", display: "flex", flexDirection: "column", gap: 8 }}>
-        <div className="skeleton" style={{ width: "55%", height: 14, borderRadius: 4 }} />
-        <div className="skeleton" style={{ width: "30%", height: 10, borderRadius: 4 }} />
-        <div className="skeleton" style={{ width: "70%", height: 10, borderRadius: 4 }} />
+    <div style={{ borderRadius: 14, border: "1px solid rgba(12,12,14,0.08)", overflow: "hidden", display: "flex", height: 136 }}>
+      <div className="skeleton" style={{ width: 168, flexShrink: 0 }} />
+      <div style={{ flex: 1, padding: "14px 16px", display: "flex", flexDirection: "column", gap: 10 }}>
+        <div className="skeleton" style={{ width: "52%", height: 14, borderRadius: 4 }} />
+        <div className="skeleton" style={{ width: "28%", height: 10, borderRadius: 4 }} />
+        <div className="skeleton" style={{ width: "68%", height: 10, borderRadius: 4 }} />
         <div style={{ marginTop: "auto", display: "flex", gap: 6 }}>
-          <div className="skeleton" style={{ width: 60, height: 22, borderRadius: 5 }} />
-          <div className="skeleton" style={{ width: 70, height: 22, borderRadius: 5 }} />
+          <div className="skeleton" style={{ width: 58, height: 20, borderRadius: 5 }} />
+          <div className="skeleton" style={{ width: 68, height: 20, borderRadius: 5 }} />
         </div>
       </div>
     </div>
@@ -468,9 +441,9 @@ function SkeletonGrid() {
     <div style={{ borderRadius: 14, border: "1px solid rgba(12,12,14,0.08)", overflow: "hidden" }}>
       <div className="skeleton" style={{ aspectRatio: "4/3", width: "100%" }} />
       <div style={{ padding: "12px 14px", display: "flex", flexDirection: "column", gap: 8 }}>
-        <div className="skeleton" style={{ width: "50%", height: 10, borderRadius: 4 }} />
-        <div className="skeleton" style={{ width: "70%", height: 10, borderRadius: 4 }} />
-        <div className="skeleton" style={{ width: "40%", height: 10, borderRadius: 4 }} />
+        <div className="skeleton" style={{ width: "48%", height: 10, borderRadius: 4 }} />
+        <div className="skeleton" style={{ width: "66%", height: 10, borderRadius: 4 }} />
+        <div className="skeleton" style={{ width: "36%", height: 10, borderRadius: 4 }} />
       </div>
     </div>
   );
@@ -479,44 +452,42 @@ function SkeletonGrid() {
 /* ─────────────────────────────────────────────
    Pagination
 ───────────────────────────────────────────── */
-function Pagination({ page, totalPages, onPage }: { page: number; totalPages: number; onPage: (p: number) => void }) {
-  if (totalPages <= 1) return null;
+function Pagination({ page, total, onPage }: { page: number; total: number; onPage: (p: number) => void }) {
+  if (total <= 1) return null;
   const base: React.CSSProperties = {
     height: 32, minWidth: 32, paddingInline: 8, borderRadius: 8,
-    border: "1px solid rgba(12,12,14,0.10)",
-    backgroundColor: "#fff", fontSize: 13, fontWeight: 500,
-    color: "var(--ink-secondary)", cursor: "pointer",
-    display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 4,
-    transition: "all 0.15s ease", fontFamily: "var(--font)", letterSpacing: "-0.01em",
+    border: "1px solid rgba(12,12,14,0.10)", backgroundColor: "#fff",
+    fontSize: 13, fontWeight: 500, color: "var(--ink-secondary)",
+    cursor: "pointer", display: "inline-flex", alignItems: "center",
+    justifyContent: "center", gap: 4, transition: "all 0.15s ease",
+    fontFamily: "var(--font)", letterSpacing: "-0.01em",
   };
   const active: React.CSSProperties = { ...base, background: "var(--ink)", borderColor: "var(--ink)", color: "#fff", fontWeight: 600 };
-  const disabled: React.CSSProperties = { ...base, opacity: 0.3, cursor: "not-allowed" };
+  const dis: React.CSSProperties = { ...base, opacity: 0.3, cursor: "not-allowed" };
 
   const pages: (number | "…")[] = [];
-  if (totalPages <= 7) { for (let i = 1; i <= totalPages; i++) pages.push(i); }
+  if (total <= 7) for (let i = 1; i <= total; i++) pages.push(i);
   else {
     pages.push(1);
     if (page > 3) pages.push("…");
-    for (let i = Math.max(2, page - 1); i <= Math.min(totalPages - 1, page + 1); i++) pages.push(i);
-    if (page < totalPages - 2) pages.push("…");
-    pages.push(totalPages);
+    for (let i = Math.max(2, page - 1); i <= Math.min(total - 1, page + 1); i++) pages.push(i);
+    if (page < total - 2) pages.push("…");
+    pages.push(total);
   }
 
   return (
-    <nav style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 4, padding: "20px 0 8px" }}>
-      <button disabled={page === 1} onClick={() => onPage(page - 1)} style={page === 1 ? disabled : base}>
+    <nav style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 4, padding: "24px 0 8px" }}>
+      <button disabled={page === 1} onClick={() => onPage(page - 1)} style={page === 1 ? dis : base}>
         <ChevronLeft size={13} />
       </button>
       {pages.map((p, i) =>
         p === "…" ? (
           <span key={`e${i}`} style={{ ...base, border: "none", background: "transparent", cursor: "default", color: "var(--ink-tertiary)" }}>…</span>
         ) : (
-          <button key={p} onClick={() => onPage(p as number)} style={p === page ? active : base}>
-            {p}
-          </button>
+          <button key={p} onClick={() => onPage(p as number)} style={p === page ? active : base}>{p}</button>
         )
       )}
-      <button disabled={page === totalPages} onClick={() => onPage(page + 1)} style={page === totalPages ? disabled : base}>
+      <button disabled={page === total} onClick={() => onPage(page + 1)} style={page === total ? dis : base}>
         <ChevronRight size={13} />
       </button>
     </nav>
@@ -529,13 +500,13 @@ function Pagination({ page, totalPages, onPage }: { page: number; totalPages: nu
 function EmptyState({ onReset }: { onReset: () => void }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 12 }}
+      initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
       style={{
         display: "flex", flexDirection: "column",
         alignItems: "center", justifyContent: "center",
-        textAlign: "center", paddingBlock: 72, paddingInline: 24,
+        textAlign: "center", paddingBlock: 80, paddingInline: 24,
       }}
     >
       <div style={{
@@ -556,17 +527,16 @@ function EmptyState({ onReset }: { onReset: () => void }) {
         fontSize: 13, color: "var(--ink-tertiary)",
         maxWidth: 280, margin: "0 0 22px", lineHeight: 1.55,
       }}>
-        Essayez d'élargir votre recherche ou de modifier les filtres actifs.
+        Essayez d'élargir la recherche ou de modifier les filtres.
       </p>
       <button
         onClick={onReset}
         style={{
-          height: 36, paddingInline: 18,
+          height: 36, paddingInline: 20,
           background: "var(--ink)", color: "#fff",
           fontSize: 12, fontWeight: 600, letterSpacing: "-0.01em",
           border: "none", borderRadius: 9, cursor: "pointer",
           fontFamily: "var(--font)",
-          display: "flex", alignItems: "center", gap: 6,
         }}
       >
         Réinitialiser les filtres
@@ -578,46 +548,40 @@ function EmptyState({ onReset }: { onReset: () => void }) {
 /* ─────────────────────────────────────────────
    Category tab pills
 ───────────────────────────────────────────── */
-function CategoryTabs({ value, onChange }: { value: string; onChange: (v: string) => void }) {
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const cats = [
-    { id: "", label: "Tout" },
-    { id: "coiffeur", label: "Coiffeur" },
-    { id: "barbier", label: "Barbier" },
-    { id: "manucure", label: "Manucure" },
-    { id: "beaute", label: "Institut beauté" },
-    { id: "bien-etre", label: "Bien-être" },
-    { id: "maquillage", label: "Maquillage" },
-    { id: "epilation", label: "Épilation" },
-    { id: "soin", label: "Soins visage" },
-  ];
+const CATS = [
+  { id: "", label: "Tout" },
+  { id: "coiffeur", label: "Coiffeur" },
+  { id: "barbier", label: "Barbier" },
+  { id: "manucure", label: "Manucure" },
+  { id: "beaute", label: "Institut beauté" },
+  { id: "bien-etre", label: "Bien-être" },
+  { id: "maquillage", label: "Maquillage" },
+  { id: "epilation", label: "Épilation" },
+  { id: "soin", label: "Soins visage" },
+];
 
+function CategoryTabs({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   return (
-    <div
-      ref={scrollRef}
-      style={{
-        display: "flex", gap: 6, overflowX: "auto", flexShrink: 0,
-        scrollbarWidth: "none", WebkitOverflowScrolling: "touch",
-        paddingBottom: 2,
-      }}
-    >
-      {cats.map(cat => {
-        const isActive = cat.id === value || (cat.id === "" && !value);
+    <div style={{
+      display: "flex", gap: 6, overflowX: "auto", flexShrink: 0,
+      scrollbarWidth: "none", WebkitOverflowScrolling: "touch" as React.CSSProperties["WebkitOverflowScrolling"],
+    }}>
+      {CATS.map(cat => {
+        const active = cat.id === value || (cat.id === "" && !value);
         return (
           <button
             key={cat.id}
             onClick={() => onChange(cat.id)}
             style={{
-              whiteSpace: "nowrap", flexShrink: 0,
-              height: 30, paddingInline: 13,
+              flexShrink: 0, height: 30, paddingInline: 14,
               borderRadius: 9999,
-              border: `1px solid ${isActive ? "var(--ink)" : "rgba(12,12,14,0.10)"}`,
-              background: isActive ? "var(--ink)" : "transparent",
-              color: isActive ? "#fff" : "var(--ink-secondary)",
-              fontSize: 12, fontWeight: isActive ? 600 : 500,
+              border: `1px solid ${active ? "var(--ink)" : "rgba(12,12,14,0.10)"}`,
+              background: active ? "var(--ink)" : "transparent",
+              color: active ? "#fff" : "var(--ink-secondary)",
+              fontSize: 12, fontWeight: active ? 600 : 500,
               cursor: "pointer", fontFamily: "var(--font)",
-              transition: "all 160ms ease",
-              letterSpacing: "-0.01em",
+              transition: "all 160ms ease", letterSpacing: "-0.01em",
+              whiteSpace: "nowrap",
             }}
           >
             {cat.label}
@@ -629,29 +593,22 @@ function CategoryTabs({ value, onChange }: { value: string; onChange: (v: string
 }
 
 /* ─────────────────────────────────────────────
-   Map content (shared between mobile/desktop)
+   Map view (shared mobile / desktop)
 ───────────────────────────────────────────── */
-function MapContent({
-  mapProviders,
-  selectedId,
-  setSelectedId,
-  userCoords,
-  defaultCenter,
-  navigate,
-  isMobile,
+function MapView({
+  providers, selectedId, setSelectedId,
+  userCoords, defaultCenter, navigate, instanceKey,
 }: {
-  mapProviders: Provider[];
-  selectedId: string | null;
+  providers: Provider[]; selectedId: string | null;
   setSelectedId: (id: string | null) => void;
   userCoords: { lat: number; lng: number } | null;
-  defaultCenter: [number, number];
-  navigate: (path: string) => void;
-  isMobile: boolean;
+  defaultCenter: [number, number]; navigate: (path: string) => void;
+  instanceKey: string;
 }) {
   return (
-    <>
-      {/* Map result count badge */}
-      {mapProviders.length > 0 && (
+    <div style={{ width: "100%", height: "100%", position: "relative" }}>
+      {/* Result badge */}
+      {providers.length > 0 && (
         <div style={{
           position: "absolute", top: 12, right: 12, zIndex: 800,
           background: "rgba(255,255,255,0.96)", backdropFilter: "blur(12px)",
@@ -661,24 +618,22 @@ function MapContent({
           fontSize: 11, fontWeight: 500, color: "var(--ink-secondary)",
         }}>
           <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--ink)", display: "inline-block" }} />
-          {mapProviders.length} résultat{mapProviders.length > 1 ? "s" : ""}
+          {providers.length} résultat{providers.length > 1 ? "s" : ""}
         </div>
       )}
 
       <MapContainer
-        center={defaultCenter}
-        zoom={6}
+        key={instanceKey}
+        center={defaultCenter} zoom={6}
         style={{ width: "100%", height: "100%" }}
-        zoomControl={false}
-        attributionControl={false}
+        zoomControl={false} attributionControl={false}
         scrollWheelZoom={true}
-        key={`map-${isMobile ? "m" : "d"}`}
       >
         <ZoomControl position="bottomright" />
-        <TileLayer url={TILES.map} attribution="© CARTO" />
-        <MapFlyTo providers={mapProviders} />
-        <UserLocationMarker coords={userCoords} />
-        {mapProviders.map(p => {
+        <TileLayer url={CARTO_LIGHT} attribution="© CARTO" />
+        <MapFlyTo providers={providers} />
+        <UserDot coords={userCoords} />
+        {providers.map(p => {
           const minPrice = p.minPriceCents != null
             ? `${Math.round(p.minPriceCents / 100)} MAD`
             : p.services.length > 0
@@ -695,10 +650,13 @@ function MapContent({
                 mouseout: () => setSelectedId(null),
               }}
             >
-              <Popup closeButton={false} className="custom-popup" offset={[0, -20]}>
+              <Popup closeButton={false} offset={[0, -20]}>
                 <div
                   onClick={() => navigate(`/${p.slug}`)}
-                  style={{ width: 210, cursor: "pointer", fontFamily: "var(--font)", borderRadius: 12, overflow: "hidden" }}
+                  style={{
+                    width: 210, cursor: "pointer",
+                    fontFamily: "var(--font)", borderRadius: 12, overflow: "hidden",
+                  }}
                 >
                   <img src={p.photos[0]} alt={p.name} style={{ width: "100%", height: 96, objectFit: "cover", display: "block" }} />
                   <div style={{ padding: "10px 12px" }}>
@@ -716,22 +674,32 @@ function MapContent({
           );
         })}
       </MapContainer>
-    </>
+    </div>
   );
 }
 
-/* ─────────────────────────────────────────────
+/* ═══════════════════════════════════════════════════════════
    MAIN PAGE
-───────────────────────────────────────────── */
+═══════════════════════════════════════════════════════════ */
 export default function SearchPage() {
   const searchString = useSearch();
   const [, navigate] = useLocation();
   const params = new URLSearchParams(searchString);
   const { isMobile, isLg } = useBreakpoint();
-  const listRef = useRef<HTMLDivElement>(null);
 
-  // State
-  const [searchQuery, setSearchQuery] = useState(params.get("q") || "");
+  /* ── filter bar height measurement (for sticky map offset) ── */
+  const filterBarRef = useRef<HTMLDivElement>(null);
+  const [filterBarH, setFilterBarH] = useState(140);
+  useEffect(() => {
+    const el = filterBarRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => setFilterBarH(el.offsetHeight));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  /* ── State ── */
+  const [q, setQ] = useState(params.get("q") || "");
   const [categoryId, setCategoryId] = useState(params.get("category") || "");
   const [cityId, setCityId] = useState(params.get("city") || "");
   const [sortId, setSortId] = useState("relevance");
@@ -743,16 +711,14 @@ export default function SearchPage() {
   const [geoLoading, setGeoLoading] = useState(false);
   const [mobileMapOpen, setMobileMapOpen] = useState(false);
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
-  const [filterOpen, setFilterOpen] = useState(false);
+  const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
 
-  // Data
+  /* ── Data ── */
   const { data: rawProviders, isLoading: apiLoading } = useQuery({
     queryKey: ["providers", cityId, userCoords?.lat, userCoords?.lng],
     queryFn: () => api.searchProviders({
       city: userCoords ? undefined : (cityId || undefined),
-      lat: userCoords?.lat,
-      lng: userCoords?.lng,
-      radius: 25,
+      lat: userCoords?.lat, lng: userCoords?.lng, radius: 25,
     }),
     staleTime: 30_000,
   });
@@ -761,33 +727,30 @@ export default function SearchPage() {
   useEffect(() => {
     const t = setTimeout(() => setLoading(false), 400);
     return () => clearTimeout(t);
-  }, [categoryId, cityId, searchQuery]);
+  }, [categoryId, cityId, q]);
 
+  /* Sync URL */
   useEffect(() => {
     const p = new URLSearchParams();
     if (categoryId) p.set("category", categoryId);
     if (cityId) p.set("city", cityId);
-    if (searchQuery) p.set("q", searchQuery);
+    if (q) p.set("q", q);
     navigate(`/search?${p.toString()}`, { replace: true });
     setPage(1);
-  }, [categoryId, cityId, searchQuery]);
+  }, [categoryId, cityId, q]);
 
-  useEffect(() => {
-    listRef.current?.scrollTo({ top: 0, behavior: "smooth" });
-  }, [page]);
-
-  // Derived
+  /* ── Derived data ── */
   const adaptedProviders = adaptProviderList(rawProviders ?? []);
   const allResults = useMemo(() => {
-    const q = searchQuery.toLowerCase().trim();
+    const sq = q.toLowerCase().trim();
     return adaptedProviders
       .filter(p => {
-        if (q) {
-          const match = p.name.toLowerCase().includes(q)
-            || p.services.some(s => s.name.toLowerCase().includes(q))
-            || p.city.toLowerCase().includes(q)
-            || (SERVICE_CATEGORIES.find(c => c.id === p.category)?.label ?? "").toLowerCase().includes(q);
-          if (!match) return false;
+        if (sq) {
+          const hit = p.name.toLowerCase().includes(sq)
+            || p.services.some(s => s.name.toLowerCase().includes(sq))
+            || p.city.toLowerCase().includes(sq)
+            || (SERVICE_CATEGORIES.find(c => c.id === p.category)?.label ?? "").toLowerCase().includes(sq);
+          if (!hit) return false;
         }
         if (categoryId && categoryId !== "all" && p.category !== categoryId) return false;
         if (!userCoords && cityId && p.city.toLowerCase() !== cityId.toLowerCase()) return false;
@@ -795,31 +758,34 @@ export default function SearchPage() {
       })
       .sort((a, b) => {
         if (sortId === "nearest") return (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity);
-        if (sortId === "rating") return (b.rating ?? 0) - (a.rating ?? 0);
+        if (sortId === "rating") return b.rating - a.rating;
         if (sortId === "price-asc") return (a.minPriceCents ?? Infinity) - (b.minPriceCents ?? Infinity);
         if (sortId === "price-desc") return (b.minPriceCents ?? 0) - (a.minPriceCents ?? 0);
         return 0;
       });
-  }, [adaptedProviders, searchQuery, categoryId, cityId, userCoords, sortId]);
+  }, [adaptedProviders, q, categoryId, cityId, userCoords, sortId]);
 
   const totalPages = Math.ceil(allResults.length / PER_PAGE);
   const results = allResults.slice((page - 1) * PER_PAGE, page * PER_PAGE);
-  const cityLabel = cityId || "Maroc";
+  const mapProviders = results.filter(p => p.latitude && p.longitude);
+  const defaultCenter: [number, number] =
+    mapProviders.length > 0
+      ? [mapProviders[0].latitude!, mapProviders[0].longitude!]
+      : [31.7917, -7.0926];
+
+  const hasFilters = !!(categoryId || cityId || userCoords || q);
   const categoryLabel = SERVICE_CATEGORIES.find(c => c.id === categoryId)?.label || null;
-  const hasFilters = !!(categoryId || cityId || userCoords || searchQuery);
 
   const goPage = useCallback((p: number) => {
     setPageDir(p > page ? 1 : -1);
     setPage(p);
-    listRef.current?.scrollTo({ top: 0, behavior: "smooth" });
-  }, [page]);
+    window.scrollTo({ top: TOPBAR_H + filterBarH, behavior: "smooth" });
+  }, [page, filterBarH]);
 
-  const mapProviders = results.filter(p => p.latitude && p.longitude);
-  const allMapProviders = allResults.filter(p => p.latitude && p.longitude);
-  const defaultCenter: [number, number] =
-    allMapProviders.length > 0
-      ? [allMapProviders[0].latitude!, allMapProviders[0].longitude!]
-      : [31.7917, -7.0926];
+  const resetFilters = useCallback(() => {
+    setQ(""); setCategoryId(""); setCityId("");
+    setSortId("relevance"); setUserCoords(null);
+  }, []);
 
   const handleLocateMe = useCallback(() => {
     if (!navigator.geolocation) return;
@@ -827,22 +793,11 @@ export default function SearchPage() {
     navigator.geolocation.getCurrentPosition(
       pos => {
         setUserCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-        setSortId("nearest");
-        setCityId("");
-        setPage(1);
-        setGeoLoading(false);
+        setSortId("nearest"); setCityId(""); setPage(1); setGeoLoading(false);
       },
       () => setGeoLoading(false),
-      { timeout: 10000 }
+      { timeout: 10000 },
     );
-  }, []);
-
-  const resetFilters = useCallback(() => {
-    setSearchQuery("");
-    setCategoryId("");
-    setCityId("");
-    setSortId("relevance");
-    setUserCoords(null);
   }, []);
 
   const slideVariants = {
@@ -851,22 +806,26 @@ export default function SearchPage() {
     exit: (dir: number) => ({ y: dir > 0 ? -14 : 14, opacity: 0 }),
   };
 
-  /* ── FILTER BAR ── */
+  /* ──────────────────────────────────────────────
+     FILTER BAR (full-width, sticky under TopBar)
+  ────────────────────────────────────────────── */
   const filterBar = (
-    <div style={{
-      position: "sticky", top: isMobile ? TOPBAR_H : 0, zIndex: 100,
-      background: "rgba(255,255,255,0.97)",
-      backdropFilter: "blur(16px)",
-      WebkitBackdropFilter: "blur(16px)",
-      borderBottom: "1px solid rgba(12,12,14,0.08)",
-      flexShrink: 0,
-    }}>
-      {/* Top row: search + locate + sort + view toggle */}
-      <div style={{ padding: "10px 20px", display: "flex", alignItems: "center", gap: 8 }}>
+    <div
+      ref={filterBarRef}
+      style={{
+        position: "sticky",
+        top: TOPBAR_H,
+        zIndex: 100,
+        background: "rgba(251,251,252,0.97)",
+        backdropFilter: "blur(20px)",
+        WebkitBackdropFilter: "blur(20px)",
+        borderBottom: "1px solid rgba(12,12,14,0.08)",
+      }}
+    >
+      {/* Row 1 — controls */}
+      <div style={{ padding: "10px 24px", display: "flex", alignItems: "center", gap: 8 }}>
         {/* Search */}
-        <div style={{
-          flex: 1, position: "relative", minWidth: 0,
-        }}>
+        <div style={{ position: "relative", flex: isMobile ? 1 : "0 0 320px", minWidth: 0 }}>
           <Search size={13} style={{
             position: "absolute", left: 11, top: "50%", transform: "translateY(-50%)",
             color: "var(--ink-tertiary)", pointerEvents: "none",
@@ -874,33 +833,43 @@ export default function SearchPage() {
           <input
             type="text"
             placeholder="Salon, prestation, ville…"
-            value={searchQuery}
-            onChange={e => { setSearchQuery(e.target.value); setPage(1); }}
+            value={q}
+            onChange={e => { setQ(e.target.value); setPage(1); }}
             style={{
               width: "100%", height: 36,
-              paddingLeft: 32, paddingRight: searchQuery ? 32 : 12,
+              paddingLeft: 32, paddingRight: q ? 32 : 12,
               background: "rgba(12,12,14,0.04)",
               border: "1px solid rgba(12,12,14,0.10)",
               borderRadius: 9, outline: "none",
               fontSize: 13, color: "var(--ink)",
-              fontFamily: "var(--font)", transition: "border-color 160ms ease",
+              fontFamily: "var(--font)", transition: "border-color 160ms ease, background 160ms ease",
             }}
-            onFocus={e => { e.currentTarget.style.borderColor = "rgba(12,12,14,0.24)"; e.currentTarget.style.background = "#fff"; }}
-            onBlur={e => { e.currentTarget.style.borderColor = "rgba(12,12,14,0.10)"; e.currentTarget.style.background = "rgba(12,12,14,0.04)"; }}
+            onFocus={e => {
+              e.currentTarget.style.borderColor = "rgba(12,12,14,0.24)";
+              e.currentTarget.style.background = "#fff";
+            }}
+            onBlur={e => {
+              e.currentTarget.style.borderColor = "rgba(12,12,14,0.10)";
+              e.currentTarget.style.background = "rgba(12,12,14,0.04)";
+            }}
           />
-          {searchQuery && (
-            <button onClick={() => setSearchQuery("")} style={{
+          {q && (
+            <button onClick={() => setQ("")} style={{
               position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)",
-              background: "none", border: "none", cursor: "pointer",
-              color: "var(--ink-tertiary)", display: "flex", alignItems: "center",
-              padding: 2,
+              background: "none", border: "none", cursor: "pointer", color: "var(--ink-tertiary)",
+              display: "flex", alignItems: "center", padding: 2,
             }}>
               <X size={12} />
             </button>
           )}
         </div>
 
-        {/* City select */}
+        {/* Divider */}
+        {!isMobile && (
+          <div style={{ width: 1, height: 20, background: "rgba(12,12,14,0.10)", flexShrink: 0 }} />
+        )}
+
+        {/* City */}
         {!isMobile && (
           <div style={{ width: 148, flexShrink: 0 }}>
             <NiceSelect
@@ -915,15 +884,18 @@ export default function SearchPage() {
 
         {/* Sort */}
         {!isMobile && (
-          <div style={{ width: 148, flexShrink: 0 }}>
-            <NiceSelect options={SORT_OPTIONS} value={sortId} onChange={setSortId} placeholder="Trier" />
+          <div style={{ width: 158, flexShrink: 0 }}>
+            <NiceSelect options={SORT_OPTIONS} value={sortId} onChange={setSortId} placeholder="Trier par" />
           </div>
         )}
 
-        {/* Mobile filters button */}
+        {/* Spacer */}
+        {!isMobile && <div style={{ flex: 1 }} />}
+
+        {/* Mobile filters btn */}
         {isMobile && (
           <button
-            onClick={() => setFilterOpen(!filterOpen)}
+            onClick={() => setMobileFilterOpen(x => !x)}
             style={{
               flexShrink: 0, height: 36, paddingInline: 12,
               border: `1px solid ${hasFilters ? "var(--ink)" : "rgba(12,12,14,0.10)"}`,
@@ -937,16 +909,6 @@ export default function SearchPage() {
           >
             <SlidersHorizontal size={13} />
             Filtres
-            {hasFilters && (
-              <span style={{
-                width: 16, height: 16, borderRadius: "50%",
-                background: "rgba(255,255,255,0.25)",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 9, fontWeight: 700,
-              }}>
-                {[categoryId, cityId, userCoords, searchQuery].filter(Boolean).length}
-              </span>
-            )}
           </button>
         )}
 
@@ -954,7 +916,7 @@ export default function SearchPage() {
         <button
           onClick={handleLocateMe}
           disabled={geoLoading}
-          title="Près de moi"
+          title="Résultats près de moi"
           style={{
             flexShrink: 0, width: 36, height: 36,
             border: `1px solid ${userCoords ? "var(--ink)" : "rgba(12,12,14,0.10)"}`,
@@ -964,18 +926,18 @@ export default function SearchPage() {
             color: userCoords ? "#fff" : "var(--ink-tertiary)",
             transition: "all 160ms ease",
           }}
-          onMouseEnter={e => { if (!userCoords) e.currentTarget.style.borderColor = "var(--ink)"; }}
-          onMouseLeave={e => { if (!userCoords) e.currentTarget.style.borderColor = "rgba(12,12,14,0.10)"; }}
+          onMouseEnter={e => { if (!userCoords) { e.currentTarget.style.borderColor = "var(--ink)"; } }}
+          onMouseLeave={e => { if (!userCoords) { e.currentTarget.style.borderColor = "rgba(12,12,14,0.10)"; } }}
         >
           <LocateFixed size={14} />
         </button>
 
-        {/* View toggle — desktop only */}
+        {/* View toggle (desktop only) */}
         {!isMobile && (
           <div style={{
             display: "flex", gap: 2,
             background: "rgba(12,12,14,0.04)",
-            borderRadius: 8, padding: 2,
+            borderRadius: 8, padding: 2, flexShrink: 0,
           }}>
             {([["list", List], ["grid", LayoutGrid]] as const).map(([mode, Icon]) => (
               <button
@@ -988,8 +950,8 @@ export default function SearchPage() {
                   background: viewMode === mode ? "#fff" : "transparent",
                   color: viewMode === mode ? "var(--ink)" : "var(--ink-tertiary)",
                   transition: "all 140ms ease",
-                  border: viewMode === mode ? "1px solid rgba(12,12,14,0.10)" : "1px solid transparent",
-                } as React.CSSProperties}
+                  border: `1px solid ${viewMode === mode ? "rgba(12,12,14,0.10)" : "transparent"}`,
+                }}
               >
                 <Icon size={13} />
               </button>
@@ -1018,14 +980,66 @@ export default function SearchPage() {
         )}
       </div>
 
-      {/* Category tabs row */}
-      <div style={{ paddingInline: 20, paddingBottom: 10 }}>
+      {/* Row 2 — category tabs */}
+      <div style={{ paddingInline: 24, paddingBottom: 10 }}>
         <CategoryTabs value={categoryId} onChange={v => { setCategoryId(v); setPage(1); }} />
+      </div>
+
+      {/* Row 3 — result count + active filter chips */}
+      <div style={{
+        paddingInline: 24, paddingBottom: 10,
+        display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap",
+      }}>
+        <span style={{ fontSize: 12, color: "var(--ink-tertiary)", letterSpacing: "-0.01em", flexShrink: 0 }}>
+          {loading ? (
+            <span className="skeleton" style={{ width: 80, height: 12, borderRadius: 4, display: "inline-block" }} />
+          ) : (
+            <>
+              <strong style={{ color: "var(--ink-secondary)", fontWeight: 600 }}>{allResults.length}</strong>
+              {" "}établissement{allResults.length !== 1 ? "s" : ""}
+              {categoryLabel && <span> · {categoryLabel}</span>}
+              {cityId && <span> à {cityId}</span>}
+            </>
+          )}
+        </span>
+        {categoryId && categoryLabel && (
+          <button onClick={() => setCategoryId("")} style={{
+            display: "inline-flex", alignItems: "center", gap: 3,
+            height: 20, paddingInline: "7px 5px", borderRadius: 9999,
+            background: "var(--ink)", border: "none",
+            fontSize: 10, fontWeight: 600, color: "#fff",
+            fontFamily: "var(--font)", cursor: "pointer",
+          }}>
+            {categoryLabel} <X size={8} />
+          </button>
+        )}
+        {cityId && (
+          <button onClick={() => setCityId("")} style={{
+            display: "inline-flex", alignItems: "center", gap: 3,
+            height: 20, paddingInline: "7px 5px", borderRadius: 9999,
+            background: "var(--ink)", border: "none",
+            fontSize: 10, fontWeight: 600, color: "#fff",
+            fontFamily: "var(--font)", cursor: "pointer",
+          }}>
+            {cityId} <X size={8} />
+          </button>
+        )}
+        {userCoords && (
+          <button onClick={() => { setUserCoords(null); setSortId("relevance"); }} style={{
+            display: "inline-flex", alignItems: "center", gap: 3,
+            height: 20, paddingInline: "7px 5px", borderRadius: 9999,
+            background: "var(--ink)", border: "none",
+            fontSize: 10, fontWeight: 600, color: "#fff",
+            fontFamily: "var(--font)", cursor: "pointer",
+          }}>
+            Près de moi <X size={8} />
+          </button>
+        )}
       </div>
 
       {/* Mobile expanded filters */}
       <AnimatePresence>
-        {isMobile && filterOpen && (
+        {isMobile && mobileFilterOpen && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
@@ -1033,30 +1047,36 @@ export default function SearchPage() {
             transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
             style={{ overflow: "hidden", borderTop: "1px solid rgba(12,12,14,0.08)" }}
           >
-            <div style={{ padding: "12px 20px", display: "flex", flexDirection: "column", gap: 8 }}>
+            <div style={{ padding: "12px 24px", display: "flex", flexDirection: "column", gap: 8 }}>
               <div style={{ display: "flex", gap: 8 }}>
                 <div style={{ flex: 1 }}>
                   <NiceSelect
                     options={CITY_OPTIONS}
                     value={cityId}
-                    onChange={v => { setCityId(v); setUserCoords(null); setFilterOpen(false); }}
+                    onChange={v => { setCityId(v); setUserCoords(null); setMobileFilterOpen(false); }}
                     placeholder="Ville"
                     searchable
                   />
                 </div>
                 <div style={{ flex: 1 }}>
-                  <NiceSelect options={SORT_OPTIONS} value={sortId} onChange={v => { setSortId(v); setFilterOpen(false); }} placeholder="Trier" />
+                  <NiceSelect
+                    options={SORT_OPTIONS}
+                    value={sortId}
+                    onChange={v => { setSortId(v); setMobileFilterOpen(false); }}
+                    placeholder="Trier"
+                  />
                 </div>
               </div>
               {hasFilters && (
                 <button
-                  onClick={() => { resetFilters(); setFilterOpen(false); }}
+                  onClick={() => { resetFilters(); setMobileFilterOpen(false); }}
                   style={{
                     height: 36, width: "100%",
                     border: "1px solid rgba(12,12,14,0.10)", borderRadius: 9,
                     background: "transparent", cursor: "pointer",
                     fontSize: 12, fontWeight: 600, color: "var(--ink-tertiary)",
-                    fontFamily: "var(--font)", display: "flex", alignItems: "center", justifyContent: "center", gap: 4,
+                    fontFamily: "var(--font)", display: "flex", alignItems: "center",
+                    justifyContent: "center", gap: 4,
                   }}
                 >
                   <X size={11} />Réinitialiser tous les filtres
@@ -1066,165 +1086,88 @@ export default function SearchPage() {
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* Result count bar */}
-      <div style={{
-        paddingInline: 20, paddingBottom: 8,
-        display: "flex", alignItems: "center", gap: 8,
-      }}>
-        <span style={{ fontSize: 12, color: "var(--ink-tertiary)", letterSpacing: "-0.01em" }}>
-          {loading ? (
-            <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              <span className="skeleton" style={{ width: 80, height: 12, borderRadius: 4, display: "inline-block" }} />
-            </span>
-          ) : (
-            <>
-              <strong style={{ color: "var(--ink-secondary)", fontWeight: 600 }}>{allResults.length}</strong>
-              {" "}établissement{allResults.length > 1 ? "s" : ""}
-              {categoryLabel && <span> · {categoryLabel}</span>}
-              {cityLabel !== "Maroc" && <span> à {cityLabel}</span>}
-              {sortId === "nearest" && userCoords && <span> · Triés par proximité</span>}
-            </>
-          )}
-        </span>
-        {/* Active filter pills */}
-        {(categoryId || cityId || userCoords) && (
-          <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
-            {categoryId && categoryLabel && (
-              <button onClick={() => setCategoryId("")} style={{
-                display: "inline-flex", alignItems: "center", gap: 3,
-                height: 20, paddingInline: "6px 4px", borderRadius: 9999,
-                background: "var(--ink)", border: "none",
-                fontSize: 10, fontWeight: 600, color: "#fff",
-                fontFamily: "var(--font)", cursor: "pointer",
-              }}>
-                {categoryLabel} <X size={8} />
-              </button>
-            )}
-            {cityId && (
-              <button onClick={() => setCityId("")} style={{
-                display: "inline-flex", alignItems: "center", gap: 3,
-                height: 20, paddingInline: "6px 4px", borderRadius: 9999,
-                background: "var(--ink)", border: "none",
-                fontSize: 10, fontWeight: 600, color: "#fff",
-                fontFamily: "var(--font)", cursor: "pointer",
-              }}>
-                {cityId} <X size={8} />
-              </button>
-            )}
-            {userCoords && (
-              <button onClick={() => { setUserCoords(null); setSortId("relevance"); }} style={{
-                display: "inline-flex", alignItems: "center", gap: 3,
-                height: 20, paddingInline: "6px 4px", borderRadius: 9999,
-                background: "var(--ink)", border: "none",
-                fontSize: 10, fontWeight: 600, color: "#fff",
-                fontFamily: "var(--font)", cursor: "pointer",
-              }}>
-                Près de moi <X size={8} />
-              </button>
-            )}
-          </div>
-        )}
-      </div>
     </div>
   );
 
-  /* ── RESULTS LIST ── */
-  const resultsList = (
+  /* ──────────────────────────────────────────────
+     RESULTS content
+  ────────────────────────────────────────────── */
+  const resultsContent = (
     <>
-      {/* Skeleton */}
       {loading && (
-        <div style={{ padding: "12px 20px", display: "flex", flexDirection: "column", gap: 8 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           {viewMode === "grid" ? (
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
               {Array(6).fill(0).map((_, i) => <SkeletonGrid key={i} />)}
             </div>
           ) : (
-            Array(5).fill(0).map((_, i) => <SkeletonList key={i} />)
+            Array(4).fill(0).map((_, i) => <SkeletonList key={i} />)
           )}
         </div>
       )}
 
-      {/* Results */}
       {!loading && results.length > 0 && (
-        <div style={{ padding: "12px 20px 8px", flex: 1 }}>
-          <AnimatePresence mode="wait" custom={pageDir}>
-            <motion.div
-              key={`page-${page}-${viewMode}`}
-              custom={pageDir}
-              variants={slideVariants}
-              initial="enter"
-              animate="center"
-              exit="exit"
-              transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
-              style={viewMode === "grid" ? {
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))",
-                gap: 10,
-              } : {
-                display: "flex", flexDirection: "column", gap: 8,
-              }}
-            >
-              {results.map((provider, i) =>
-                viewMode === "grid" ? (
-                  <ResultCardGrid
-                    key={provider.id}
-                    provider={provider}
-                    isSelected={selectedId === provider.id}
-                    onHover={() => setSelectedId(provider.id)}
-                    onLeave={() => setSelectedId(null)}
-                    index={i}
-                  />
-                ) : (
-                  <ResultCardList
-                    key={provider.id}
-                    provider={provider}
-                    isSelected={selectedId === provider.id}
-                    onHover={() => setSelectedId(provider.id)}
-                    onLeave={() => setSelectedId(null)}
-                    index={i}
-                  />
-                )
-              )}
-            </motion.div>
-          </AnimatePresence>
-          <Pagination page={page} totalPages={totalPages} onPage={goPage} />
-        </div>
+        <AnimatePresence mode="wait" custom={pageDir}>
+          <motion.div
+            key={`${page}-${viewMode}`}
+            custom={pageDir}
+            variants={slideVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={{ duration: 0.18, ease: [0.4, 0, 0.2, 1] }}
+            style={viewMode === "grid" ? {
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
+              gap: 10,
+            } : {
+              display: "flex", flexDirection: "column", gap: 8,
+            }}
+          >
+            {results.map((p, i) =>
+              viewMode === "grid" ? (
+                <ResultCardGrid key={p.id} provider={p} isSelected={selectedId === p.id}
+                  onHover={() => setSelectedId(p.id)} onLeave={() => setSelectedId(null)} index={i} />
+              ) : (
+                <ResultCardList key={p.id} provider={p} isSelected={selectedId === p.id}
+                  onHover={() => setSelectedId(p.id)} onLeave={() => setSelectedId(null)} index={i} />
+              )
+            )}
+          </motion.div>
+        </AnimatePresence>
       )}
 
-      {/* Empty */}
-      {!loading && results.length === 0 && (
-        <EmptyState onReset={resetFilters} />
+      {!loading && results.length === 0 && <EmptyState onReset={resetFilters} />}
+
+      {!loading && totalPages > 1 && (
+        <Pagination page={page} total={totalPages} onPage={goPage} />
       )}
     </>
   );
 
-  /* ══════════════════════════════════════════
+  /* ══════════════════════════════════════════════
      MOBILE LAYOUT
-     ══════════════════════════════════════════ */
+  ══════════════════════════════════════════════ */
   if (isMobile) {
     return (
-      <div style={{ minHeight: "100dvh", background: "var(--canvas)" }}>
+      <div style={{ minHeight: "100dvh", background: "var(--canvas)", display: "flex", flexDirection: "column" }}>
         <TopBar />
         {filterBar}
 
         {/* Results */}
-        <div style={{ paddingBottom: 90 }}>
-          {resultsList}
+        <div style={{ flex: 1, padding: "12px 20px 100px" }}>
+          {resultsContent}
         </div>
 
-        {/* Mobile map modal */}
+        {/* Bottom sheet map */}
         <AnimatePresence>
           {mobileMapOpen && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              style={{
-                position: "fixed", inset: 0, zIndex: 200,
-                background: "rgba(0,0,0,0.5)",
-              }}
+              transition={{ duration: 0.18 }}
+              style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(0,0,0,0.48)" }}
               onClick={() => setMobileMapOpen(false)}
             >
               <motion.div
@@ -1234,21 +1177,16 @@ export default function SearchPage() {
                 transition={{ type: "spring", stiffness: 380, damping: 38 }}
                 onClick={e => e.stopPropagation()}
                 style={{
-                  position: "absolute",
-                  bottom: 0, left: 0, right: 0,
-                  height: "75dvh",
-                  borderRadius: "20px 20px 0 0",
-                  overflow: "hidden",
-                  background: "#fff",
+                  position: "absolute", bottom: 0, left: 0, right: 0,
+                  height: "75dvh", borderRadius: "20px 20px 0 0",
+                  overflow: "hidden", background: "#fff",
                 }}
               >
-                {/* Drag handle */}
                 <div style={{
                   position: "absolute", top: 10, left: "50%", transform: "translateX(-50%)",
                   zIndex: 10, width: 36, height: 4, borderRadius: 9999,
                   background: "rgba(12,12,14,0.12)",
                 }} />
-                {/* Close */}
                 <button
                   onClick={() => setMobileMapOpen(false)}
                   style={{
@@ -1262,50 +1200,40 @@ export default function SearchPage() {
                 >
                   <X size={13} color="var(--ink)" />
                 </button>
-                <div style={{ width: "100%", height: "100%", position: "relative" }}>
-                  <MapContent
-                    mapProviders={mapProviders}
-                    selectedId={selectedId}
-                    setSelectedId={setSelectedId}
-                    userCoords={userCoords}
-                    defaultCenter={defaultCenter}
-                    navigate={navigate}
-                    isMobile={true}
-                  />
-                </div>
+                <MapView
+                  providers={mapProviders} selectedId={selectedId} setSelectedId={setSelectedId}
+                  userCoords={userCoords} defaultCenter={defaultCenter}
+                  navigate={navigate} instanceKey="mobile-map"
+                />
               </motion.div>
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* Floating map CTA */}
+        {/* Floating Voir la carte */}
         <motion.button
           onClick={() => setMobileMapOpen(true)}
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.4, duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ delay: 0.35, duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
           whileHover={{ scale: 1.04 }}
           whileTap={{ scale: 0.96 }}
           style={{
-            position: "fixed", bottom: 24, left: "50%",
-            transform: "translateX(-50%)",
-            zIndex: 150,
-            height: 44, paddingInline: 20,
+            position: "fixed", bottom: 24, left: "50%", transform: "translateX(-50%)",
+            zIndex: 150, height: 44, paddingInline: 22,
             background: "var(--ink)", color: "#fff",
             border: "none", borderRadius: 9999,
             display: "flex", alignItems: "center", gap: 8,
             fontSize: 13, fontWeight: 600, letterSpacing: "-0.01em",
-            fontFamily: "var(--font)", cursor: "pointer",
-            whiteSpace: "nowrap",
+            fontFamily: "var(--font)", cursor: "pointer", whiteSpace: "nowrap",
           }}
         >
           <Map size={14} />
           Voir la carte
           {mapProviders.length > 0 && (
             <span style={{
-              background: "rgba(255,255,255,0.2)",
-              borderRadius: 9999, paddingInline: 6, paddingBlock: 2,
-              fontSize: 11, fontWeight: 700,
+              background: "rgba(255,255,255,0.2)", borderRadius: 9999,
+              paddingInline: 6, paddingBlock: 2, fontSize: 11, fontWeight: 700,
             }}>
               {mapProviders.length}
             </span>
@@ -1317,55 +1245,64 @@ export default function SearchPage() {
     );
   }
 
-  /* ══════════════════════════════════════════
+  /* ══════════════════════════════════════════════
      DESKTOP LAYOUT
-     ══════════════════════════════════════════ */
+     ─────────────────────────────────────────────
+     Structure :
+       TopBar (sticky, top: 0, full width)
+       FilterBar (sticky, top: 56px, full width)   ← ref measured
+       Two-column flex:
+         Left — results (scrollable naturally)
+         Right — map (sticky, top: 56 + filterBarH)
+       Footer (full width)
+  ══════════════════════════════════════════════ */
+  const mapStickyTop = TOPBAR_H + filterBarH;
+  const mapHeight = `calc(100vh - ${mapStickyTop}px)`;
+  const listWidth = isLg ? 640 : 500;
+
   return (
     <div style={{ minHeight: "100dvh", background: "var(--canvas)" }}>
+      {/* ① TopBar */}
       <TopBar />
 
-      <div style={{
-        display: "flex",
-        height: `calc(100dvh - ${TOPBAR_H}px)`,
-        overflow: "hidden",
-      }}>
-        {/* LEFT PANEL */}
+      {/* ② Filter bar — full width, sticky under TopBar */}
+      {filterBar}
+
+      {/* ③ Two-column content */}
+      <div style={{ display: "flex", alignItems: "flex-start" }}>
+
+        {/* LEFT — Results list */}
         <div
-          ref={listRef}
           style={{
-            width: isLg ? 660 : 520,
+            width: listWidth,
             flexShrink: 0,
-            display: "flex",
-            flexDirection: "column",
-            borderRight: "1px solid rgba(12,12,14,0.08)",
-            background: "#FAFAFA",
-            overflow: "auto",
+            padding: "16px 20px 48px",
+            borderRight: "1px solid rgba(12,12,14,0.06)",
           }}
         >
-          {filterBar}
-          <div style={{ flex: 1 }}>
-            {resultsList}
-            {!loading && results.length > 0 && <div style={{ height: 24 }} />}
-          </div>
+          {resultsContent}
         </div>
 
-        {/* RIGHT PANEL — sticky map */}
-        <div style={{
-          flex: 1,
-          position: "relative",
-          overflow: "hidden",
-        }}>
-          <MapContent
-            mapProviders={mapProviders}
-            selectedId={selectedId}
-            setSelectedId={setSelectedId}
-            userCoords={userCoords}
-            defaultCenter={defaultCenter}
-            navigate={navigate}
-            isMobile={false}
+        {/* RIGHT — Sticky map */}
+        <div
+          style={{
+            flex: 1,
+            position: "sticky",
+            top: mapStickyTop,
+            height: mapHeight,
+            overflow: "hidden",
+          }}
+        >
+          <MapView
+            providers={mapProviders} selectedId={selectedId} setSelectedId={setSelectedId}
+            userCoords={userCoords} defaultCenter={defaultCenter}
+            navigate={navigate} instanceKey="desktop-map"
           />
         </div>
       </div>
+
+      {/* ④ Footer */}
+      <Footer />
     </div>
   );
 }
