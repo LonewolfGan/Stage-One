@@ -843,29 +843,45 @@ export default function HomePage() {
         }}
       >
         <Reveal delay={0.05}>
-          <div style={{ marginBottom: 40 }}>
-            <Logo size="lg" />
-          </div>
+          <h2 style={{
+            fontSize: "clamp(28px, 4vw, 48px)",
+            fontWeight: 600,
+            color: "var(--ink)",
+            letterSpacing: "-0.025em",
+            lineHeight: 1.1,
+            margin: "0 0 16px",
+          }}>
+            Prêt à commencer ?
+          </h2>
+          <p style={{
+            fontSize: 16,
+            color: "var(--ink-tertiary)",
+            lineHeight: 1.6,
+            maxWidth: 440,
+            margin: "0 auto 40px",
+          }}>
+            Réservez votre prochaine prestation en quelques secondes, sans appel, sans attente.
+          </p>
         </Reveal>
         <Reveal delay={0.2}>
-          <div style={{ display: "flex", gap: 16, flexWrap: "wrap", justifyContent: "center" }}>
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap", justifyContent: "center" }}>
             <motion.button
               onClick={() => setLocation("/search")}
               style={{
-                height: 44,
-                paddingInline: 28,
+                height: 46,
+                paddingInline: 32,
                 backgroundColor: "var(--accent)",
                 color: "#FFFFFF",
-                fontSize: 12,
+                fontSize: 13,
                 fontWeight: 600,
-                letterSpacing: "0.06em",
-                textTransform: "uppercase",
-                borderRadius: 8,
+                letterSpacing: "-0.01em",
+                borderRadius: 10,
                 border: "none",
                 cursor: "pointer",
+                fontFamily: "var(--font)",
               }}
-              whileHover={{ backgroundColor: "var(--accent-hover)", scale: 1.03 }}
-              whileTap={{ scale: 0.96 }}
+              whileHover={{ backgroundColor: "var(--accent-hover)", scale: 1.02 }}
+              whileTap={{ scale: 0.97 }}
               transition={{ type: "spring", stiffness: 400, damping: 28 }}
             >
               Trouver un salon
@@ -873,23 +889,23 @@ export default function HomePage() {
             <motion.button
               onClick={() => setLocation("/auth/register?role=pro")}
               style={{
-                height: 44,
-                paddingInline: 28,
+                height: 46,
+                paddingInline: 32,
                 backgroundColor: "transparent",
                 color: "var(--ink)",
-                fontSize: 12,
+                fontSize: 13,
                 fontWeight: 600,
-                letterSpacing: "0.06em",
-                textTransform: "uppercase",
-                borderRadius: 9999,
+                letterSpacing: "-0.01em",
+                borderRadius: 10,
                 border: "1px solid var(--hairline-strong)",
                 cursor: "pointer",
                 display: "flex",
                 alignItems: "center",
-                gap: 8,
+                gap: 7,
+                fontFamily: "var(--font)",
               }}
-              whileHover={{ backgroundColor: "var(--ink)", color: "var(--canvas)", scale: 1.03 }}
-              whileTap={{ scale: 0.96 }}
+              whileHover={{ backgroundColor: "var(--surface-2)", scale: 1.02 }}
+              whileTap={{ scale: 0.97 }}
               transition={{ type: "spring", stiffness: 400, damping: 28 }}
             >
               Espace professionnel
