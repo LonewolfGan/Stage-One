@@ -46,6 +46,7 @@ function Router() {
       <Route path="/dashboard/analytics" component={AnalyticsPage} />
       <Route path="/dashboard/reviews" component={ReviewsPage} />
       <Route path="/dashboard/settings" component={SettingsPage} />
+      <Route path="/dashboard/subscription" component={SubscriptionPage} />
       <Route path="/auth/register" component={RegisterPage} />
       <Route path="/auth/login" component={LoginPage} />
       <Route path="/page/:slug" component={StaticPage} />

@@ -186,6 +186,15 @@ export interface BookingDetail {
 
 // ── API functions
 export const api = {
+  // Generic methods (used by pages that need ad-hoc calls)
+  get: <T = any>(path: string) => apiFetch<T>(path),
+  post: <T = any>(path: string, body: unknown) =>
+    apiFetch<T>(path, { method: "POST", body: JSON.stringify(body) }),
+  put: <T = any>(path: string, body: unknown) =>
+    apiFetch<T>(path, { method: "PUT", body: JSON.stringify(body) }),
+  del: <T = any>(path: string) => apiFetch<T>(path, { method: "DELETE" }),
+
+
   // Auth
   login: (email: string, password: string) =>
     apiFetch<LoginResponse>("/auth/login", { method: "POST", body: JSON.stringify({ email, password }) }),

@@ -13,7 +13,7 @@ import {
   subscriptionsTable,
 } from "@workspace/db";
 import { eq, and, gte, lt, sql } from "drizzle-orm";
-import { requireOwner } from "../middlewares/auth";
+import { requireOwner, requirePlan } from "../middlewares/auth";
 import { emitSlotUpdate } from "../lib/socket";
 
 const router = Router();
@@ -215,7 +215,7 @@ router.put("/subscription/plan", requireOwner, async (req, res) => {
   res.json(updated);
 });
 
-router.get("/analytics", requireOwner, async (req, res) => {
+router.get("/analytics", requireOwner, requirePlan("PRO"), async (req, res) => {
   const provider = await getOwnedProvider(req.user!.sub);
   if (!provider) { res.status(404).json({ code: "ERR-004", message: "Espace prestataire introuvable" }); return; }
 

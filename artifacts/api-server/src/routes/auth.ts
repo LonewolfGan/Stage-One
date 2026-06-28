@@ -2,11 +2,12 @@ import { Router } from "express";
 import bcrypt from "bcryptjs";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
-import { db, usersTable, providersTable } from "@workspace/db";
-import { eq } from "drizzle-orm";
+import { db, usersTable, providersTable, emailVerificationTokensTable } from "@workspace/db";
+import { eq, and, gt } from "drizzle-orm";
 import { signToken, verifyToken } from "../lib/auth";
 import { requireAuth } from "../middlewares/auth";
 import { adminAuth } from "../lib/firebase";
+import { logger } from "../lib/logger";
 
 const router = Router();
 
@@ -147,6 +148,120 @@ router.get("/me", requireAuth, async (req, res) => {
   });
   if (!user) { res.status(404).json({ code: "ERR-004", message: "Utilisateur introuvable" }); return; }
   res.json(user);
+});
+
+// ── Profile update ────────────────────────────────────────────────────────────
+
+const profileUpdateSchema = z.object({
+  name: z.string().min(1).optional(),
+  email: z.string().email().optional(),
+  phone: z.string().min(8).optional(),
+});
+
+router.put("/profile", requireAuth, async (req, res) => {
+  const parse = profileUpdateSchema.safeParse(req.body);
+  if (!parse.success) {
+    res.status(400).json({ code: "ERR-001", message: "Données invalides", errors: parse.error.flatten() });
+    return;
+  }
+
+  const userId = req.user!.sub;
+  const { name, email, phone } = parse.data;
+
+  const current = await db.query.usersTable.findFirst({ where: eq(usersTable.id, userId) });
+  if (!current) { res.status(404).json({ code: "ERR-004", message: "Utilisateur introuvable" }); return; }
+
+  const updates: Partial<typeof usersTable.$inferInsert> & { updatedAt: Date } = { updatedAt: new Date() };
+
+  if (name) updates.name = name;
+
+  if (email && email !== current.email) {
+    const exists = await db.query.usersTable.findFirst({ where: eq(usersTable.email, email) });
+    if (exists) {
+      res.status(409).json({ code: "AUTH-001", message: "Cet email est déjà utilisé" });
+      return;
+    }
+    updates.email = email;
+    updates.emailVerified = false;
+  }
+
+  if (phone && phone !== current.phone) {
+    const exists = await db.query.usersTable.findFirst({ where: eq(usersTable.phone, phone) });
+    if (exists) {
+      res.status(409).json({ code: "AUTH-002", message: "Ce numéro est déjà utilisé" });
+      return;
+    }
+    updates.phone = phone;
+    updates.phoneVerified = false;
+  }
+
+  await db.update(usersTable).set(updates).where(eq(usersTable.id, userId));
+
+  const updated = await db.query.usersTable.findFirst({
+    where: eq(usersTable.id, userId),
+    columns: { passwordHash: false },
+  });
+  res.json(updated);
+});
+
+// ── Email verification ────────────────────────────────────────────────────────
+
+router.post("/send-email-verification", requireAuth, async (req, res) => {
+  const userId = req.user!.sub;
+
+  const user = await db.query.usersTable.findFirst({ where: eq(usersTable.id, userId) });
+  if (!user) { res.status(404).json({ code: "ERR-004", message: "Utilisateur introuvable" }); return; }
+  if (user.emailVerified) {
+    res.json({ message: "Email déjà vérifié" });
+    return;
+  }
+
+  const token = uuidv4();
+  const expiresAt = new Date(Date.now() + 24 * 60 * 60_000);
+
+  await db
+    .delete(emailVerificationTokensTable)
+    .where(eq(emailVerificationTokensTable.userId, userId));
+
+  await db.insert(emailVerificationTokensTable).values({ userId, token, expiresAt });
+
+  const frontendUrl = process.env.FRONTEND_URL ?? "http://localhost:5000";
+  const link = `${frontendUrl}/verify-email?token=${token}`;
+
+  logger.info({ userId, link }, "[DEV] Lien de vérification email");
+
+  res.json({ message: "Email envoyé", devLink: link });
+});
+
+router.get("/verify-email", async (req, res) => {
+  const { token } = req.query as { token?: string };
+  if (!token) {
+    res.status(400).json({ code: "ERR-001", message: "Token manquant" });
+    return;
+  }
+
+  const record = await db.query.emailVerificationTokensTable.findFirst({
+    where: and(
+      eq(emailVerificationTokensTable.token, token),
+      gt(emailVerificationTokensTable.expiresAt, new Date()),
+    ),
+  });
+
+  if (!record) {
+    res.status(400).json({ code: "AUTH-004", message: "Lien invalide ou expiré" });
+    return;
+  }
+
+  await db
+    .update(usersTable)
+    .set({ emailVerified: true, updatedAt: new Date() })
+    .where(eq(usersTable.id, record.userId));
+
+  await db
+    .delete(emailVerificationTokensTable)
+    .where(eq(emailVerificationTokensTable.token, token));
+
+  res.json({ success: true, message: "Email vérifié avec succès" });
 });
 
 export default router;

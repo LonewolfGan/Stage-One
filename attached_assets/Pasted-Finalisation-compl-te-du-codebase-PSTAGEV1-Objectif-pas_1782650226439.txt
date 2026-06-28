@@ -1,0 +1,427 @@
+Finalisation complète du codebase PSTAGEV1.
+Objectif : passer de 70% à 100% des exigences du PRD.
+Ne pas toucher aux credentials ni aux variables d'environnement.
+Travailler uniquement sur le code.
+
+---
+CRITIQUE 1 — CONTRAINTE GIST POSTGRESQL
+
+La contrainte anti-double-booking n'est pas en base.
+Drizzle-kit ne la génère pas automatiquement.
+Il faut l'appliquer via une migration SQL manuelle.
+
+Crée le fichier :
+apps/api/src/db/migrations/001_gist_constraint.sql
+
+Contenu :
+  CREATE EXTENSION IF NOT EXISTS btree_gist;
+
+  DO $$
+  BEGIN
+    IF NOT EXISTS (
+      SELECT 1 FROM pg_constraint
+      WHERE conname = 'no_overlapping_bookings'
+    ) THEN
+      ALTER TABLE bookings
+        ADD CONSTRAINT no_overlapping_bookings
+        EXCLUDE USING GIST (
+          staff_id WITH =,
+          tstzrange(start_datetime, end_datetime) WITH &&
+        )
+        WHERE (status NOT IN ('cancelled', 'expired'));
+    END IF;
+  END $$;
+
+Crée un script pour appliquer cette migration :
+apps/api/src/db/run-migrations.ts
+
+  import { readFileSync } from 'fs'
+  import { join } from 'path'
+  import { db } from './index'
+  import { sql } from 'drizzle-orm'
+
+  const migration = readFileSync(
+    join(__dirname, 'migrations/001_gist_constraint.sql'),
+    'utf8'
+  )
+  await db.execute(sql.raw(migration))
+  console.log('Migration GIST appliquée avec succès')
+
+Ajoute dans package.json de l'API :
+  "scripts": {
+    "migrate:gist": "tsx src/db/run-migrations.ts"
+  }
+
+Lance immédiatement :
+  npm run migrate:gist
+
+Vérifie que la contrainte est bien en base :
+  SELECT conname FROM pg_constraint
+  WHERE conname = 'no_overlapping_bookings'
+  → doit retourner 1 ligne
+
+---
+CRITIQUE 2 — SOCKET.IO CLIENT BRANCHÉ SUR LES PAGES
+
+Le serveur Socket.io émet correctement.
+Le client n'est branché nulle part.
+C'est un P0 du PRD entièrement mort côté frontend.
+
+Vérifie que socket.io-client est installé dans apps/web :
+  npm install socket.io-client
+
+Vérifie que ces deux fichiers existent et sont corrects :
+
+apps/web/src/lib/socket.ts :
+  import { io, Socket } from 'socket.io-client'
+  let socket: Socket | null = null
+  export function getSocket() {
+    if (!socket) {
+      socket = io(import.meta.env.VITE_API_URL || 'http://localhost:5000', {
+        path: '/ws/socket.io',
+        transports: ['websocket'],
+        autoConnect: false
+      })
+    }
+    return socket
+  }
+
+apps/web/src/hooks/useSlotSync.ts :
+  import { useEffect } from 'react'
+  import { useQueryClient } from '@tanstack/react-query'
+  import { getSocket } from '../lib/socket'
+
+  export function useSlotSync(
+    providerId: string,
+    date: string,
+    selectedSlot?: string,
+    onConflict?: () => void
+  ) {
+    const queryClient = useQueryClient()
+    useEffect(() => {
+      if (!providerId) return
+      const socket = getSocket()
+      socket.connect()
+      socket.emit('subscribe', { providerId, date })
+      socket.on('slot.update', ({ slotStart, staffId, change }) => {
+        queryClient.invalidateQueries({
+          queryKey: ['slots', providerId, date]
+        })
+        if (
+          change === 'booked' &&
+          selectedSlot &&
+          slotStart === selectedSlot &&
+          onConflict
+        ) {
+          onConflict()
+        }
+      })
+      return () => {
+        socket.off('slot.update')
+        socket.disconnect()
+      }
+    }, [providerId, date])
+  }
+
+apps/web/src/hooks/useBookingNotifications.ts :
+  import { useEffect } from 'react'
+  import { useQueryClient } from '@tanstack/react-query'
+  import { toast } from 'sonner'
+  import { getSocket } from '../lib/socket'
+  import { format } from 'date-fns'
+  import { fr } from 'date-fns/locale'
+
+  export function useBookingNotifications(providerId: string) {
+    const queryClient = useQueryClient()
+    useEffect(() => {
+      if (!providerId) return
+      const socket = getSocket()
+      socket.connect()
+      socket.emit('subscribe', { providerId })
+      socket.on('booking.confirmed', (booking) => {
+        queryClient.invalidateQueries({
+          queryKey: ['bookings', providerId]
+        })
+        toast.success(
+          `Nouveau RDV — ${booking.clientName} · ${booking.serviceName} · ${
+            format(new Date(booking.startDatetime), 'HH:mm', { locale: fr })
+          }`
+        )
+      })
+      return () => {
+        socket.off('booking.confirmed')
+        socket.disconnect()
+      }
+    }, [providerId])
+  }
+
+Branche les hooks sur ces pages :
+
+booking.tsx (page de réservation publique) :
+  const [selectedSlot, setSelectedSlot] = useState<string>()
+  useSlotSync(
+    provider.id,
+    selectedDate,
+    selectedSlot,
+    () => {
+      setSelectedSlot(undefined)
+      toast.error(
+        'Ce créneau vient d\'être pris. Choisissez un autre horaire.'
+      )
+    }
+  )
+
+provider-profile.tsx (fiche publique) :
+  useSlotSync(provider.id, selectedDate)
+
+dashboard/agenda.tsx :
+  useBookingNotifications(currentProvider.id)
+  useSlotSync(currentProvider.id, currentDate)
+
+Vérifie que <Toaster /> est bien dans le layout root.
+Si pas encore installé :
+  npm install sonner
+  Dans root layout : import { Toaster } from 'sonner'
+                     <Toaster position="top-right" richColors />
+
+---
+CRITIQUE 3 — VITE_STRIPE_PUBLISHABLE_KEY
+
+La variable est manquante — le formulaire de paiement
+ne peut pas s'initialiser sans elle.
+
+Pour l'instant sans credentials réels, ajoute dans .env :
+  VITE_STRIPE_PUBLISHABLE_KEY=pk_test_placeholder
+
+Et dans le composant de paiement, ajoute une guard claire :
+  const stripeKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY
+  if (!stripeKey || stripeKey === 'pk_test_placeholder') {
+    // Afficher le mode simulation proprement
+    return <SimulatedPaymentForm onSuccess={handleSuccess} />
+  }
+  // Sinon afficher le vrai formulaire Stripe
+
+Le composant SimulatedPaymentForm :
+  function SimulatedPaymentForm({ onSuccess }: { onSuccess: () => void }) {
+    return (
+      <div className="border border-[rgba(0,0,0,0.08)] rounded-[12px] p-6">
+        <p className="text-[13px] text-[#8C8C8C] mb-4">
+          Mode démonstration — paiement simulé
+        </p>
+        <button
+          onClick={onSuccess}
+          className="w-full h-11 bg-[#D4547A] text-white
+                     text-[14px] font-medium rounded-[8px]
+                     hover:bg-[#C04268] transition-colors"
+        >
+          Confirmer la réservation (démo)
+        </button>
+      </div>
+    )
+  }
+
+---
+IMPORTANT 1 — API HORAIRES D'OUVERTURE
+
+dashboard/settings.tsx existe mais l'API backend manque.
+
+Crée dans apps/api/src/routes/dashboard/ :
+
+GET /api/dashboard/business-hours
+  Auth requise (owner)
+  SELECT * FROM business_hours WHERE provider_id = req.providerId
+  Retourner les 7 jours (0-6) avec openTime, closeTime, isClosed
+
+PUT /api/dashboard/business-hours
+  Auth requise (owner)
+  Body : {
+    hours: [
+      { dayOfWeek: 0, openTime: '09:00', closeTime: '19:00', isClosed: false },
+      { dayOfWeek: 6, isClosed: true },
+      ...
+    ]
+  }
+  Validation Zod : dayOfWeek 0-6, openTime/closeTime format HH:mm
+  Action : DELETE existing + INSERT new (upsert complet)
+  Invalider le cache Redis des slots de ce provider
+
+Branche dashboard/settings.tsx sur ces routes :
+  const { data: hours } = useQuery({
+    queryKey: ['business-hours', providerId],
+    queryFn: () => api.get('/dashboard/business-hours')
+  })
+
+  const mutation = useMutation({
+    mutationFn: (hours) => api.put('/dashboard/business-hours', { hours }),
+    onSuccess: () => toast.success('Horaires mis à jour')
+  })
+
+---
+IMPORTANT 2 — VÉRIFICATION EMAIL OTP
+
+Crée dans apps/api/src/routes/auth/ :
+
+POST /api/auth/send-email-verification
+  Auth requise
+  - Générer un token unique : crypto.randomUUID()
+  - Stocker en DB : email_verification_tokens
+    (userId, token, expiresAt: now + 24h)
+  - Envoyer l'email avec le lien :
+    ${FRONTEND_URL}/verify-email?token=${token}
+  - Pour l'instant sans credential email réel :
+    logger.info(`[DEV] Lien de vérification : ${link}`)
+    Retourner { message: 'Email envoyé', devLink: link }
+    (en production, supprimer devLink)
+
+GET /api/auth/verify-email?token=
+  - Vérifier que le token existe et n'est pas expiré
+  - UPDATE users SET emailVerified = true WHERE id = userId
+  - Supprimer le token utilisé
+  - Retourner { success: true }
+
+Crée la table email_verification_tokens dans le schema Drizzle :
+  export const emailVerificationTokens = pgTable(
+    'email_verification_tokens',
+    {
+      id: text('id').primaryKey().default(sql`gen_random_uuid()`),
+      userId: text('user_id').notNull()
+        .references(() => users.id, { onDelete: 'cascade' }),
+      token: text('token').notNull().unique(),
+      expiresAt: timestamp('expires_at').notNull()
+    }
+  )
+
+Crée la page apps/web/src/pages/verify-email.tsx :
+  - Lire le ?token= depuis l'URL
+  - Appeler GET /api/auth/verify-email?token=
+  - Si succès : afficher "Email vérifié ✓" + redirect vers /
+  - Si erreur : afficher "Lien invalide ou expiré"
+
+---
+IMPORTANT 3 — AUTO-CRÉATION STAFF POUR INDIVIDUAL
+
+Dans POST /api/providers/register, après la création du provider :
+
+  if (type === 'INDIVIDUAL') {
+    await db.insert(staff).values({
+      providerId: newProvider.id,
+      name: req.user.name,
+      isActive: true,
+      bio: 'Prestataire indépendant'
+    })
+  }
+
+---
+IMPORTANT 4 — SERVICE_STAFF DANS LE SLOT ENGINE
+
+Le slot engine ignore actuellement l'assignation
+prestation ↔ staff. Un client peut sélectionner un staff
+qui ne réalise pas la prestation choisie.
+
+Dans apps/api/src/lib/slot-engine.ts, ajoute le filtre :
+
+  // Récupérer les staff assignés à ce service
+  const assignedStaff = await db
+    .select({ staffId: serviceStaff.staffId })
+    .from(serviceStaff)
+    .where(eq(serviceStaff.serviceId, serviceId))
+
+  const assignedIds = assignedStaff.map(s => s.staffId)
+
+  // Filtrer les staff actifs ET assignés à ce service
+  const eligibleStaff = allStaff.filter(
+    s => s.isActive && assignedIds.includes(s.id)
+  )
+
+  // Calculer les créneaux uniquement pour les staff éligibles
+
+---
+IMPORTANT 5 — ABONNEMENTS SAAS (Free / Pro / Business)
+
+Côté API :
+
+GET /api/dashboard/subscription
+  Auth requise (owner)
+  Retourner le plan actuel du provider
+
+PUT /api/dashboard/subscription/plan
+  Auth requise (owner)
+  Body : { plan: 'FREE' | 'PRO' | 'BUSINESS' }
+  UPDATE subscriptions SET plan = $plan WHERE providerId = req.providerId
+
+Middleware gating — crée requirePlan(plan: Plan) :
+  export function requirePlan(minPlan: 'PRO' | 'BUSINESS') {
+    return async (req, reply) => {
+      const sub = await db.query.subscriptions.findFirst({
+        where: eq(subscriptions.providerId, req.providerId)
+      })
+      const hierarchy = { FREE: 0, PRO: 1, BUSINESS: 2 }
+      if (hierarchy[sub?.plan || 'FREE'] < hierarchy[minPlan]) {
+        return reply.status(403).send({
+          code: 'ERR-PLAN',
+          message: `Cette fonctionnalité nécessite le plan ${minPlan}`
+        })
+      }
+    }
+  }
+
+Applique le middleware sur :
+  GET /api/dashboard/analytics → requirePlan('PRO')
+  POST /api/providers/register (second établissement) → requirePlan('BUSINESS')
+
+Côté frontend — crée une page /dashboard/subscription :
+  Affiche les 3 plans en cards (Free / Pro / Business)
+  avec leurs fonctionnalités respectives
+  Le plan actuel est mis en avant avec une bordure rose
+  Un bouton "Changer de plan" sur chaque card inactive
+  → mutation PUT /api/dashboard/subscription/plan
+
+---
+MISE À JOUR PROFIL (R-FUNC-006)
+
+Crée dans apps/api/src/routes/auth/ :
+
+PUT /api/auth/profile
+  Auth requise
+  Body : { name?, email?, phone? }
+  Validation Zod
+  Si email changé → emailVerified: false + envoyer nouveau lien
+  Si phone changé → phoneVerified: false + envoyer nouveau OTP
+  UPDATE users SET ... WHERE id = req.user.id
+
+Ajoute une page /account/profile dans le frontend :
+  Formulaire : nom, email, téléphone
+  Bouton "Sauvegarder"
+  Si email/phone modifié : afficher un bandeau
+  "Vérifiez votre nouvel email/téléphone"
+
+---
+VÉRIFICATION FINALE
+
+Après chaque implémentation, vérifie :
+  npx tsc --noEmit     → zéro erreur TypeScript
+  npm run build        → build réussit sans erreur
+
+Checklist finale :
+  [ ] Contrainte GIST appliquée en DB (vérifier pg_constraint)
+  [ ] Socket.io : slot.update reçu sur booking.tsx en temps réel
+  [ ] Socket.io : toast reçu sur agenda.tsx sans rechargement
+  [ ] Horaires GET/PUT fonctionnels depuis dashboard/settings
+  [ ] Email verification : lien généré visible dans les logs dev
+  [ ] Individual provider → staff auto-créé en DB
+  [ ] Slot engine filtre par service_staff
+  [ ] Page /dashboard/subscription affiche les 3 plans
+  [ ] Page /account/profile permet de modifier nom/email/phone
+
+---
+ORDRE D'EXÉCUTION
+
+1. Contrainte GIST (npm run migrate:gist)
+2. Socket.io client (useSlotSync + useBookingNotifications)
+3. Stripe guard (SimulatedPaymentForm)
+4. API horaires (GET/PUT business-hours)
+5. Email verification (token + page)
+6. Auto-création staff individual
+7. Service_staff dans slot engine
+8. Abonnements SaaS
+9. Mise à jour profil
