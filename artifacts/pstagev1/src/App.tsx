@@ -18,6 +18,7 @@ import ServicesPage from "@/pages/dashboard/services";
 import StaffPage from "@/pages/dashboard/staff";
 import AnalyticsPage from "@/pages/dashboard/analytics";
 import SettingsPage from "@/pages/dashboard/settings";
+import ReviewsPage from "@/pages/dashboard/reviews";
 import RegisterPage from "@/pages/auth/register";
 import LoginPage from "@/pages/auth/login";
 import StaticPage from "@/pages/static-page";
@@ -38,6 +39,7 @@ function Router() {
       <Route path="/dashboard/services" component={ServicesPage} />
       <Route path="/dashboard/staff" component={StaffPage} />
       <Route path="/dashboard/analytics" component={AnalyticsPage} />
+      <Route path="/dashboard/reviews" component={ReviewsPage} />
       <Route path="/dashboard/settings" component={SettingsPage} />
       <Route path="/auth/register" component={RegisterPage} />
       <Route path="/auth/login" component={LoginPage} />

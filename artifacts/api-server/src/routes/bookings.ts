@@ -1,8 +1,8 @@
 import { Router } from "express";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
-import { db, bookingsTable, servicesTable, staffTable, providersTable, usersTable } from "@workspace/db";
-import { eq, and, sql, desc } from "drizzle-orm";
+import { db, bookingsTable, servicesTable, staffTable, providersTable, usersTable, reviewsTable } from "@workspace/db";
+import { eq, and, sql, desc, isNotNull } from "drizzle-orm";
 import { requireAuth } from "../middlewares/auth";
 import { emitSlotUpdate, emitBookingConfirmed } from "../lib/socket";
 import { stripe } from "../lib/stripe";
@@ -175,11 +175,13 @@ router.get("/me", requireAuth, async (req, res) => {
       providerSlug: providersTable.slug,
       providerLogoUrl: providersTable.logoUrl,
       providerCity: providersTable.city,
+      hasReview: isNotNull(reviewsTable.id),
     })
     .from(bookingsTable)
     .leftJoin(servicesTable, eq(bookingsTable.serviceId, servicesTable.id))
     .leftJoin(staffTable, eq(bookingsTable.staffId, staffTable.id))
     .leftJoin(providersTable, eq(bookingsTable.providerId, providersTable.id))
+    .leftJoin(reviewsTable, eq(bookingsTable.id, reviewsTable.bookingId))
     .where(eq(bookingsTable.clientId, req.user!.sub))
     .orderBy(desc(bookingsTable.startDatetime));
 

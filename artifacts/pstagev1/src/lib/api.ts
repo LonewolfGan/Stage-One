@@ -140,6 +140,28 @@ export interface MyBooking {
   providerSlug: string | null;
   providerLogoUrl: string | null;
   providerCity: string | null;
+  hasReview: boolean;
+}
+
+export interface ReviewResult {
+  id: string;
+  bookingId: string;
+  providerId: string;
+  clientId: string;
+  rating: number;
+  comment: string | null;
+  reply: string | null;
+  createdAt: string;
+}
+
+export interface DashboardReview {
+  id: string;
+  bookingId: string;
+  rating: number;
+  comment: string | null;
+  reply: string | null;
+  createdAt: string;
+  clientName: string | null;
 }
 
 export interface BookingDetail {
@@ -256,4 +278,13 @@ export const api = {
   // Hours
   updateHours: (slug: string, hours: { dayOfWeek: number; openTime: string; closeTime: string; isClosed: boolean }[]) =>
     apiFetch<ApiBusinessHours[]>(`/providers/${slug}/hours`, { method: "PUT", body: JSON.stringify({ hours }) }),
+
+  // Reviews
+  createReview: (data: { bookingId: string; rating: number; comment?: string }) =>
+    apiFetch<ReviewResult>("/reviews", { method: "POST", body: JSON.stringify(data) }),
+
+  replyToReview: (reviewId: string, reply: string) =>
+    apiFetch<ReviewResult>(`/reviews/${reviewId}/reply`, { method: "POST", body: JSON.stringify({ reply }) }),
+
+  getDashboardReviews: () => apiFetch<DashboardReview[]>("/reviews"),
 };

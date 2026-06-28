@@ -1,11 +1,12 @@
 import { Link, useLocation } from "wouter";
-import { Calendar, Scissors, Users, BarChart, Settings } from "lucide-react";
+import { Calendar, Scissors, Users, BarChart, Settings, Star } from "lucide-react";
 
 const NAV_ITEMS = [
   { name: "Agenda", href: "/dashboard/agenda", icon: Calendar },
   { name: "Prestations", href: "/dashboard/services", icon: Scissors },
   { name: "Équipe", href: "/dashboard/staff", icon: Users },
   { name: "Statistiques", href: "/dashboard/analytics", icon: BarChart },
+  { name: "Avis", href: "/dashboard/reviews", icon: Star },
   { name: "Paramètres", href: "/dashboard/settings", icon: Settings },
 ];
 
