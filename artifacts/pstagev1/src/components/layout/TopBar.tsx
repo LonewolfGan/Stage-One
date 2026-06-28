@@ -35,22 +35,24 @@ export function TopBar() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.32, ease: [0.0, 0.0, 0.2, 1] }}
       >
-        <div
-          className="pointer-events-auto flex items-center justify-between w-full"
-          style={{
-            height: 56,
-            backgroundColor: "rgba(255,255,255,0.92)",
-            backdropFilter: "blur(20px)",
-            WebkitBackdropFilter: "blur(20px)",
-            borderRadius: "0 0 12px 12px",
-            paddingLeft: isMobile ? 16 : 28,
-            paddingRight: isMobile ? 12 : 20,
-            borderBottom: "1px solid var(--hairline)",
-            borderLeft: "1px solid var(--hairline)",
-            borderRight: "1px solid var(--hairline)",
-            gap: 16,
-          }}
-        >
+        <div style={{ maxWidth: 1680, marginInline: "auto", paddingInline: isMobile ? 0 : "clamp(20px, 5vw, 80px)" }}>
+          <div
+            className="pointer-events-auto flex items-center justify-between w-full"
+            style={{
+              height: 56,
+              backgroundColor: "rgba(255,255,255,0.92)",
+              backdropFilter: "blur(20px)",
+              WebkitBackdropFilter: "blur(20px)",
+              borderRadius: "0 0 12px 12px",
+              paddingLeft: isMobile ? 16 : 28,
+              paddingRight: isMobile ? 12 : 20,
+              borderBottom: isMobile ? "1px solid var(--hairline)" : "1px solid var(--hairline)",
+              borderLeft: "1px solid var(--hairline)",
+              borderRight: "1px solid var(--hairline)",
+              gap: 16,
+              marginTop: 0,
+            }}
+          >
           {/* Left: logo + nav */}
           <div style={{ display: "flex", alignItems: "center", gap: 28 }}>
             <Link href="/" className="no-underline shrink-0" style={{ paddingLeft: 6 }}>
@@ -222,6 +224,7 @@ export function TopBar() {
               )}
             </AnimatePresence>
           </div>
+        </div>
         </div>
 
         {/* Mobile nav dropdown */}

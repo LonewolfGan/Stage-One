@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useSearch, useLocation } from "wouter";
 import { AnimatePresence, motion } from "framer-motion";
 import { MapContainer, TileLayer, Marker, Popup, useMap, ZoomControl, CircleMarker } from "react-leaflet";
@@ -15,6 +15,7 @@ import { MOROCCO_CITIES, SERVICE_CATEGORIES, SORT_OPTIONS } from "@/lib/cities";
 import {
   MapPin, Star, ChevronLeft, ChevronRight,
   Map, Satellite, X, Clock, CheckCircle2, Calendar, LocateFixed,
+  Search, SlidersHorizontal, List, Compass,
 } from "lucide-react";
 import { useBreakpoint } from "@/hooks/use-mobile";
 
@@ -26,7 +27,7 @@ const CITY_OPTIONS = [
   ...MOROCCO_CITIES.map(c => ({ id: c, label: c })),
 ];
 const PER_PAGE = 8;
-const TOPBAR_HEIGHT = 84; // floating pill: 20px top + 56px height + 8px buffer
+const TOPBAR_HEIGHT = 56;
 
 const TILES = {
   map: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
@@ -44,7 +45,7 @@ function makePin(selected: boolean) {
   const border = selected ? "#0C0C0E" : "rgba(10,10,15,0.14)";
   return L.divIcon({
     className: "",
-    html: `<div style="width:36px;height:36px;border-radius:50%;background:${bg};border:2px solid ${border};display:flex;align-items:center;justify-content:center;transition:all .2s ease">
+    html: `<div style="width:36px;height:36px;border-radius:50%;background:${bg};border:2px solid ${border};display:flex;align-items:center;justify-content:center;transition:all .2s ease;box-shadow:none">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
         <circle cx="6" cy="6" r="3" stroke="${iconColor}" stroke-width="2"/>
         <circle cx="6" cy="18" r="3" stroke="${iconColor}" stroke-width="2"/>
@@ -89,7 +90,7 @@ function UserLocationMarker({ coords }: { coords: { lat: number; lng: number } |
     <CircleMarker
       center={[coords.lat, coords.lng]}
       radius={9}
-      pathOptions={{ color: "#2563EB", fillColor: "#3B82F6", fillOpacity: 0.5, weight: 2 }}
+      pathOptions={{ color: "#D4466E", fillColor: "#D4466E", fillOpacity: 0.25, weight: 2 }}
     />
   );
 }
@@ -115,15 +116,16 @@ function Stars({ rating }: { rating: number }) {
 }
 
 /* ─────────────────────────────────────────────
-   Result card — redesigned
+   Result card — redesigned with better hierarchy
 ───────────────────────────────────────────── */
 function ResultCard({
-  provider, isSelected, onHover, onLeave,
+  provider, isSelected, onHover, onLeave, index = 0,
 }: {
   provider: Provider;
   isSelected: boolean;
   onHover: () => void;
   onLeave: () => void;
+  index?: number;
 }) {
   const [, setLocation] = useLocation();
   const nextSlot = getNextAvailable(provider);
@@ -141,34 +143,48 @@ function ResultCard({
       : null;
 
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.28, delay: index * 0.04, ease: [0.4, 0, 0.2, 1] }}
       onMouseEnter={onHover}
       onMouseLeave={onLeave}
+      className="result-card"
       style={{
         backgroundColor: isSelected ? "rgba(12,12,14,0.03)" : "var(--surface-1)",
         border: `1px solid ${isSelected ? "var(--hairline-strong)" : "var(--hairline)"}`,
-        borderRadius: 16,
+        borderRadius: 12,
         overflow: "hidden",
         display: "flex",
         flexDirection: "row",
-        transition: "border-color 0.18s ease, background-color 0.18s ease",
+        transition: "border-color 0.2s ease, background-color 0.2s ease",
         cursor: "pointer",
       }}
     >
       {/* ── Photo ── */}
       <div
         onClick={() => setLocation(`/${provider.slug}`)}
-        style={{ width: 164, flexShrink: 0, position: "relative", overflow: "hidden" }}
+        style={{
+          width: 156,
+          flexShrink: 0,
+          position: "relative",
+          overflow: "hidden",
+        }}
       >
         <img
           src={provider.photos[0]}
           alt={provider.name}
-          style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            display: "block",
+          }}
         />
-        {/* Gradient overlay bottom */}
+        {/* Gradient overlay */}
         <div style={{
-          position: "absolute", bottom: 0, left: 0, right: 0, height: 56,
-          background: "linear-gradient(to top, rgba(10,10,15,0.45) 0%, transparent 100%)",
+          position: "absolute", inset: 0,
+          background: "linear-gradient(180deg, transparent 50%, rgba(10,10,15,0.5) 100%)",
           pointerEvents: "none",
         }} />
         {/* Popular badge */}
@@ -184,14 +200,20 @@ function ResultCard({
             Populaire
           </span>
         )}
-        {/* Price at bottom of image */}
-        <span style={{
-          position: "absolute", bottom: 10, right: 10,
-          fontSize: 11, fontWeight: 600, color: "#FFFFFF",
-          letterSpacing: "-0.01em", pointerEvents: "none",
-        }}>
-          {minPrice != null ? `dès ${minPrice} MAD` : ""}
-        </span>
+        {/* Price badge at bottom */}
+        {minPrice != null && (
+          <span style={{
+            position: "absolute", bottom: 10, left: 10,
+            height: 22, paddingInline: 8,
+            display: "inline-flex", alignItems: "center",
+            backgroundColor: "rgba(10,10,15,0.72)",
+            backdropFilter: "blur(6px)",
+            borderRadius: 6, fontSize: 11, fontWeight: 600, color: "#FFFFFF",
+            letterSpacing: "-0.01em", pointerEvents: "none",
+          }}>
+            dès {minPrice} MAD
+          </span>
+        )}
       </div>
 
       {/* ── Info ── */}
@@ -199,122 +221,112 @@ function ResultCard({
         onClick={() => setLocation(`/${provider.slug}`)}
         style={{
           flex: 1, minWidth: 0,
-          padding: "16px 16px 16px 18px",
-          display: "flex", flexDirection: "column", justifyContent: "space-between",
+          padding: "14px 14px 14px 16px",
+          display: "flex", flexDirection: "column",
           gap: 0,
         }}
       >
-        {/* Top: name + category + verified */}
-        <div>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 5 }}>
-            <p style={{
-              fontSize: 15, fontWeight: 600, color: "var(--ink)",
-              letterSpacing: "-0.015em", lineHeight: 1.2,
-              margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-            }}>
-              {provider.name}
-            </p>
-            <div style={{ display: "flex", alignItems: "center", gap: 5, flexShrink: 0 }}>
-              {provider.isVerified && (
-                <CheckCircle2 size={12} color="var(--ink-secondary)" />
-              )}
-              <span style={{
-                fontSize: 10, fontWeight: 600, color: "var(--ink-secondary)",
-                backgroundColor: "rgba(12,12,14,0.06)",
-                paddingInline: 7, paddingBlock: 3, borderRadius: 5,
-                letterSpacing: "0.01em", whiteSpace: "nowrap",
-              }}>
-                {categoryLabel}
-              </span>
-            </div>
-          </div>
-
-          {/* Rating row */}
-          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
-            <Stars rating={provider.rating} />
-            <span style={{ fontSize: 12, fontWeight: 600, color: "var(--ink)" }}>{provider.rating}</span>
-            <span style={{ fontSize: 12, color: "var(--ink-tertiary)" }}>· {provider.reviewCount} avis</span>
-            <span style={{ width: 3, height: 3, borderRadius: "50%", backgroundColor: "var(--hairline-strong)", flexShrink: 0 }} />
-            <span style={{ fontSize: 11, color: "var(--ink-tertiary)", fontWeight: 500, letterSpacing: "0.01em" }}>
-              {PRICE_SYMBOLS[provider.priceLevel] ?? "MAD"}
-            </span>
-          </div>
-
-          {/* Address + distance */}
-          <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 10 }}>
-            <MapPin size={10} color="var(--ink-tertiary)" style={{ flexShrink: 0 }} />
-            <span style={{ fontSize: 12, color: "var(--ink-tertiary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-              {provider.address}, {provider.city}
-            </span>
-            {provider.distanceKm != null && (
-              <span style={{
-                flexShrink: 0, marginLeft: 4,
-                fontSize: 10, fontWeight: 600, color: "var(--ink-secondary)",
-                backgroundColor: "rgba(12,12,14,0.06)",
-                paddingInline: 6, paddingBlock: 2, borderRadius: 4,
-              }}>
-                {provider.distanceKm < 1
-                  ? `${Math.round(provider.distanceKm * 1000)} m`
-                  : `${provider.distanceKm} km`}
-              </span>
-            )}
-          </div>
-
-          {/* Service chips */}
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
-            {topServices.map(s => (
-              <span key={s.id} style={{
-                fontSize: 11, fontWeight: 500, color: "var(--ink-secondary)",
-                backgroundColor: "rgba(12,12,14,0.04)",
-                border: "1px solid var(--hairline)",
-                paddingInline: 8, paddingBlock: 3, borderRadius: 6,
-                whiteSpace: "nowrap",
-              }}>
-                {s.name}
-              </span>
-            ))}
-          </div>
+        {/* Name row */}
+        <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+          <p style={{
+            fontSize: 15, fontWeight: 600, color: "var(--ink)",
+            letterSpacing: "-0.015em", lineHeight: 1.2,
+            margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+          }}>
+            {provider.name}
+          </p>
+          {provider.isVerified && (
+            <CheckCircle2 size={12} color="var(--ink-secondary)" style={{ flexShrink: 0 }} />
+          )}
         </div>
 
-        {/* Bottom: duration stat */}
-        <div style={{ display: "flex", alignItems: "center", gap: 5, marginTop: 10 }}>
-          <Clock size={10} color="var(--ink-tertiary)" />
-          <span style={{ fontSize: 11, color: "var(--ink-tertiary)" }}>
-            À partir de <strong style={{ fontWeight: 600, color: "var(--ink-secondary)" }}>{minDuration} min</strong>
+        {/* Category tag */}
+        <span style={{
+          display: "inline-block", alignSelf: "flex-start",
+          fontSize: 10, fontWeight: 600, color: "var(--ink-secondary)",
+          backgroundColor: "rgba(12,12,14,0.06)",
+          paddingInline: 7, paddingBlock: 3, borderRadius: 5,
+          letterSpacing: "0.01em", marginBottom: 8,
+        }}>
+          {categoryLabel}
+        </span>
+
+        {/* Rating row */}
+        <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
+          <Stars rating={provider.rating} />
+          <span style={{ fontSize: 12, fontWeight: 600, color: "var(--ink)" }}>{provider.rating}</span>
+          <span style={{ fontSize: 12, color: "var(--ink-tertiary)" }}>· {provider.reviewCount} avis</span>
+          <span style={{ width: 3, height: 3, borderRadius: "50%", backgroundColor: "var(--hairline-strong)", flexShrink: 0 }} />
+          <span style={{ fontSize: 11, color: "var(--ink-tertiary)", fontWeight: 500, letterSpacing: "0.01em" }}>
+            {PRICE_SYMBOLS[provider.priceLevel] ?? "MAD"}
           </span>
+        </div>
+
+        {/* Address + distance */}
+        <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: "auto" }}>
+          <MapPin size={10} color="var(--ink-tertiary)" style={{ flexShrink: 0 }} />
+          <span style={{ fontSize: 12, color: "var(--ink-tertiary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            {provider.address}, {provider.city}
+          </span>
+          {provider.distanceKm != null && (
+            <span style={{
+              flexShrink: 0, marginLeft: 4,
+              fontSize: 10, fontWeight: 600, color: "var(--ink-secondary)",
+              backgroundColor: "rgba(12,12,14,0.06)",
+              paddingInline: 6, paddingBlock: 2, borderRadius: 4,
+            }}>
+              {provider.distanceKm < 1
+                ? `${Math.round(provider.distanceKm * 1000)} m`
+                : `${provider.distanceKm} km`}
+            </span>
+          )}
+        </div>
+
+        {/* Service chips + duration */}
+        <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 10 }}>
+          {topServices.map(s => (
+            <span key={s.id} style={{
+              fontSize: 11, fontWeight: 500, color: "var(--ink-secondary)",
+              backgroundColor: "rgba(12,12,14,0.04)",
+              border: "1px solid var(--hairline)",
+              paddingInline: 8, paddingBlock: 3, borderRadius: 6,
+              whiteSpace: "nowrap",
+            }}>
+              {s.name}
+            </span>
+          ))}
+          {minDuration != null && (
+            <span style={{
+              display: "flex", alignItems: "center", gap: 3,
+              fontSize: 11, color: "var(--ink-tertiary)", marginLeft: "auto",
+            }}>
+              <Clock size={10} />
+              {minDuration} min
+            </span>
+          )}
         </div>
       </div>
 
-      {/* ── CTA ── */}
+      {/* ── CTA panel ── */}
       <div style={{
-        flexShrink: 0, width: 136,
+        flexShrink: 0,
+        width: 130,
         borderLeft: "1px solid var(--hairline)",
         display: "flex", flexDirection: "column",
         alignItems: "center", justifyContent: "center",
-        padding: "16px 14px", gap: 10,
-        backgroundColor: "transparent",
-        transition: "background-color 0.18s ease",
+        padding: "14px 12px", gap: 10,
       }}>
         <button
           onClick={e => { e.stopPropagation(); setLocation(`/booking/${provider.slug}`); }}
-          style={{
-            width: "100%", height: 38,
-            backgroundColor: "var(--ink)", color: "#FFFFFF",
-            border: "none", borderRadius: 10,
-            fontSize: 13, fontWeight: 600,
-            cursor: "pointer", fontFamily: "var(--font)",
-            letterSpacing: "-0.01em",
-            transition: "background-color 0.15s ease",
-          }}
-          onMouseEnter={e => { e.currentTarget.style.backgroundColor = "rgba(12,12,14,0.82)"; }}
-          onMouseLeave={e => { e.currentTarget.style.backgroundColor = "var(--ink)"; }}
+          className="ds-btn ds-btn-primary ds-btn-sm"
+          style={{ width: "100%", fontFamily: "var(--font)" }}
         >
           Réserver
         </button>
         <div style={{ textAlign: "center" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 4, marginBottom: 2 }}>
-            <Calendar size={10} color="var(--ink-tertiary)" />
-            <span style={{ fontSize: 10, fontWeight: 600, color: "var(--ink-tertiary)", letterSpacing: "-0.01em" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 3, marginBottom: 2 }}>
+            <Calendar size= {9} color="var(--ink-tertiary)" />
+            <span style={{ fontSize: 9, fontWeight: 600, color: "var(--ink-tertiary)", letterSpacing: "-0.01em" }}>
               Prochaine dispo
             </span>
           </div>
@@ -323,7 +335,7 @@ function ResultCard({
           </span>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -333,19 +345,27 @@ function ResultCard({
 function SkeletonCard() {
   return (
     <div style={{
-      borderRadius: 14, border: "1px solid var(--hairline)",
-      overflow: "hidden", display: "flex", height: 128,
+      borderRadius: 12, border: "1px solid var(--hairline)",
+      overflow: "hidden", display: "flex", height: 124,
     }}>
-      <div style={{ width: 130, backgroundColor: "rgba(12,12,14,0.06)", animation: "pulse 1.5s ease-in-out infinite" }} />
+      <div className="skeleton" style={{ width: 132, flexShrink: 0 }} />
       <div style={{ flex: 1, padding: "14px 16px", display: "flex", flexDirection: "column", gap: 8 }}>
-        <div style={{ width: "60%", height: 14, borderRadius: 4, backgroundColor: "rgba(12,12,14,0.06)", animation: "pulse 1.5s ease-in-out infinite" }} />
-        <div style={{ width: "40%", height: 11, borderRadius: 4, backgroundColor: "rgba(12,12,14,0.06)", animation: "pulse 1.5s ease-in-out infinite", animationDelay: "0.08s" }} />
-        <div style={{ width: "75%", height: 11, borderRadius: 4, backgroundColor: "rgba(12,12,14,0.06)", animation: "pulse 1.5s ease-in-out infinite", animationDelay: "0.12s" }} />
-        <div style={{ width: "50%", height: 11, borderRadius: 4, backgroundColor: "rgba(12,12,14,0.06)", animation: "pulse 1.5s ease-in-out infinite", animationDelay: "0.16s" }} />
+        <div className="skeleton" style={{ width: "55%", height: 14 }} />
+        <div className="skeleton" style={{ width: "35%", height: 10 }} />
+        <div className="skeleton" style={{ width: "70%", height: 10 }} />
+        <div style={{ marginTop: "auto", display: "flex", gap: 6 }}>
+          <div className="skeleton" style={{ width: 50, height: 18, borderRadius: 6 }} />
+          <div className="skeleton" style={{ width: 60, height: 18, borderRadius: 6 }} />
+        </div>
       </div>
-      <div style={{ width: 130, borderLeft: "1px solid var(--hairline)", padding: 14, display: "flex", flexDirection: "column", gap: 8, alignItems: "center", justifyContent: "center" }}>
-        <div style={{ width: 90, height: 36, borderRadius: 9, backgroundColor: "rgba(12,12,14,0.06)", animation: "pulse 1.5s ease-in-out infinite" }} />
-        <div style={{ width: 70, height: 11, borderRadius: 4, backgroundColor: "rgba(12,12,14,0.06)", animation: "pulse 1.5s ease-in-out infinite", animationDelay: "0.1s" }} />
+      <div style={{
+        width: 120, flexShrink: 0,
+        borderLeft: "1px solid var(--hairline)",
+        padding: 14, display: "flex", flexDirection: "column", gap: 8,
+        alignItems: "center", justifyContent: "center",
+      }}>
+        <div className="skeleton" style={{ width: 80, height: 32, borderRadius: 8 }} />
+        <div className="skeleton" style={{ width: 60, height: 10 }} />
       </div>
     </div>
   );
@@ -378,7 +398,7 @@ function Pagination({ page, totalPages, onPage }: { page: number; totalPages: nu
   }
 
   return (
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 4, paddingBlock: 20 }}>
+    <nav style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 4, paddingBlock: 24 }}>
       <button disabled={page === 1} onClick={() => onPage(page - 1)} style={page === 1 ? disabled : base}>
         <ChevronLeft size={13} />
       </button>
@@ -398,6 +418,180 @@ function Pagination({ page, totalPages, onPage }: { page: number; totalPages: nu
       <button disabled={page === totalPages} onClick={() => onPage(page + 1)} style={page === totalPages ? disabled : base}>
         <ChevronRight size={13} />
       </button>
+    </nav>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   Filter pills — show active filters
+───────────────────────────────────────────── */
+function ActiveFilterPills({
+  categoryId,
+  cityId,
+  userCoords,
+  categoryLabel,
+  cityLabel,
+  onRemoveCategory,
+  onRemoveCity,
+  onRemoveLocation,
+}: {
+  categoryId: string;
+  cityId: string;
+  userCoords: { lat: number; lng: number } | null;
+  categoryLabel: string | null;
+  cityLabel: string;
+  onRemoveCategory: () => void;
+  onRemoveCity: () => void;
+  onRemoveLocation: () => void;
+}) {
+  const pills: { label: string; onRemove: () => void }[] = [];
+  if (categoryId && categoryLabel) pills.push({ label: categoryLabel, onRemove: onRemoveCategory });
+  if (cityId) pills.push({ label: cityId, onRemove: onRemoveCity });
+  if (userCoords) pills.push({ label: "À proximité", onRemove: onRemoveLocation });
+
+  if (!pills.length) return null;
+
+  return (
+    <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+      {pills.map(pill => (
+        <button
+          key={pill.label}
+          onClick={pill.onRemove}
+          style={{
+            display: "inline-flex", alignItems: "center", gap: 4,
+            height: 26, paddingInline: "8px 6px",
+            borderRadius: 9999,
+            backgroundColor: "rgba(12,12,14,0.06)",
+            border: "none",
+            fontSize: 11, fontWeight: 500, color: "var(--ink-secondary)",
+            fontFamily: "var(--font)", cursor: "pointer",
+            whiteSpace: "nowrap",
+            transition: "all 0.15s ease",
+          }}
+          onMouseEnter={e => { e.currentTarget.style.backgroundColor = "rgba(12,12,14,0.1)"; }}
+          onMouseLeave={e => { e.currentTarget.style.backgroundColor = "rgba(12,12,14,0.06)"; }}
+        >
+          {pill.label}
+          <X size={10} style={{ flexShrink: 0 }} />
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   Empty state
+───────────────────────────────────────────── */
+function EmptyState({ onReset }: { onReset: () => void }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+      style={{
+        flex: 1,
+        display: "flex", flexDirection: "column",
+        alignItems: "center", justifyContent: "center",
+        textAlign: "center", paddingBlock: 80, paddingInline: 24,
+      }}
+    >
+      <div style={{
+        width: 48, height: 48, borderRadius: "50%",
+        backgroundColor: "rgba(12,12,14,0.04)",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        marginBottom: 16,
+      }}>
+        <Compass size={20} color="var(--ink-tertiary)" />
+      </div>
+      <h3 style={{
+        fontSize: 16, fontWeight: 600, color: "var(--ink)",
+        letterSpacing: "-0.015em", margin: "0 0 6px",
+      }}>
+        Aucun résultat
+      </h3>
+      <p style={{
+        fontSize: 13, color: "var(--ink-tertiary)",
+        maxWidth: 260, margin: "0 0 20px", lineHeight: 1.5,
+      }}>
+        Essayez de modifier vos filtres ou d'élargir votre zone de recherche.
+      </p>
+      <button
+        onClick={onReset}
+        className="ds-btn ds-btn-secondary ds-btn-sm"
+        style={{ fontFamily: "var(--font)" }}
+      >
+        Réinitialiser les filtres
+      </button>
+    </motion.div>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   Search input component
+───────────────────────────────────────────── */
+function SearchInput({
+  value,
+  onChange,
+  onClear,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  onClear: () => void;
+}) {
+  return (
+    <div style={{
+      position: "relative",
+      flex: 1,
+      minWidth: 0,
+    }}>
+      <Search
+        size={14}
+        style={{
+          position: "absolute", left: 12, top: "50%",
+          transform: "translateY(-50%)",
+          color: "var(--ink-tertiary)",
+          pointerEvents: "none",
+        }}
+      />
+      <input
+        type="text"
+        placeholder="Rechercher un établissement, un service…"
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        style={{
+          width: "100%",
+          height: 36,
+          paddingLeft: 34,
+          paddingRight: value ? 32 : 12,
+          backgroundColor: "rgba(12,12,14,0.04)",
+          border: "1px solid var(--hairline)",
+          borderRadius: 8,
+          color: "var(--ink)",
+          fontFamily: "var(--font)",
+          fontSize: 13,
+          outline: "none",
+          transition: "border-color 0.15s ease",
+          boxSizing: "border-box",
+        }}
+        onFocus={e => { e.currentTarget.style.borderColor = "var(--ink)"; }}
+        onBlur={e => { e.currentTarget.style.borderColor = "var(--hairline)"; }}
+      />
+      {value && (
+        <button
+          onClick={onClear}
+          style={{
+            position: "absolute", right: 8, top: "50%",
+            transform: "translateY(-50%)",
+            width: 20, height: 20,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            border: "none", backgroundColor: "transparent",
+            cursor: "pointer", color: "var(--ink-tertiary)",
+            padding: 0,
+          }}
+        >
+          <X size={12} />
+        </button>
+      )}
     </div>
   );
 }
@@ -409,9 +603,11 @@ export default function SearchPage() {
   const searchString = useSearch();
   const [, navigate] = useLocation();
   const params = new URLSearchParams(searchString);
-  const { isMobile } = useBreakpoint();
+  const { isMobile, isLg } = useBreakpoint();
   const listRef = useRef<HTMLDivElement>(null);
 
+  // ── State ──
+  const [searchQuery, setSearchQuery] = useState("");
   const [categoryId, setCategoryId] = useState(params.get("category") || "");
   const [cityId, setCityId] = useState(params.get("city") || "");
   const [sortId, setSortId] = useState("relevance");
@@ -422,7 +618,9 @@ export default function SearchPage() {
   const [tileMode, setTileMode] = useState<"map" | "satellite">("map");
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [geoLoading, setGeoLoading] = useState(false);
+  const [mobileMapOpen, setMobileMapOpen] = useState(false);
 
+  // ── Data ──
   const { data: rawProviders, isLoading: apiLoading } = useQuery({
     queryKey: ["providers", cityId, userCoords?.lat, userCoords?.lng],
     queryFn: () => api.searchProviders({
@@ -438,11 +636,13 @@ export default function SearchPage() {
     setLoading(apiLoading);
   }, [apiLoading]);
 
+  // Loading timeout
   useEffect(() => {
     const t = setTimeout(() => setLoading(false), 400);
     return () => clearTimeout(t);
-  }, [categoryId, cityId]);
+  }, [categoryId, cityId, searchQuery]);
 
+  // Sync URL params
   useEffect(() => {
     const p = new URLSearchParams();
     if (categoryId) p.set("category", categoryId);
@@ -451,39 +651,51 @@ export default function SearchPage() {
     setPage(1);
   }, [categoryId, cityId]);
 
+  // Scroll top on page change
   useEffect(() => {
     listRef.current?.scrollTo({ top: 0, behavior: "smooth" });
   }, [page]);
 
+  // ── Derived state ──
   const adaptedProviders = adaptProviderList(rawProviders ?? []);
 
-  const allResults = adaptedProviders
-    .filter(p => {
-      if (userCoords) {
+  const allResults = useMemo(() => {
+    const q = searchQuery.toLowerCase().trim();
+    return adaptedProviders
+      .filter(p => {
+        // Text search filter
+        if (q) {
+          const nameMatch = p.name.toLowerCase().includes(q);
+          const serviceMatch = p.services.some(s => s.name.toLowerCase().includes(q));
+          const cityMatch = p.city.toLowerCase().includes(q);
+          const catMatch = (SERVICE_CATEGORIES.find(c => c.id === p.category)?.label ?? "").toLowerCase().includes(q);
+          if (!nameMatch && !serviceMatch && !cityMatch && !catMatch) return false;
+        }
+        // Category filter
         if (categoryId && categoryId !== "all" && p.category !== categoryId) return false;
+        // City filter (not used when geolocation is active)
+        if (!userCoords && cityId && p.city.toLowerCase() !== cityId.toLowerCase()) return false;
         return true;
-      }
-      if (categoryId && categoryId !== "all" && p.category !== categoryId) return false;
-      if (cityId && p.city.toLowerCase() !== cityId.toLowerCase()) return false;
-      return true;
-    })
-    .sort((a, b) => {
-      if (sortId === "nearest") return (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity);
-      if (sortId === "rating") return (b.rating ?? 0) - (a.rating ?? 0);
-      if (sortId === "price-asc") return (a.minPriceCents ?? Infinity) - (b.minPriceCents ?? Infinity);
-      if (sortId === "price-desc") return (b.minPriceCents ?? 0) - (a.minPriceCents ?? 0);
-      return 0;
-    });
+      })
+      .sort((a, b) => {
+        if (sortId === "nearest") return (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity);
+        if (sortId === "rating") return (b.rating ?? 0) - (a.rating ?? 0);
+        if (sortId === "price-asc") return (a.minPriceCents ?? Infinity) - (b.minPriceCents ?? Infinity);
+        if (sortId === "price-desc") return (b.minPriceCents ?? 0) - (a.minPriceCents ?? 0);
+        return 0;
+      });
+  }, [adaptedProviders, searchQuery, categoryId, cityId, userCoords, sortId]);
 
   const totalPages = Math.ceil(allResults.length / PER_PAGE);
   const results = allResults.slice((page - 1) * PER_PAGE, page * PER_PAGE);
   const cityLabel = cityId || "Maroc";
   const categoryLabel = SERVICE_CATEGORIES.find(c => c.id === categoryId)?.label || null;
-  const hasActiveFilters = !!(categoryId || cityId || userCoords);
+  const hasActiveFilters = !!(categoryId || cityId || userCoords || searchQuery);
 
   const goPage = useCallback((p: number) => {
     setPageDir(p > page ? 1 : -1);
     setPage(p);
+    listRef.current?.scrollTo({ top: 0, behavior: "smooth" });
   }, [page]);
 
   const mapProviders = results.filter(p => p.latitude && p.longitude);
@@ -515,316 +727,373 @@ export default function SearchPage() {
     );
   }, []);
 
-  const resetFilters = () => { setCategoryId(""); setCityId(""); setSortId("relevance"); setUserCoords(null); };
+  const resetFilters = useCallback(() => {
+    setSearchQuery("");
+    setCategoryId("");
+    setCityId("");
+    setSortId("relevance");
+    setUserCoords(null);
+  }, []);
 
-  /* ── Mobile layout ── */
+  /* ── Shared map content ── */
+  const mapContent = (
+    <>
+      {/* Tile mode toggle */}
+      <div style={{
+        position: "absolute", top: 12, left: 12, zIndex: 800,
+        display: "flex",
+        backgroundColor: "rgba(255,255,255,0.96)", backdropFilter: "blur(12px)",
+        borderRadius: 9999, border: "1px solid var(--hairline)", padding: 3, gap: 2,
+      }}>
+        {(["map", "satellite"] as const).map(mode => (
+          <button key={mode} onClick={() => setTileMode(mode)} style={{
+            height: 28, paddingInline: 12, borderRadius: 9999, border: "none",
+            backgroundColor: tileMode === mode ? "var(--ink)" : "transparent",
+            color: tileMode === mode ? "#FFFFFF" : "var(--ink-secondary)",
+            fontSize: 11, fontWeight: 600, letterSpacing: "0.03em",
+            cursor: "pointer", fontFamily: "var(--font)", transition: "all 0.18s ease",
+            display: "flex", alignItems: "center", gap: 5,
+          }}>
+            {mode === "map" ? <><Map size={11} />Carte</> : <><Satellite size={11} />Satellite</>}
+          </button>
+        ))}
+      </div>
+
+      {/* Count badge */}
+      {!loading && mapProviders.length > 0 && (
+        <div style={{
+          position: "absolute", top: 12, right: 12, zIndex: 800,
+          backgroundColor: "rgba(255,255,255,0.96)", backdropFilter: "blur(12px)",
+          borderRadius: 9999, border: "1px solid var(--hairline)",
+          paddingInline: 12, height: 32,
+          display: "flex", alignItems: "center", gap: 6,
+          fontSize: 11, fontWeight: 500, color: "var(--ink-secondary)",
+        }}>
+          <span style={{ width: 6, height: 6, borderRadius: "50%", backgroundColor: "var(--ink)", display: "inline-block" }} />
+          {mapProviders.length} sur cette page
+        </div>
+      )}
+
+      <MapContainer
+        center={defaultCenter}
+        zoom={6}
+        style={{ width: "100%", height: "100%" }}
+        zoomControl={false}
+        attributionControl={false}
+        scrollWheelZoom={true}
+        key={`map-${isMobile ? "mobile" : "desktop"}`}
+      >
+        <ZoomControl position="bottomright" />
+        <TileLayer key={tileMode} url={TILES[tileMode]} attribution={tileMode === "map" ? "© CARTO" : "© Esri"} />
+        <MapFlyTo providers={mapProviders} />
+        <UserLocationMarker coords={userCoords} />
+        {mapProviders.map(provider => (
+          <Marker
+            key={provider.id}
+            position={[provider.latitude!, provider.longitude!]}
+            icon={makePin(selectedId === provider.id)}
+            eventHandlers={{
+              click: () => setSelectedId(selectedId === provider.id ? null : provider.id),
+              mouseover: () => setSelectedId(provider.id),
+              mouseout: () => setSelectedId(null),
+            }}
+          >
+            <Popup closeButton={false} className="custom-popup" offset={[0, -20]}>
+              <div
+                onClick={() => navigate(`/${provider.slug}`)}
+                style={{ width: 210, cursor: "pointer", fontFamily: "var(--font)", borderRadius: 10, overflow: "hidden" }}
+              >
+                <img src={provider.photos[0]} alt={provider.name} style={{ width: "100%", height: 90, objectFit: "cover", display: "block" }} />
+                <div style={{ padding: "10px 12px" }}>
+                  <p style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)", margin: "0 0 3px", letterSpacing: "-0.01em" }}>{provider.name}</p>
+                  <p style={{ fontSize: 11, color: "var(--ink-tertiary)", margin: "0 0 6px" }}>{provider.city}</p>
+                  <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                    <Stars rating={provider.rating} />
+                    <span style={{ fontSize: 11, fontWeight: 600, color: "var(--ink)" }}>{provider.rating}</span>
+                    <span style={{ fontSize: 11, color: "var(--ink-tertiary)" }}>({provider.reviewCount})</span>
+                  </div>
+                </div>
+              </div>
+            </Popup>
+          </Marker>
+        ))}
+      </MapContainer>
+    </>
+  );
+
+  /* ── Shared filter bar — used on both mobile and desktop ── */
+  const filterBar = (
+    <div style={{
+      position: "sticky", top: TOPBAR_HEIGHT, zIndex: 100,
+      backgroundColor: "rgba(251,251,252,0.97)", backdropFilter: "blur(12px)",
+      WebkitBackdropFilter: "blur(12px)",
+      borderBottom: "1px solid var(--hairline)",
+      padding: "12px 20px",
+      flexShrink: 0,
+    }}>
+      {/* Top row: title + results count + reset */}
+      <div style={{
+        display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 10,
+      }}>
+        <div>
+          <h1 style={{
+            fontSize: 15, fontWeight: 600, color: "var(--ink)",
+            letterSpacing: "-0.015em", lineHeight: 1.2, margin: 0,
+          }}>
+            {categoryLabel ? `${categoryLabel}` : "Établissements beauté"}
+            {" à "}
+            {cityLabel}
+          </h1>
+          <p style={{ fontSize: 11, color: "var(--ink-tertiary)", margin: "2px 0 0" }}>
+            {loading ? "Chargement…" : `${allResults.length} résultat${allResults.length !== 1 ? "s" : ""}`}
+            {sortId === "nearest" && userCoords && " · Triés par proximité"}
+          </p>
+        </div>
+        {hasActiveFilters && (
+          <button
+            onClick={resetFilters}
+            style={{
+              display: "flex", alignItems: "center", gap: 4,
+              height: 26, paddingInline: 9,
+              border: "1px solid var(--hairline)", borderRadius: 6,
+              backgroundColor: "transparent", cursor: "pointer",
+              fontSize: 10, fontWeight: 600, color: "var(--ink-tertiary)",
+              fontFamily: "var(--font)", whiteSpace: "nowrap",
+              transition: "all 0.15s ease",
+            }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--hairline-strong)"; e.currentTarget.style.color = "var(--ink)"; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--hairline)"; e.currentTarget.style.color = "var(--ink-tertiary)"; }}
+          >
+            <X size={10} />Réinitialiser
+          </button>
+        )}
+      </div>
+
+      {/* Filter controls row */}
+      <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+        {/* Search input */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <SearchInput value={searchQuery} onChange={v => { setSearchQuery(v); setPage(1); }} onClear={() => { setSearchQuery(""); setPage(1); }} />
+        </div>
+        {/* Category */}
+        <div style={{ flex: 0.75, minWidth: 0 }}>
+          <NiceSelect options={SERVICE_CATEGORIES} value={categoryId || "all"} onChange={id => setCategoryId(id === "all" ? "" : id)} placeholder="Catégorie" />
+        </div>
+        {/* City */}
+        <div style={{ flex: 0.75, minWidth: 0 }}>
+          <NiceSelect options={CITY_OPTIONS} value={cityId} onChange={v => { setCityId(v); setUserCoords(null); }} placeholder="Ville" searchable />
+        </div>
+        {/* Sort */}
+        <div style={{ width: 130, flexShrink: 0, display: isMobile ? "none" : "block" }}>
+          <NiceSelect options={SORT_OPTIONS} value={sortId} onChange={setSortId} placeholder="Trier" />
+        </div>
+        {/* Locate me */}
+        <button
+          onClick={handleLocateMe}
+          disabled={geoLoading}
+          title="Rechercher près de moi"
+          style={{
+            flexShrink: 0, height: 36, paddingInline: 10,
+            border: `1px solid ${userCoords ? "var(--accent)" : "var(--hairline)"}`,
+            borderRadius: 8, cursor: geoLoading ? "wait" : "pointer",
+            display: "flex", alignItems: "center", gap: 5,
+            backgroundColor: userCoords ? "var(--accent-tint)" : "transparent",
+            fontSize: 12, fontWeight: 600,
+            color: userCoords ? "var(--accent)" : "var(--ink-tertiary)",
+            fontFamily: "var(--font)", transition: "all 0.15s ease",
+            whiteSpace: "nowrap",
+          }}
+          onMouseEnter={e => { if (!userCoords) e.currentTarget.style.borderColor = "var(--ink)"; }}
+          onMouseLeave={e => { if (!userCoords) e.currentTarget.style.borderColor = "var(--hairline)"; }}
+        >
+          <LocateFixed size={13} />
+          {geoLoading ? "…" : isMobile ? "" : "Près de moi"}
+        </button>
+      </div>
+
+      {/* Active filter pills */}
+      {(categoryId || cityId || userCoords) && (
+        <div style={{ marginTop: 8 }}>
+          <ActiveFilterPills
+            categoryId={categoryId}
+            cityId={cityId}
+            userCoords={userCoords}
+            categoryLabel={categoryLabel}
+            cityLabel={cityLabel}
+            onRemoveCategory={() => setCategoryId("")}
+            onRemoveCity={() => setCityId("")}
+            onRemoveLocation={() => { setUserCoords(null); setSortId("relevance"); }}
+          />
+        </div>
+      )}
+    </div>
+  );
+
+  /* ── Results list ── */
+  const resultsList = (
+    <>
+      {/* Skeleton loading */}
+      {loading && (
+        <div style={{ padding: "16px 20px 8px" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {Array(5).fill(0).map((_, i) => <SkeletonCard key={i} />)}
+          </div>
+        </div>
+      )}
+
+      {/* Results */}
+      {!loading && results.length > 0 && (
+        <div style={{ padding: "16px 20px 8px", flex: 1, display: "flex", flexDirection: "column" }}>
+          <AnimatePresence mode="wait" custom={pageDir}>
+            <motion.div
+              key={`page-${page}`}
+              custom={pageDir}
+              variants={slideVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
+              style={{ display: "flex", flexDirection: "column", gap: 10 }}
+            >
+              {results.map((provider, i) => (
+                <ResultCard
+                  key={provider.id}
+                  provider={provider}
+                  isSelected={selectedId === provider.id}
+                  onHover={() => setSelectedId(provider.id)}
+                  onLeave={() => setSelectedId(null)}
+                  index={i}
+                />
+              ))}
+            </motion.div>
+          </AnimatePresence>
+
+          {!loading && results.length > 0 && (
+            <Pagination page={page} totalPages={totalPages} onPage={goPage} />
+          )}
+        </div>
+      )}
+
+      {/* Empty state */}
+      {!loading && results.length === 0 && (
+        <div style={{ padding: "16px 20px" }}>
+          <EmptyState onReset={resetFilters} />
+        </div>
+      )}
+    </>
+  );
+
+  /* ══════════════════════════════════════════
+     MOBILE LAYOUT (< 768px)
+     ══════════════════════════════════════════ */
   if (isMobile) {
     return (
       <div style={{ minHeight: "100vh", backgroundColor: "var(--canvas)" }}>
         <TopBar />
-        <div style={{ paddingTop: TOPBAR_HEIGHT }}>
-          {/* Mobile filters */}
-          <div style={{
-            position: "sticky", top: 0, zIndex: 100,
-            backgroundColor: "rgba(251,251,252,0.97)", backdropFilter: "blur(12px)",
-            borderBottom: "1px solid var(--hairline)",
-            padding: "10px 16px", display: "flex", gap: 8,
-          }}>
-            <div style={{ flex: 1 }}>
-              <NiceSelect options={SERVICE_CATEGORIES} value={categoryId || "all"} onChange={id => setCategoryId(id === "all" ? "" : id)} placeholder="Catégorie" />
-            </div>
-            <div style={{ flex: 1 }}>
-              <NiceSelect options={CITY_OPTIONS} value={cityId} onChange={v => { setCityId(v); setUserCoords(null); }} placeholder="Ville" searchable />
-            </div>
-            <button
-              onClick={handleLocateMe}
-              disabled={geoLoading}
-              title="Rechercher près de moi"
-              style={{
-                width: 34, height: 34, flexShrink: 0,
-                border: `1px solid ${userCoords ? "#2563EB" : "var(--hairline)"}`,
-                borderRadius: 8, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
-                backgroundColor: userCoords ? "rgba(37,99,235,0.08)" : "transparent",
-                transition: "all 0.15s ease",
-              }}
-            >
-              <LocateFixed size={14} color={userCoords ? "#2563EB" : "var(--ink-tertiary)"} />
-            </button>
-            {hasActiveFilters && (
-              <button onClick={resetFilters} style={{ width: 34, height: 34, border: "1px solid var(--hairline)", borderRadius: 8, backgroundColor: "transparent", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                <X size={14} color="var(--ink-tertiary)" />
-              </button>
-            )}
-          </div>
+        {filterBar}
 
-          {/* Mobile map */}
-          <div style={{ height: 200, borderBottom: "1px solid var(--hairline)", position: "relative" }}>
-            <MapContainer center={defaultCenter} zoom={5} style={{ width: "100%", height: "100%" }} zoomControl={false} attributionControl={false} scrollWheelZoom={false}>
-              <ZoomControl position="bottomright" />
-              <TileLayer key={tileMode} url={TILES[tileMode]} />
-              <MapFlyTo providers={mapProviders} />
-              <UserLocationMarker coords={userCoords} />
-              {mapProviders.map(p => (
-                <Marker key={p.id} position={[p.latitude!, p.longitude!]} icon={makePin(selectedId === p.id)} eventHandlers={{ click: () => setSelectedId(selectedId === p.id ? null : p.id) }} />
-              ))}
-            </MapContainer>
-          </div>
-
-          {/* Mobile cards */}
-          <div style={{ padding: "16px 16px 32px" }}>
-            <p style={{ fontSize: 13, color: "var(--ink-tertiary)", marginBottom: 14 }}>
-              <strong style={{ fontWeight: 600, color: "var(--ink)" }}>{allResults.length}</strong> établissement{allResults.length !== 1 ? "s" : ""}
-            </p>
-            {!loading && results.map(p => (
-              <div key={p.id} style={{ marginBottom: 10 }}>
-                <ResultCard provider={p} isSelected={selectedId === p.id} onHover={() => setSelectedId(p.id)} onLeave={() => {}} />
-              </div>
-            ))}
-            {!loading && <Pagination page={page} totalPages={totalPages} onPage={goPage} />}
-          </div>
-          <Footer />
+        {/* Mobile: collapsible map */}
+        <div style={{ paddingLeft: 16, paddingRight: 16, paddingTop: 12, paddingBottom: 0 }}>
+          <button
+            onClick={() => setMobileMapOpen(!mobileMapOpen)}
+            style={{
+              display: "flex", alignItems: "center", justifyContent: "space-between",
+              width: "100%", height: 36,
+              paddingInline: 14,
+              backgroundColor: "rgba(12,12,14,0.04)",
+              border: "1px solid var(--hairline)", borderRadius: 8,
+              cursor: "pointer", fontFamily: "var(--font)",
+              fontSize: 12, fontWeight: 600, color: "var(--ink-secondary)",
+              transition: "all 0.15s ease",
+            }}
+          >
+            <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <Map size={13} />
+              {mobileMapOpen ? "Masquer la carte" : "Afficher la carte"}
+            </span>
+            <span style={{
+              display: "flex", alignItems: "center", gap: 4,
+              fontSize: 11, color: "var(--ink-tertiary)",
+            }}>
+              {mapProviders.length} établissements
+              <motion.span
+                animate={{ rotate: mobileMapOpen ? 180 : 0 }}
+                transition={{ duration: 0.2 }}
+                style={{ display: "flex" }}
+              >
+                <ChevronLeft size={12} style={{ transform: "rotate(-90deg)" }} />
+              </motion.span>
+            </span>
+          </button>
         </div>
+
+        <AnimatePresence>
+          {mobileMapOpen && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 220, opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
+              style={{ overflow: "hidden", position: "relative" }}
+            >
+              <div style={{ height: 220, borderBottom: "1px solid var(--hairline)", marginTop: 8, position: "relative" }}>
+                {mapContent}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Mobile results */}
+        <div style={{ paddingBottom: 32 }}>
+          {resultsList}
+        </div>
+
+        <Footer />
       </div>
     );
   }
 
-  /* ── Desktop split layout ── */
+  /* ══════════════════════════════════════════
+     DESKTOP LAYOUT (≥ 768px)
+     ══════════════════════════════════════════ */
   return (
     <div style={{ minHeight: "100vh", backgroundColor: "var(--canvas)" }}>
       <TopBar />
 
-      {/* Split content — page scrolls, map is sticky */}
-      <div style={{ display: "flex", paddingTop: TOPBAR_HEIGHT }}>
+      <div style={{ display: "flex", paddingTop: 0 }}>
 
         {/* ── LEFT PANEL ── */}
         <div
           ref={listRef}
           style={{
-            width: 700,
+            width: isLg ? 660 : 540,
             flexShrink: 0,
             display: "flex",
             flexDirection: "column",
             borderRight: "1px solid var(--hairline)",
             backgroundColor: "var(--canvas)",
+            overflow: "auto",
+            maxHeight: `calc(100vh - ${TOPBAR_HEIGHT}px)`,
           }}
         >
-          {/* Sticky filter bar */}
-          <div style={{
-            position: "sticky", top: 0, zIndex: 100,
-            backgroundColor: "rgba(251,251,252,0.97)", backdropFilter: "blur(12px)",
-            borderBottom: "1px solid var(--hairline)",
-            padding: "14px 24px",
-            flexShrink: 0,
-          }}>
-            {/* Page title + count */}
-            <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 12 }}>
-              <div>
-                <h1 style={{
-                  fontSize: 16, fontWeight: 600, color: "var(--ink)",
-                  letterSpacing: "-0.015em", lineHeight: 1.2, margin: "0 0 2px",
-                }}>
-                  {categoryLabel ? `${categoryLabel}` : "Établissements beauté"}
-                  {cityId ? ` à ${cityLabel}` : " au Maroc"}
-                </h1>
-                <p style={{ fontSize: 12, color: "var(--ink-tertiary)", margin: 0 }}>
-                  {loading ? "Chargement…" : `${allResults.length} résultat${allResults.length !== 1 ? "s" : ""}`}
-                </p>
-              </div>
-              {hasActiveFilters && (
-                <button
-                  onClick={resetFilters}
-                  style={{
-                    display: "flex", alignItems: "center", gap: 4,
-                    height: 26, paddingInline: 9,
-                    border: "1px solid var(--hairline)", borderRadius: 6,
-                    backgroundColor: "transparent", cursor: "pointer",
-                    fontSize: 11, fontWeight: 500, color: "var(--ink-tertiary)", fontFamily: "var(--font)",
-                  }}
-                >
-                  <X size={10} />Réinitialiser
-                </button>
-              )}
-            </div>
-
-            {/* Filter selects */}
-            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-              <div style={{ flex: 1 }}>
-                <NiceSelect options={SERVICE_CATEGORIES} value={categoryId || "all"} onChange={id => setCategoryId(id === "all" ? "" : id)} placeholder="Catégorie" />
-              </div>
-              <div style={{ flex: 1 }}>
-                <NiceSelect options={CITY_OPTIONS} value={cityId} onChange={v => { setCityId(v); setUserCoords(null); }} placeholder="Toutes les villes" searchable />
-              </div>
-              <div style={{ width: 130, flexShrink: 0 }}>
-                <NiceSelect options={SORT_OPTIONS} value={sortId} onChange={setSortId} placeholder="Trier" />
-              </div>
-              <button
-                onClick={handleLocateMe}
-                disabled={geoLoading}
-                title="Rechercher près de moi"
-                style={{
-                  flexShrink: 0, height: 34, paddingInline: 10,
-                  border: `1px solid ${userCoords ? "#2563EB" : "var(--hairline)"}`,
-                  borderRadius: 8, cursor: geoLoading ? "wait" : "pointer",
-                  display: "flex", alignItems: "center", gap: 5,
-                  backgroundColor: userCoords ? "rgba(37,99,235,0.08)" : "transparent",
-                  fontSize: 12, fontWeight: 600,
-                  color: userCoords ? "#2563EB" : "var(--ink-tertiary)",
-                  fontFamily: "var(--font)", transition: "all 0.15s ease",
-                  whiteSpace: "nowrap",
-                }}
-                onMouseEnter={e => { if (!userCoords) e.currentTarget.style.borderColor = "#2563EB"; }}
-                onMouseLeave={e => { if (!userCoords) e.currentTarget.style.borderColor = "var(--hairline)"; }}
-              >
-                <LocateFixed size={13} />
-                {geoLoading ? "…" : "Près de moi"}
-              </button>
-            </div>
+          {filterBar}
+          <div style={{ flex: 1, overflow: "auto" }}>
+            {resultsList}
           </div>
-
-          {/* Cards */}
-          <div style={{ padding: "16px 24px 8px", flex: 1, display: "flex", flexDirection: "column" }}>
-            {/* Skeletons */}
-            {loading && (
-              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                {Array(5).fill(0).map((_, i) => <SkeletonCard key={i} />)}
-              </div>
-            )}
-
-            {/* Results */}
-            {!loading && results.length > 0 && (
-              <AnimatePresence mode="wait" custom={pageDir}>
-                <motion.div
-                  key={`page-${page}`}
-                  custom={pageDir}
-                  variants={slideVariants}
-                  initial="enter"
-                  animate="center"
-                  exit="exit"
-                  transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
-                  style={{ display: "flex", flexDirection: "column", gap: 10 }}
-                >
-                  {results.map(provider => (
-                    <ResultCard
-                      key={provider.id}
-                      provider={provider}
-                      isSelected={selectedId === provider.id}
-                      onHover={() => setSelectedId(provider.id)}
-                      onLeave={() => setSelectedId(null)}
-                    />
-                  ))}
-                </motion.div>
-              </AnimatePresence>
-            )}
-
-            {/* Empty state */}
-            {!loading && results.length === 0 && (
-              <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", paddingBlock: 64 }}>
-                <div style={{ width: 44, height: 44, borderRadius: "50%", backgroundColor: "rgba(12,12,14,0.04)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 14 }}>
-                  <MapPin size={20} color="var(--ink-tertiary)" />
-                </div>
-                <h3 style={{ fontSize: 15, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.01em", margin: "0 0 6px" }}>Aucun résultat</h3>
-                <p style={{ fontSize: 13, color: "var(--ink-tertiary)", maxWidth: 220, margin: 0 }}>Modifiez vos critères de recherche.</p>
-              </div>
-            )}
-
-            {!loading && results.length > 0 && (
-              <Pagination page={page} totalPages={totalPages} onPage={goPage} />
-            )}
-          </div>
-
         </div>
 
         {/* ── RIGHT PANEL — sticky map ── */}
         <div style={{
           flex: 1,
           position: "sticky",
-          top: 0,
+          top: TOPBAR_HEIGHT,
           height: `calc(100vh - ${TOPBAR_HEIGHT}px)`,
           alignSelf: "flex-start",
         }}>
-          {/* Tile mode toggle */}
-          <div style={{
-            position: "absolute", top: 16, left: 16, zIndex: 800,
-            display: "flex",
-            backgroundColor: "rgba(255,255,255,0.96)", backdropFilter: "blur(12px)",
-            borderRadius: 9999, border: "1px solid var(--hairline)", padding: 3, gap: 2,
-          }}>
-            {(["map", "satellite"] as const).map(mode => (
-              <button key={mode} onClick={() => setTileMode(mode)} style={{
-                height: 28, paddingInline: 12, borderRadius: 9999, border: "none",
-                backgroundColor: tileMode === mode ? "var(--ink)" : "transparent",
-                color: tileMode === mode ? "#FFFFFF" : "var(--ink-secondary)",
-                fontSize: 11, fontWeight: 600, letterSpacing: "0.03em",
-                cursor: "pointer", fontFamily: "var(--font)", transition: "all 0.18s ease",
-                display: "flex", alignItems: "center", gap: 5,
-              }}>
-                {mode === "map" ? <><Map size={11} />Carte</> : <><Satellite size={11} />Satellite</>}
-              </button>
-            ))}
-          </div>
-
-          {/* Count badge */}
-          {!loading && mapProviders.length > 0 && (
-            <div style={{
-              position: "absolute", top: 16, right: 16, zIndex: 800,
-              backgroundColor: "rgba(255,255,255,0.96)", backdropFilter: "blur(12px)",
-              borderRadius: 9999, border: "1px solid var(--hairline)",
-              paddingInline: 12, height: 34,
-              display: "flex", alignItems: "center", gap: 6,
-              fontSize: 12, fontWeight: 500, color: "var(--ink-secondary)",
-            }}>
-              <span style={{ width: 7, height: 7, borderRadius: "50%", backgroundColor: "var(--ink)", display: "inline-block" }} />
-              {mapProviders.length} sur cette page
-            </div>
-          )}
-
-          <MapContainer
-            center={defaultCenter}
-            zoom={6}
-            style={{ width: "100%", height: "100%" }}
-            zoomControl={false}
-            attributionControl={false}
-            scrollWheelZoom={true}
-          >
-            <ZoomControl position="bottomright" />
-            <TileLayer key={tileMode} url={TILES[tileMode]} attribution={tileMode === "map" ? "© CARTO" : "© Esri"} />
-            <MapFlyTo providers={mapProviders} />
-            <UserLocationMarker coords={userCoords} />
-            {mapProviders.map(provider => (
-              <Marker
-                key={provider.id}
-                position={[provider.latitude!, provider.longitude!]}
-                icon={makePin(selectedId === provider.id)}
-                eventHandlers={{
-                  click: () => setSelectedId(selectedId === provider.id ? null : provider.id),
-                  mouseover: () => setSelectedId(provider.id),
-                  mouseout: () => setSelectedId(null),
-                }}
-              >
-                <Popup closeButton={false} className="custom-popup" offset={[0, -20]}>
-                  <div
-                    onClick={() => navigate(`/${provider.slug}`)}
-                    style={{ width: 210, cursor: "pointer", fontFamily: "var(--font)", borderRadius: 10, overflow: "hidden" }}
-                  >
-                    <img src={provider.photos[0]} alt={provider.name} style={{ width: "100%", height: 90, objectFit: "cover", display: "block" }} />
-                    <div style={{ padding: "10px 12px" }}>
-                      <p style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)", margin: "0 0 3px", letterSpacing: "-0.01em" }}>{provider.name}</p>
-                      <p style={{ fontSize: 11, color: "var(--ink-tertiary)", margin: "0 0 6px" }}>{provider.city}</p>
-                      <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                        <Stars rating={provider.rating} />
-                        <span style={{ fontSize: 11, fontWeight: 600, color: "var(--ink)" }}>{provider.rating}</span>
-                        <span style={{ fontSize: 11, color: "var(--ink-tertiary)" }}>({provider.reviewCount})</span>
-                      </div>
-                    </div>
-                  </div>
-                </Popup>
-              </Marker>
-            ))}
-          </MapContainer>
+          {mapContent}
         </div>
       </div>
 
-      {/* Full-width footer below both columns */}
       <Footer />
     </div>
   );
