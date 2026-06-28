@@ -52,7 +52,7 @@ export function ReviewCard({ review }: ReviewCardProps) {
           >
             {review.author}
           </h4>
-          <p style={{ fontSize: 12, color: "#8C8A82", marginTop: 1, letterSpacing: "0.01em" }}>
+          <p style={{ fontSize: 12, color: "var(--ink-tertiary)", marginTop: 1, letterSpacing: "0.01em" }}>
             {review.date}
           </p>
         </div>
@@ -73,7 +73,7 @@ export function ReviewCard({ review }: ReviewCardProps) {
           </span>
         </div>
       </div>
-      <p style={{ fontSize: 14, color: "#54534D", lineHeight: 1.6, margin: 0 }}>
+      <p style={{ fontSize: 14, color: "var(--ink-secondary)", lineHeight: 1.6, margin: 0 }}>
         {review.comment}
       </p>
     </div>

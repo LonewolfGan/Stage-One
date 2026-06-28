@@ -131,7 +131,7 @@ function AuthActions({
             fontSize: 10, fontWeight: 700,
             letterSpacing: "0.08em",
             textTransform: "uppercase",
-            borderRadius: "var(--radius-control)",
+            borderRadius: 9999,
             border: "none", cursor: "pointer",
             fontFamily: "var(--font)",
             transition: "background-color 160ms ease",

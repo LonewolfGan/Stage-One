@@ -41,7 +41,7 @@ export function ServiceCard({ service, providerSlug }: ServiceCardProps) {
           <p
             style={{
               fontSize: 13,
-              color: "#8C8A82",
+              color: "var(--ink-tertiary)",
               marginTop: 2,
               overflow: "hidden",
               textOverflow: "ellipsis",
@@ -50,7 +50,7 @@ export function ServiceCard({ service, providerSlug }: ServiceCardProps) {
           >
             {service.description}
           </p>
-          <p style={{ fontSize: 13, color: "#8C8A82", marginTop: 4 }}>
+          <p style={{ fontSize: 13, color: "var(--ink-tertiary)", marginTop: 4 }}>
             {service.durationMinutes} min
           </p>
         </div>
@@ -78,26 +78,20 @@ export function ServiceCard({ service, providerSlug }: ServiceCardProps) {
               height: 32,
               paddingLeft: 16,
               paddingRight: 16,
-              background: "transparent",
-              color: "#0C0C0E",
-              border: "1px solid rgba(12, 12, 14, 0.12)",
+              background: "var(--accent)",
+              color: "#FFFFFF",
+              border: "none",
               fontSize: 13,
               fontWeight: 500,
-              borderRadius: 6,
+              borderRadius: 9999,
               cursor: "pointer",
-              transition: "border-color 140ms ease, color 140ms ease",
+              transition: "opacity 140ms ease",
             }}
             onMouseEnter={(e) => {
-              const el = e.currentTarget as HTMLButtonElement;
-              el.style.borderColor = "var(--ink)";
-              el.style.backgroundColor = "var(--ink)";
-              el.style.color = "#FFFFFF";
+              (e.currentTarget as HTMLButtonElement).style.opacity = "0.88";
             }}
             onMouseLeave={(e) => {
-              const el = e.currentTarget as HTMLButtonElement;
-              el.style.borderColor = "rgba(12, 12, 14, 0.12)";
-              el.style.backgroundColor = "transparent";
-              el.style.color = "#0C0C0E";
+              (e.currentTarget as HTMLButtonElement).style.opacity = "1";
             }}
           >
             Choisir

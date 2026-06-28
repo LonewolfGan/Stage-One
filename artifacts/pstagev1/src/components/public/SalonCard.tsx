@@ -65,7 +65,7 @@ export function SalonCard({ provider, featured = false }: SalonCardProps) {
               color: "#0C0C0E",
               fontSize: 11,
               fontWeight: 500,
-              borderRadius: 4,
+              borderRadius: 9999,
               display: "inline-flex",
               alignItems: "center",
             }}
@@ -95,7 +95,7 @@ export function SalonCard({ provider, featured = false }: SalonCardProps) {
             <p
               style={{
                 fontSize: 13,
-                color: "#8C8A82",
+                color: "var(--ink-tertiary)",
                 marginTop: 2,
                 overflow: "hidden",
                 textOverflow: "ellipsis",
@@ -105,7 +105,7 @@ export function SalonCard({ provider, featured = false }: SalonCardProps) {
               {provider.address}
             </p>
           </div>
-          <span style={{ fontSize: 13, color: "#8C8A82", marginLeft: 8, flexShrink: 0 }}>
+          <span style={{ fontSize: 13, color: "var(--ink-tertiary)", marginLeft: 8, flexShrink: 0 }}>
             {priceIndicator}
           </span>
         </div>
@@ -115,7 +115,7 @@ export function SalonCard({ provider, featured = false }: SalonCardProps) {
           <span style={{ fontSize: 13, fontWeight: 500, color: "#0C0C0E" }}>
             {provider.rating.toFixed(1)}
           </span>
-          <span style={{ fontSize: 13, color: "#8C8A82" }}>
+          <span style={{ fontSize: 13, color: "var(--ink-tertiary)" }}>
             · {provider.reviewCount} avis
           </span>
         </div>
@@ -138,7 +138,7 @@ export function SalonCard({ provider, featured = false }: SalonCardProps) {
                 height: 32,
                 padding: "0 12px",
                 border: "1px solid rgba(12, 12, 14, 0.10)",
-                borderRadius: 6,
+                borderRadius: 9999,
                 fontSize: 12,
                 fontWeight: 500,
                 color: "#0C0C0E",

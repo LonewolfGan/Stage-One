@@ -297,14 +297,14 @@ export function HeroSection() {
                   margin: 7,
                   height: 38,
                   width: 38,
-                  backgroundColor: "var(--ink)",
+                  backgroundColor: "var(--accent)",
                   color: "#FFFFFF",
-                  borderRadius: "var(--radius-control)",
+                  borderRadius: 9999,
                   border: "none",
                   cursor: "pointer",
                 }}
-                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = "rgba(12,12,14,0.82)"; }}
-                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = "var(--ink)"; }}
+                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.opacity = "0.88"; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.opacity = "1"; }}
               >
                 <Search size={16} />
               </button>
@@ -550,20 +550,20 @@ export function HeroSection() {
                 margin: 7,
                 height: 40,
                 paddingInline: 20,
-                backgroundColor: "var(--ink)",
+                backgroundColor: "var(--accent)",
                 color: "#FFFFFF",
                 fontSize: 13,
                 fontWeight: 600,
                 letterSpacing: "-0.01em",
-                borderRadius: "var(--radius-control)",
+                borderRadius: 9999,
                 border: "none",
                 cursor: "pointer",
                 whiteSpace: "nowrap",
                 fontFamily: "var(--font)",
-                transition: "background-color var(--ease)",
+                transition: "opacity var(--ease)",
               }}
-              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = "rgba(12,12,14,0.82)"; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = "var(--ink)"; }}
+              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.opacity = "0.88"; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.opacity = "1"; }}
             >
               <Search size={14} />
               Rechercher
