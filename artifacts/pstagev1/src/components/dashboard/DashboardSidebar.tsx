@@ -2,168 +2,224 @@ import { Link, useLocation } from "wouter";
 import { Calendar, Scissors, Users, BarChart, Settings, Star } from "lucide-react";
 
 const NAV_ITEMS = [
-  { name: "Agenda", href: "/dashboard/agenda", icon: Calendar },
-  { name: "Prestations", href: "/dashboard/services", icon: Scissors },
-  { name: "Équipe", href: "/dashboard/staff", icon: Users },
-  { name: "Statistiques", href: "/dashboard/analytics", icon: BarChart },
-  { name: "Avis", href: "/dashboard/reviews", icon: Star },
-  { name: "Paramètres", href: "/dashboard/settings", icon: Settings },
+  { name: "Agenda",       href: "/dashboard/agenda",    icon: Calendar  },
+  { name: "Prestations",  href: "/dashboard/services",  icon: Scissors  },
+  { name: "Équipe",       href: "/dashboard/staff",     icon: Users     },
+  { name: "Statistiques", href: "/dashboard/analytics", icon: BarChart  },
+  { name: "Avis",         href: "/dashboard/reviews",   icon: Star      },
+  { name: "Paramètres",   href: "/dashboard/settings",  icon: Settings  },
 ];
+
+const RAIL_BG          = "#131416";
+const ICON_INACTIVE    = "rgba(255,255,255,0.36)";
+const ICON_ACTIVE      = "#FFFFFF";
 
 export function DashboardSidebar() {
   const [location] = useLocation();
 
   return (
-    <aside
-      style={{
-        width: 224,
-        height: "100vh",
-        backgroundColor: "#FFFFFF",
-        borderRight: "1px solid rgba(12, 12, 14, 0.08)",
-        display: "flex",
-        flexDirection: "column",
-        position: "sticky",
-        top: 0,
-        flexShrink: 0,
-      }}
-    >
-      {/* Brand */}
-      <div
-        style={{
-          padding: "16px",
-          borderBottom: "1px solid rgba(12, 12, 14, 0.08)",
-        }}
-      >
-        <Link href="/" style={{ textDecoration: "none" }}>
-          <span
-            style={{
-              fontSize: 15,
-              fontWeight: 600,
-              color: "var(--ink)",
-              letterSpacing: "-0.02em",
-              display: "block",
-            }}
-          >
-            pstagev1
-          </span>
-        </Link>
-        <span
-          style={{
-            fontSize: 12,
-            color: "rgba(12,12,14,0.45)",
-            display: "block",
-            marginTop: 2,
-          }}
-        >
-          Salon Atlas
-        </span>
-      </div>
+    <aside className="rail-sidebar">
+      {/* Brand mark */}
+      <Link href="/" style={{ textDecoration: "none", marginBottom: 24 }}>
+        <div className="rail-brand">
+          <span>A</span>
+        </div>
+      </Link>
+
+      <div className="rail-divider" />
 
       {/* Nav */}
-      <nav
-        style={{
-          flex: 1,
-          padding: "12px 8px",
-          display: "flex",
-          flexDirection: "column",
-          gap: 2,
-        }}
-      >
+      <nav className="rail-nav">
         {NAV_ITEMS.map((item) => {
           const isActive =
             location === item.href || location.startsWith(item.href + "/");
           return (
-            <Link key={item.name} href={item.href} style={{ textDecoration: "none" }}>
+            <Link key={item.name} href={item.href} style={{ textDecoration: "none", display: "block", width: "100%" }}>
               <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 10,
-                  height: 32,
-                  paddingLeft: 12,
-                  paddingRight: 12,
-                  borderRadius: 6,
-                  cursor: "pointer",
-                  transition: "background-color 140ms ease",
-                  backgroundColor: isActive ? "#FFFFFF" : "transparent",
-                  border: isActive ? "1px solid rgba(12, 12, 14, 0.08)" : "1px solid transparent",
-                  color: isActive ? "#0C0C0E" : "rgba(12,12,14,0.65)",
-                }}
-                onMouseEnter={(e) => {
-                  if (!isActive) {
-                    (e.currentTarget as HTMLDivElement).style.backgroundColor = "#FFFFFF";
-                    (e.currentTarget as HTMLDivElement).style.color = "#0C0C0E";
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!isActive) {
-                    (e.currentTarget as HTMLDivElement).style.backgroundColor = "transparent";
-                    (e.currentTarget as HTMLDivElement).style.color = "rgba(12,12,14,0.65)";
-                  }
-                }}
+                className={`rail-nav-item${isActive ? " rail-nav-item--active" : ""}`}
+                data-tooltip={item.name}
               >
+                {isActive && <span className="rail-pip" />}
                 <item.icon
-                  size={15}
-                  color={isActive ? "#0C0C0E" : "rgba(12,12,14,0.45)"}
+                  size={18}
+                  color={isActive ? ICON_ACTIVE : ICON_INACTIVE}
+                  strokeWidth={isActive ? 2 : 1.75}
                 />
-                <span
-                  style={{
-                    fontSize: 13,
-                    fontWeight: 500,
-                  }}
-                >
-                  {item.name}
-                </span>
               </div>
             </Link>
           );
         })}
       </nav>
 
-      {/* User row */}
-      <div
-        style={{
-          padding: 12,
-          borderTop: "1px solid rgba(12, 12, 14, 0.08)",
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <div
-            style={{
-              width: 32,
-              height: 32,
-              borderRadius: "50%",
-              backgroundColor: "rgba(12,12,14,0.06)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: 12,
-              fontWeight: 600,
-              color: "rgba(12,12,14,0.65)",
-              flexShrink: 0,
-            }}
-          >
-            SA
-          </div>
-          <div style={{ minWidth: 0 }}>
-            <p
-              style={{
-                fontSize: 13,
-                fontWeight: 500,
-                color: "#0C0C0E",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
-              }}
-            >
-              Salon Atlas
-            </p>
-            <p style={{ fontSize: 11, color: "var(--ink-tertiary)", fontWeight: 500 }}>
-              Plan Pro
-            </p>
-          </div>
+      {/* Bottom */}
+      <div className="rail-bottom">
+        <div className="rail-divider" style={{ marginBottom: 16 }} />
+        <div className="rail-avatar">
+          SA
         </div>
       </div>
+
+      <style>{`
+        .rail-sidebar {
+          width: 72px;
+          height: 100vh;
+          background: ${RAIL_BG};
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          position: sticky;
+          top: 0;
+          flex-shrink: 0;
+          padding: 20px 0;
+          z-index: 10;
+        }
+
+        .rail-brand {
+          width: 34px;
+          height: 34px;
+          background: rgba(255,255,255,0.07);
+          border: 1px solid rgba(255,255,255,0.10);
+          border-radius: 8px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: background 140ms ease;
+        }
+        .rail-brand:hover {
+          background: rgba(255,255,255,0.12);
+        }
+        .rail-brand span {
+          font-size: 13px;
+          font-weight: 600;
+          color: #FFFFFF;
+          letter-spacing: -0.02em;
+          font-family: var(--font);
+          line-height: 1;
+        }
+
+        .rail-divider {
+          width: 28px;
+          height: 1px;
+          background: rgba(255,255,255,0.07);
+          margin-bottom: 20px;
+          flex-shrink: 0;
+        }
+
+        .rail-nav {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 2px;
+          width: 100%;
+          padding: 0 10px;
+          overflow: visible;
+        }
+
+        .rail-nav-item {
+          position: relative;
+          width: 100%;
+          height: 40px;
+          border-radius: 8px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: background-color 140ms ease;
+          background: transparent;
+        }
+        .rail-nav-item:hover {
+          background: rgba(255,255,255,0.06);
+        }
+        .rail-nav-item:hover svg {
+          color: rgba(255,255,255,0.80) !important;
+          stroke: rgba(255,255,255,0.80) !important;
+        }
+        .rail-nav-item--active {
+          background: rgba(255,255,255,0.09);
+        }
+        .rail-nav-item--active:hover {
+          background: rgba(255,255,255,0.12);
+        }
+
+        /* Tooltip */
+        .rail-nav-item::after {
+          content: attr(data-tooltip);
+          position: absolute;
+          left: calc(100% + 12px);
+          top: 50%;
+          transform: translateY(-50%) translateX(-4px);
+          background: #0C0C0E;
+          color: #FFFFFF;
+          font-size: 12px;
+          font-weight: 500;
+          font-family: var(--font);
+          padding: 5px 10px;
+          border-radius: 6px;
+          white-space: nowrap;
+          pointer-events: none;
+          opacity: 0;
+          transition: opacity 120ms ease, transform 120ms ease;
+          z-index: 9999;
+          letter-spacing: -0.01em;
+        }
+        .rail-nav-item:hover::after {
+          opacity: 1;
+          transform: translateY(-50%) translateX(0);
+        }
+
+        /* Active pip */
+        .rail-pip {
+          position: absolute;
+          left: 1px;
+          top: 50%;
+          transform: translateY(-50%);
+          width: 2px;
+          height: 14px;
+          background: #FFFFFF;
+          border-radius: 2px;
+          flex-shrink: 0;
+        }
+
+        .rail-bottom {
+          width: 100%;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          padding: 0 10px;
+        }
+
+        .rail-avatar {
+          width: 32px;
+          height: 32px;
+          border-radius: 50%;
+          background: rgba(255,255,255,0.09);
+          border: 1.5px solid rgba(255,255,255,0.14);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 10px;
+          font-weight: 600;
+          color: rgba(255,255,255,0.60);
+          cursor: pointer;
+          letter-spacing: 0.02em;
+          font-family: var(--font);
+          transition: background 140ms ease, border-color 140ms ease;
+        }
+        .rail-avatar:hover {
+          background: rgba(255,255,255,0.14);
+          border-color: rgba(255,255,255,0.24);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .rail-nav-item,
+          .rail-nav-item::after,
+          .rail-brand,
+          .rail-avatar {
+            transition: none;
+          }
+        }
+      `}</style>
     </aside>
   );
 }

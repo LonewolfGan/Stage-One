@@ -2,11 +2,10 @@ import { useState, useRef, useEffect, type ReactNode } from "react";
 import { Link, useLocation } from "wouter";
 import {
   Calendar, Scissors, Users, BarChart2,
-  Settings, Home, ChevronRight, Menu, X, Bell,
+  Settings, Home, Menu, Bell,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useBreakpoint } from "@/hooks/use-mobile";
-import { Logo } from "@/components/ui/Logo";
 import { useNotifications } from "@/hooks/useNotifications";
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -18,6 +17,9 @@ const NAV_ITEMS = [
   { name: "Statistiques", href: "/dashboard/analytics", icon: BarChart2  },
   { name: "Paramètres",   href: "/dashboard/settings",  icon: Settings   },
 ];
+
+const RAIL_W   = 72;
+const RAIL_BG  = "#131416";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -66,7 +68,6 @@ function NotificationPanel({
             overflow: "hidden",
           }}
         >
-          {/* Header */}
           <div
             style={{
               display: "flex",
@@ -113,7 +114,6 @@ function NotificationPanel({
             )}
           </div>
 
-          {/* List */}
           <div style={{ maxHeight: 380, overflowY: "auto" }}>
             {notifications.length === 0 ? (
               <div
@@ -143,7 +143,6 @@ function NotificationPanel({
                     backgroundColor: n.isRead ? "transparent" : "rgba(12,12,14,0.02)",
                   }}
                 >
-                  {/* Unread dot */}
                   <div
                     style={{
                       width: 7,
@@ -194,8 +193,220 @@ function NotificationPanel({
   );
 }
 
-export function DashboardLayout({ children, title, actions, breadcrumb }: DashboardLayoutProps) {
+/* ── Dark icon rail ── */
+function Rail({ onClose }: { onClose?: () => void }) {
   const [location] = useLocation();
+  const [hovered, setHovered] = useState<string | null>(null);
+
+  return (
+    <aside className="ds-rail">
+      {/* Brand mark */}
+      <Link href="/" style={{ textDecoration: "none" }}>
+        <div className="ds-rail-brand">
+          <span>A</span>
+        </div>
+      </Link>
+
+      <div className="ds-rail-divider" style={{ margin: "20px 0" }} />
+
+      {/* Nav */}
+      <nav className="ds-rail-nav">
+        {NAV_ITEMS.map((item) => {
+          const isActive = location === item.href || location.startsWith(item.href + "/");
+          const isHovered = hovered === item.name;
+          return (
+            <Link
+              key={item.name}
+              href={item.href}
+              style={{ textDecoration: "none", display: "block", width: "100%" }}
+              onClick={onClose}
+            >
+              <div
+                className={`ds-rail-item${isActive ? " ds-rail-item--active" : ""}`}
+                data-tip={item.name}
+                onMouseEnter={() => setHovered(item.name)}
+                onMouseLeave={() => setHovered(null)}
+              >
+                {isActive && <span className="ds-rail-pip" />}
+                <item.icon
+                  size={17}
+                  strokeWidth={isActive ? 2 : 1.75}
+                  color={isActive ? "#FFFFFF" : isHovered ? "rgba(255,255,255,0.82)" : "rgba(255,255,255,0.38)"}
+                />
+              </div>
+            </Link>
+          );
+        })}
+      </nav>
+
+      {/* Bottom */}
+      <div className="ds-rail-bottom">
+        <div className="ds-rail-divider" style={{ marginBottom: 16 }} />
+
+        {/* Home link */}
+        <Link href="/" style={{ textDecoration: "none", display: "block", width: "100%", padding: "0 10px", marginBottom: 8 }}>
+          <div
+            className="ds-rail-item"
+            data-tip="Voir le site"
+          >
+            <Home size={17} strokeWidth={1.75} color="rgba(255,255,255,0.28)" />
+          </div>
+        </Link>
+
+        {/* User avatar */}
+        <div className="ds-rail-avatar" title="Salon Atlas">SA</div>
+      </div>
+
+      <style>{`
+        .ds-rail {
+          width: ${RAIL_W}px;
+          height: 100vh;
+          background: ${RAIL_BG};
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          padding: 20px 0;
+          flex-shrink: 0;
+          position: relative;
+        }
+
+        .ds-rail-brand {
+          width: 34px;
+          height: 34px;
+          background: rgba(255,255,255,0.07);
+          border: 1px solid rgba(255,255,255,0.10);
+          border-radius: 8px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: background 140ms ease;
+          cursor: pointer;
+        }
+        .ds-rail-brand:hover { background: rgba(255,255,255,0.12); }
+        .ds-rail-brand span {
+          font-size: 13px;
+          font-weight: 600;
+          color: #FFFFFF;
+          letter-spacing: -0.02em;
+          line-height: 1;
+          font-family: var(--font);
+        }
+
+        .ds-rail-divider {
+          width: 28px;
+          height: 1px;
+          background: rgba(255,255,255,0.07);
+          flex-shrink: 0;
+        }
+
+        .ds-rail-nav {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 2px;
+          width: 100%;
+          padding: 0 10px;
+          overflow: visible;
+        }
+
+        .ds-rail-item {
+          position: relative;
+          width: 100%;
+          height: 40px;
+          border-radius: 8px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: background-color 140ms ease;
+          background: transparent;
+        }
+        .ds-rail-item:hover { background: rgba(255,255,255,0.06); }
+        .ds-rail-item--active { background: rgba(255,255,255,0.09); }
+        .ds-rail-item--active:hover { background: rgba(255,255,255,0.12); }
+
+        /* CSS tooltip */
+        .ds-rail-item[data-tip]::after {
+          content: attr(data-tip);
+          position: absolute;
+          left: calc(100% + 12px);
+          top: 50%;
+          transform: translateY(-50%) translateX(-4px);
+          background: #0C0C0E;
+          color: #FFFFFF;
+          font-size: 12px;
+          font-weight: 500;
+          font-family: var(--font);
+          padding: 5px 10px;
+          border-radius: 6px;
+          white-space: nowrap;
+          pointer-events: none;
+          opacity: 0;
+          transition: opacity 120ms ease, transform 120ms ease;
+          z-index: 9999;
+          letter-spacing: -0.01em;
+        }
+        .ds-rail-item[data-tip]:hover::after {
+          opacity: 1;
+          transform: translateY(-50%) translateX(0);
+        }
+
+        /* Active pip */
+        .ds-rail-pip {
+          position: absolute;
+          left: 1px;
+          top: 50%;
+          transform: translateY(-50%);
+          width: 2px;
+          height: 14px;
+          background: #FFFFFF;
+          border-radius: 2px;
+        }
+
+        .ds-rail-bottom {
+          width: 100%;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+        }
+
+        .ds-rail-avatar {
+          width: 30px;
+          height: 30px;
+          border-radius: 50%;
+          background: rgba(255,255,255,0.09);
+          border: 1.5px solid rgba(255,255,255,0.14);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 10px;
+          font-weight: 600;
+          color: rgba(255,255,255,0.55);
+          cursor: pointer;
+          letter-spacing: 0.02em;
+          font-family: var(--font);
+          transition: background 140ms ease, border-color 140ms ease;
+        }
+        .ds-rail-avatar:hover {
+          background: rgba(255,255,255,0.14);
+          border-color: rgba(255,255,255,0.24);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .ds-rail-item,
+          .ds-rail-item[data-tip]::after,
+          .ds-rail-brand,
+          .ds-rail-avatar {
+            transition: none;
+          }
+        }
+      `}</style>
+    </aside>
+  );
+}
+
+export function DashboardLayout({ children, title, actions, breadcrumb }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const { isLg } = useBreakpoint();
@@ -217,204 +428,42 @@ export function DashboardLayout({ children, title, actions, breadcrumb }: Dashbo
             style={{
               position: "fixed",
               inset: 0,
-              backgroundColor: "rgba(0,0,0,0.28)",
+              backgroundColor: "rgba(0,0,0,0.45)",
               zIndex: 40,
             }}
           />
         )}
       </AnimatePresence>
 
-      {/* ── Sidebar ── */}
-      <aside
-        style={{
-          width: 220,
-          height: "100vh",
-          backgroundColor: "var(--surface-1)",
-          borderRight: "1px solid var(--hairline)",
-          display: "flex",
-          flexDirection: "column",
-          position: "fixed",
-          top: 0,
-          left: 0,
-          zIndex: 50,
-          transform: isLg || sidebarOpen ? "translateX(0)" : "translateX(-220px)",
-          transition: "transform 240ms cubic-bezier(0.4,0,0.2,1)",
-          flexShrink: 0,
-        }}
-      >
-        {/* Brand */}
-        <div
+      {/* ── Rail (desktop: sticky | mobile: fixed drawer) ── */}
+      {isLg ? (
+        <div style={{ position: "sticky", top: 0, height: "100vh", flexShrink: 0 }}>
+          <Rail />
+        </div>
+      ) : (
+        <motion.div
+          key="mobile-rail"
+          initial={false}
+          animate={{ x: sidebarOpen ? 0 : -RAIL_W }}
+          transition={{ type: "spring", stiffness: 420, damping: 38 }}
           style={{
-            padding: "16px 16px 14px",
-            borderBottom: "1px solid var(--hairline)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
+            position: "fixed",
+            top: 0,
+            left: 0,
+            height: "100vh",
+            zIndex: 50,
           }}
         >
-          <Link href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 8 }}>
-            <div
-              style={{
-                width: 28,
-                height: 28,
-                borderRadius: "var(--radius-full)",
-                border: "1px solid var(--hairline-strong)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                flexShrink: 0,
-              }}
-            >
-              <Logo size="sm" />
-            </div>
-          </Link>
-          {!isLg && (
-            <motion.button
-              onClick={() => setSidebarOpen(false)}
-              whileTap={{ scale: 0.9, rotate: 90 }}
-              transition={{ type: "spring", stiffness: 500, damping: 30 }}
-              style={{
-                padding: 4,
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                color: "var(--ink-tertiary)",
-                display: "flex",
-                alignItems: "center",
-                borderRadius: 6,
-              }}
-            >
-              <X size={16} />
-            </motion.button>
-          )}
-        </div>
-
-        {/* Salon badge */}
-        <div style={{ padding: "10px 16px 14px", borderBottom: "1px solid var(--hairline)" }}>
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15, duration: 0.35, ease: [0.0, 0.0, 0.2, 1] }}
-            style={{
-              padding: "8px 10px",
-              backgroundColor: "rgba(12,12,14,0.04)",
-              borderRadius: "var(--radius-control)",
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-            }}
-          >
-            <div
-              style={{
-                width: 28,
-                height: 28,
-                borderRadius: "var(--radius-full)",
-                backgroundColor: "rgba(12,12,14,0.08)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: 11,
-                fontWeight: 700,
-                color: "var(--ink)",
-                flexShrink: 0,
-              }}
-            >
-              SA
-            </div>
-            <div style={{ minWidth: 0 }}>
-              <p style={{ fontSize: 12, fontWeight: 600, color: "var(--ink)", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                Salon Atlas
-              </p>
-              <p style={{ fontSize: 11, color: "var(--ink-tertiary)", margin: 0, fontWeight: 500 }}>Plan Pro</p>
-            </div>
-          </motion.div>
-        </div>
-
-        {/* Nav */}
-        <nav style={{ flex: 1, padding: "10px 8px", display: "flex", flexDirection: "column", gap: 2 }}>
-          {NAV_ITEMS.map((item, i) => {
-            const isActive = location === item.href || location.startsWith(item.href + "/");
-            return (
-              <motion.div
-                key={item.name}
-                initial={{ opacity: 0, x: -12 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.08 + i * 0.05, duration: 0.3, ease: [0.0, 0.0, 0.2, 1] }}
-              >
-                <Link href={item.href} style={{ textDecoration: "none" }} onClick={() => setSidebarOpen(false)}>
-                  <motion.div
-                    whileHover={{ backgroundColor: isActive ? "var(--surface-3)" : "rgba(12,12,14,0.04)", x: 2 }}
-                    whileTap={{ scale: 0.97 }}
-                    transition={{ type: "spring", stiffness: 400, damping: 28 }}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 9,
-                      height: 34,
-                      paddingInline: 10,
-                      borderRadius: "var(--radius-control)",
-                      backgroundColor: isActive ? "var(--surface-2)" : "transparent",
-                      color: isActive ? "var(--ink)" : "var(--ink-secondary)",
-                      fontWeight: isActive ? 600 : 400,
-                      fontSize: 13,
-                      cursor: "pointer",
-                    }}
-                  >
-                    <item.icon size={15} style={{ flexShrink: 0 }} />
-                    {item.name}
-                    {isActive && (
-                      <motion.div
-                        layoutId="nav-active"
-                        style={{
-                          position: "absolute",
-                          left: 0,
-                          width: 2,
-                          height: 18,
-                          borderRadius: "0 2px 2px 0",
-                          backgroundColor: "var(--ink)",
-                        }}
-                        transition={{ type: "spring", stiffness: 500, damping: 36 }}
-                      />
-                    )}
-                  </motion.div>
-                </Link>
-              </motion.div>
-            );
-          })}
-        </nav>
-
-        {/* Footer link */}
-        <div style={{ padding: "10px 8px", borderTop: "1px solid var(--hairline)" }}>
-          <Link href="/" style={{ textDecoration: "none" }}>
-            <motion.div
-              whileHover={{ color: "var(--ink)", x: 2 }}
-              whileTap={{ scale: 0.97 }}
-              transition={{ type: "spring", stiffness: 400, damping: 28 }}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 9,
-                height: 34,
-                paddingInline: 10,
-                borderRadius: "var(--radius-control)",
-                color: "var(--ink-tertiary)",
-                fontSize: 13,
-                cursor: "pointer",
-              }}
-            >
-              <Home size={15} style={{ flexShrink: 0 }} />
-              Voir le site
-            </motion.div>
-          </Link>
-        </div>
-      </aside>
+          <Rail onClose={() => setSidebarOpen(false)} />
+        </motion.div>
+      )}
 
       {/* ── Main content ── */}
       <main
         className="ds-dash-main"
-        style={{ marginLeft: isLg ? 220 : 0, flex: 1, minWidth: 0, width: "100%" }}
+        style={{ marginLeft: isLg ? 0 : 0, flex: 1, minWidth: 0, width: "100%" }}
       >
-        {/* Page header — flush to top, rounded only on bottom */}
+        {/* Page header */}
         <motion.div
           className="ds-dash-page-header"
           initial={{ opacity: 0 }}
@@ -448,7 +497,7 @@ export function DashboardLayout({ children, title, actions, breadcrumb }: Dashbo
               {breadcrumb && (
                 <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 4 }}>
                   <span style={{ fontSize: 12, color: "var(--ink-tertiary)" }}>Dashboard</span>
-                  <ChevronRight size={12} color="var(--ink-disabled)" />
+                  <span style={{ fontSize: 12, color: "var(--ink-disabled)" }}>›</span>
                   <span style={{ fontSize: 12, color: "var(--ink-secondary)", fontWeight: 500 }}>{breadcrumb}</span>
                 </div>
               )}
@@ -456,11 +505,10 @@ export function DashboardLayout({ children, title, actions, breadcrumb }: Dashbo
             </div>
           </div>
 
-          {/* Right side: actions + bell */}
+          {/* Right: actions + bell */}
           <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
             {actions}
 
-            {/* Bell button */}
             <div style={{ position: "relative" }}>
               <motion.button
                 onClick={() => setNotifOpen((v) => !v)}
