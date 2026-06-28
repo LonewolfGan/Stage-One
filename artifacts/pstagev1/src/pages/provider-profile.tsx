@@ -500,6 +500,7 @@ export default function ProviderProfilePage() {
             gap: isLg ? 56 : 0,
             alignItems: "flex-start",
             paddingTop: 40,
+            paddingBottom: 80,
           }}>
 
             {/* ─────────── LEFT ─────────── */}
