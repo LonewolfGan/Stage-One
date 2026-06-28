@@ -1371,8 +1371,8 @@ export default function SearchPage() {
   /* ════════════════════════
      DESKTOP
   ════════════════════════ */
-  // TopBar is now position:sticky in flow, so map sticks below filterBar only
-  const mapStickyTop = filterBarH;
+  // TopBar (56px) + filterBar both sticky — map must clear both
+  const mapStickyTop = TOPBAR_H + filterBarH;
   const mapHeight = `calc(100vh - ${TOPBAR_H + filterBarH}px)`;
   const listWidth = isLg ? 640 : 500;
 
