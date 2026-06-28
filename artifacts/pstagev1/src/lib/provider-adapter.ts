@@ -13,8 +13,19 @@ function initials(name: string): string {
 
 const CATEGORY_BY_SLUG: Record<string, string> = {
   "salon-atlas": "coiffeur",
+  "salon-atlas-casablanca": "coiffeur",
   "institut-elegance": "beaute",
   "sara-domicile": "coiffeur",
+};
+
+const PHOTOS_BY_SLUG: Record<string, string[]> = {
+  "salon-atlas-casablanca": [
+    "https://images.unsplash.com/photo-1560066984-138dadb4c035?w=1200&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1519699047748-de8e457a634e?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1562322140-8baeececf3df?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?w=800&auto=format&fit=crop&q=80",
+  ],
 };
 
 const CATEGORY_FALLBACK_BY_TYPE: Record<string, string> = {
@@ -67,7 +78,7 @@ export function adaptProvider(api: ApiProvider): Provider {
     minDurationMinutes: api.minDurationMinutes ?? null,
     isVerified: true,
     isPopular: (api.reviewCount ?? 0) > 5,
-    photos: api.logoUrl ? [api.logoUrl] : [],
+    photos: PHOTOS_BY_SLUG[api.slug] ?? (api.logoUrl ? [api.logoUrl] : []),
     latitude: api.latitude ?? undefined,
     longitude: api.longitude ?? undefined,
     distanceKm: api.distanceKm ?? undefined,
