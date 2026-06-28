@@ -896,7 +896,7 @@ export default function HomePage() {
                 gap: 7,
                 fontFamily: "var(--font)",
               }}
-              whileHover={{ backgroundColor: "var(--surface-2)", scale: 1.02 }}
+              whileHover={{ backgroundColor: "var(--ink)", color: "#FFFFFF", scale: 1.02 }}
               whileTap={{ scale: 0.97 }}
               transition={{ type: "spring", stiffness: 400, damping: 28 }}
             >
