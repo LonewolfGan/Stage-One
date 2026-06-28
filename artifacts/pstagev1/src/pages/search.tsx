@@ -1396,8 +1396,53 @@ export default function SearchPage() {
         </div>
       </div>
 
-      {/* ④ Footer */}
-      <div style={{ paddingTop: 64 }}>
+      {/* ④ Engagements strip */}
+      <div style={{
+        borderTop: "1px solid rgba(12,12,14,0.08)",
+        display: "grid",
+        gridTemplateColumns: "repeat(3, 1fr)",
+      }}>
+        {[
+          {
+            heading: "Réservation instantanée",
+            body: "Votre créneau est confirmé en moins de 60 secondes, sans appel téléphonique.",
+          },
+          {
+            heading: "Toujours gratuit pour le client",
+            body: "Aucun frais de réservation, aucune surprise. Vous payez uniquement la prestation.",
+          },
+          {
+            heading: "Annulation sans contrainte",
+            body: "Modifiez ou annulez votre rendez-vous jusqu'à 24 h avant, en un clic.",
+          },
+        ].map(({ heading, body }, i) => (
+          <div
+            key={i}
+            style={{
+              padding: "40px 36px",
+              borderRight: i < 2 ? "1px solid rgba(12,12,14,0.08)" : "none",
+            }}
+          >
+            <p style={{
+              fontSize: 14,
+              fontWeight: 600,
+              color: "var(--ink)",
+              letterSpacing: "-0.015em",
+              margin: "0 0 8px",
+              lineHeight: 1.3,
+            }}>{heading}</p>
+            <p style={{
+              fontSize: 13,
+              color: "var(--ink-tertiary)",
+              margin: 0,
+              lineHeight: 1.65,
+            }}>{body}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* ⑤ Footer */}
+      <div>
         <Footer />
       </div>
     </div>
