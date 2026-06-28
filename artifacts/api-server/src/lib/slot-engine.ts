@@ -5,6 +5,7 @@ import {
   bookingsTable,
   staffTable,
   servicesTable,
+  serviceStaffTable,
 } from "@workspace/db";
 import { eq, and, or, lt, gt, lte, gte, inArray } from "drizzle-orm";
 
@@ -55,10 +56,19 @@ export async function getAvailableSlots(
 
   const totalMinutes = service.durationMinutes + service.bufferMinutes;
 
+  // Resolve which staff are assigned to this service via service_staff (N:N)
+  const assignedStaffRows = await db
+    .select({ staffId: serviceStaffTable.staffId })
+    .from(serviceStaffTable)
+    .where(eq(serviceStaffTable.serviceId, serviceId));
+
+  const assignedStaffIds = assignedStaffRows.map((r) => r.staffId);
+
   const staffQuery = db.query.staffTable.findMany({
     where: and(
       eq(staffTable.providerId, providerId),
       eq(staffTable.isActive, true),
+      assignedStaffIds.length > 0 ? inArray(staffTable.id, assignedStaffIds) : undefined,
       staffId ? eq(staffTable.id, staffId) : undefined,
     ),
   });

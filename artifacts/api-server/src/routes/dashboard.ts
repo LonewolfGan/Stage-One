@@ -9,6 +9,8 @@ import {
   servicesTable,
   staffTable,
   usersTable,
+  businessHoursTable,
+  subscriptionsTable,
 } from "@workspace/db";
 import { eq, and, gte, lt, sql } from "drizzle-orm";
 import { requireOwner } from "../middlewares/auth";
@@ -116,6 +118,101 @@ router.delete("/blocks/:blockId", requireOwner, async (req, res) => {
   });
 
   res.status(204).send();
+});
+
+// ── Business Hours ──────────────────────────────────────────────────────────
+
+const businessHoursUpdateSchema = z.object({
+  hours: z.array(
+    z.object({
+      dayOfWeek: z.number().int().min(0).max(6),
+      openTime: z.string().regex(/^\d{2}:\d{2}$/).optional(),
+      closeTime: z.string().regex(/^\d{2}:\d{2}$/).optional(),
+      isClosed: z.boolean(),
+    }),
+  ),
+});
+
+router.get("/business-hours", requireOwner, async (req, res) => {
+  const provider = await getOwnedProvider(req.user!.sub);
+  if (!provider) { res.status(404).json({ code: "ERR-004", message: "Espace prestataire introuvable" }); return; }
+
+  const rows = await db.query.businessHoursTable.findMany({
+    where: eq(businessHoursTable.providerId, provider.id),
+    orderBy: (t, { asc }) => [asc(t.dayOfWeek)],
+  });
+  res.json(rows);
+});
+
+router.put("/business-hours", requireOwner, async (req, res) => {
+  const provider = await getOwnedProvider(req.user!.sub);
+  if (!provider) { res.status(404).json({ code: "ERR-004", message: "Espace prestataire introuvable" }); return; }
+
+  const parse = businessHoursUpdateSchema.safeParse(req.body);
+  if (!parse.success) { res.status(400).json({ code: "ERR-001", message: "Données invalides", errors: parse.error.flatten() }); return; }
+
+  await db.delete(businessHoursTable).where(eq(businessHoursTable.providerId, provider.id));
+
+  if (parse.data.hours.length > 0) {
+    await db.insert(businessHoursTable).values(
+      parse.data.hours.map((h) => ({
+        id: uuidv4(),
+        providerId: provider.id,
+        dayOfWeek: h.dayOfWeek,
+        openTime: h.openTime ?? "09:00",
+        closeTime: h.closeTime ?? "19:00",
+        isClosed: h.isClosed,
+      })),
+    );
+  }
+
+  res.json({ success: true });
+});
+
+// ── Subscriptions ────────────────────────────────────────────────────────────
+
+const planSchema = z.object({ plan: z.enum(["FREE", "PRO", "BUSINESS"]) });
+
+router.get("/subscription", requireOwner, async (req, res) => {
+  const provider = await getOwnedProvider(req.user!.sub);
+  if (!provider) { res.status(404).json({ code: "ERR-004", message: "Espace prestataire introuvable" }); return; }
+
+  const sub = await db.query.subscriptionsTable.findFirst({
+    where: eq(subscriptionsTable.providerId, provider.id),
+  });
+
+  res.json(sub ?? { plan: "FREE", status: "active" });
+});
+
+router.put("/subscription/plan", requireOwner, async (req, res) => {
+  const provider = await getOwnedProvider(req.user!.sub);
+  if (!provider) { res.status(404).json({ code: "ERR-004", message: "Espace prestataire introuvable" }); return; }
+
+  const parse = planSchema.safeParse(req.body);
+  if (!parse.success) { res.status(400).json({ code: "ERR-001", message: "Données invalides", errors: parse.error.flatten() }); return; }
+
+  const existing = await db.query.subscriptionsTable.findFirst({
+    where: eq(subscriptionsTable.providerId, provider.id),
+  });
+
+  if (existing) {
+    await db
+      .update(subscriptionsTable)
+      .set({ plan: parse.data.plan, updatedAt: new Date() })
+      .where(eq(subscriptionsTable.providerId, provider.id));
+  } else {
+    await db.insert(subscriptionsTable).values({
+      id: uuidv4(),
+      providerId: provider.id,
+      plan: parse.data.plan,
+      status: "active",
+    });
+  }
+
+  const updated = await db.query.subscriptionsTable.findFirst({
+    where: eq(subscriptionsTable.providerId, provider.id),
+  });
+  res.json(updated);
 });
 
 router.get("/analytics", requireOwner, async (req, res) => {

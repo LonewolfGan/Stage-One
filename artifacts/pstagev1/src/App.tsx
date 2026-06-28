@@ -22,6 +22,9 @@ import ReviewsPage from "@/pages/dashboard/reviews";
 import RegisterPage from "@/pages/auth/register";
 import LoginPage from "@/pages/auth/login";
 import StaticPage from "@/pages/static-page";
+import VerifyEmailPage from "@/pages/verify-email";
+import SubscriptionPage from "@/pages/dashboard/subscription";
+import ProfilePage from "@/pages/account/profile";
 
 const queryClient = new QueryClient();
 
@@ -34,6 +37,8 @@ function Router() {
       <Route path="/booking/confirmation" component={BookingConfirmationPage} />
       <Route path="/booking/:slug" component={BookingPage} />
       <Route path="/account/bookings" component={AccountBookingsPage} />
+      <Route path="/account/profile" component={ProfilePage} />
+      <Route path="/verify-email" component={VerifyEmailPage} />
       <Route path="/dashboard" component={() => <Redirect to="/dashboard/agenda" />} />
       <Route path="/dashboard/agenda" component={AgendaPage} />
       <Route path="/dashboard/services" component={ServicesPage} />

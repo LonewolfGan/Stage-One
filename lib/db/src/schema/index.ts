@@ -9,3 +9,4 @@ export * from "./service-staff";
 export * from "./bookings";
 export * from "./reviews";
 export * from "./subscriptions";
+export * from "./email-verification-tokens";

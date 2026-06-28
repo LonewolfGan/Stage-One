@@ -1,135 +1,188 @@
+import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
-import { Settings, Bell, Lock, Globe, CreditCard } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { api } from "@/lib/api";
+import { toast } from "sonner";
+import { Clock, Save } from "lucide-react";
 
-const SECTIONS = [
-  {
-    icon: Globe,
-    title: "Informations de l'établissement",
-    desc: "Nom, adresse, téléphone, description publique.",
-    badge: null,
-  },
-  {
-    icon: Bell,
-    title: "Notifications",
-    desc: "Rappels de RDV, alertes d'annulation, résumé hebdomadaire.",
-    badge: null,
-  },
-  {
-    icon: Lock,
-    title: "Sécurité",
-    desc: "Mot de passe, sessions actives, authentification à deux facteurs.",
-    badge: null,
-  },
-  {
-    icon: CreditCard,
-    title: "Abonnement",
-    desc: "Plan actuel, facturation, historique des paiements.",
-    badge: "Pro",
-  },
-];
+const DAYS = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
+
+interface DayHours {
+  dayOfWeek: number;
+  openTime: string;
+  closeTime: string;
+  isClosed: boolean;
+}
+
+function defaultHours(): DayHours[] {
+  return DAYS.map((_, i) => ({
+    dayOfWeek: i,
+    openTime: "09:00",
+    closeTime: "19:00",
+    isClosed: i === 0,
+  }));
+}
 
 export default function SettingsPage() {
+  const queryClient = useQueryClient();
+  const [hours, setHours] = useState<DayHours[]>(defaultHours());
+
+  const { data, isLoading } = useQuery<DayHours[]>({
+    queryKey: ["dashboard", "business-hours"],
+    queryFn: () => api.get("/dashboard/business-hours"),
+    staleTime: 60_000,
+  });
+
+  useEffect(() => {
+    if (data && data.length > 0) {
+      const filled = defaultHours().map((def) => {
+        const found = data.find((d) => d.dayOfWeek === def.dayOfWeek);
+        return found ?? def;
+      });
+      setHours(filled);
+    }
+  }, [data]);
+
+  const mutation = useMutation({
+    mutationFn: (h: DayHours[]) => api.put("/dashboard/business-hours", { hours: h }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["dashboard", "business-hours"] });
+      toast.success("Horaires mis à jour");
+    },
+    onError: () => toast.error("Erreur lors de la sauvegarde"),
+  });
+
+  function setDay(i: number, patch: Partial<DayHours>) {
+    setHours((prev) => prev.map((d) => (d.dayOfWeek === i ? { ...d, ...patch } : d)));
+  }
+
   return (
     <DashboardLayout title="Paramètres" breadcrumb="Paramètres">
-      <div style={{ padding: "32px 40px", maxWidth: 720 }}>
-        <div style={{ marginBottom: 32 }}>
-          <h1
-            style={{
-              fontSize: 22,
-              fontWeight: 600,
-              color: "var(--ink)",
-              letterSpacing: "-0.015em",
-              marginBottom: 4,
-            }}
-          >
+      <div style={{ padding: "32px 40px", maxWidth: 680 }}>
+        <div style={{ marginBottom: 28 }}>
+          <h1 style={{ fontSize: 22, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.015em", marginBottom: 4 }}>
             Paramètres
           </h1>
           <p style={{ fontSize: 14, color: "var(--ink-tertiary)" }}>
-            Gérez les préférences de votre espace prestataire.
+            Configurez les horaires d'ouverture de votre établissement.
           </p>
         </div>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          {SECTIONS.map(({ icon: Icon, title, desc, badge }) => (
+        <div style={{ marginBottom: 32 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
+            <Clock size={16} color="var(--ink-secondary)" />
+            <h2 style={{ fontSize: 15, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.01em" }}>
+              Horaires d'ouverture
+            </h2>
+          </div>
+
+          {isLoading ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {DAYS.map((d) => (
+                <div key={d} style={{ height: 48, borderRadius: 8, background: "var(--surface-2)", animation: "pulse 1.5s ease-in-out infinite" }} />
+              ))}
+            </div>
+          ) : (
             <div
-              key={title}
               style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 16,
-                padding: "18px 20px",
-                backgroundColor: "var(--surface-1)",
                 border: "1px solid var(--hairline)",
                 borderRadius: 12,
-                cursor: "default",
-                transition: "border-color 140ms ease, background-color 140ms ease",
-              }}
-              onMouseEnter={(e) => {
-                (e.currentTarget as HTMLDivElement).style.borderColor = "var(--hairline-strong)";
-                (e.currentTarget as HTMLDivElement).style.backgroundColor = "rgba(12,12,14,0.04)";
-              }}
-              onMouseLeave={(e) => {
-                (e.currentTarget as HTMLDivElement).style.borderColor = "var(--hairline)";
-                (e.currentTarget as HTMLDivElement).style.backgroundColor = "var(--surface-1)";
+                overflow: "hidden",
+                background: "var(--surface-1)",
               }}
             >
-              <div
-                style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 10,
-                  backgroundColor: "rgba(12,12,14,0.06)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  flexShrink: 0,
-                }}
-              >
-                <Icon size={18} color="var(--ink-secondary)" />
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 2 }}>
-                  <span
-                    style={{
-                      fontSize: 14,
-                      fontWeight: 500,
-                      color: "var(--ink)",
-                      letterSpacing: "-0.01em",
-                    }}
-                  >
-                    {title}
+              {hours.map((day, idx) => (
+                <div
+                  key={day.dayOfWeek}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 16,
+                    padding: "14px 20px",
+                    borderBottom: idx < hours.length - 1 ? "1px solid var(--hairline)" : "none",
+                    opacity: day.isClosed ? 0.5 : 1,
+                    transition: "opacity 150ms ease",
+                  }}
+                >
+                  <span style={{ width: 90, fontSize: 13, fontWeight: 500, color: "var(--ink)", flexShrink: 0 }}>
+                    {DAYS[day.dayOfWeek]}
                   </span>
-                  {badge && (
-                    <span
-                      style={{
-                        fontSize: 10,
-                        fontWeight: 600,
-                        letterSpacing: "0.04em",
-                        textTransform: "uppercase",
-                        color: "var(--accent)",
-                        backgroundColor: "var(--accent-tint)",
-                        padding: "2px 7px",
-                        borderRadius: 99,
-                      }}
-                    >
-                      {badge}
-                    </span>
+
+                  <label style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
+                    <input
+                      type="checkbox"
+                      checked={day.isClosed}
+                      onChange={(e) => setDay(day.dayOfWeek, { isClosed: e.target.checked })}
+                      style={{ accentColor: "var(--accent)", width: 14, height: 14 }}
+                    />
+                    <span style={{ fontSize: 12, color: "var(--ink-tertiary)" }}>Fermé</span>
+                  </label>
+
+                  {!day.isClosed && (
+                    <>
+                      <input
+                        type="time"
+                        value={day.openTime}
+                        onChange={(e) => setDay(day.dayOfWeek, { openTime: e.target.value })}
+                        style={{
+                          padding: "6px 10px",
+                          border: "1px solid var(--hairline)",
+                          borderRadius: 6,
+                          fontSize: 13,
+                          color: "var(--ink)",
+                          background: "var(--canvas)",
+                          outline: "none",
+                        }}
+                      />
+                      <span style={{ fontSize: 13, color: "var(--ink-tertiary)" }}>→</span>
+                      <input
+                        type="time"
+                        value={day.closeTime}
+                        onChange={(e) => setDay(day.dayOfWeek, { closeTime: e.target.value })}
+                        style={{
+                          padding: "6px 10px",
+                          border: "1px solid var(--hairline)",
+                          borderRadius: 6,
+                          fontSize: 13,
+                          color: "var(--ink)",
+                          background: "var(--canvas)",
+                          outline: "none",
+                        }}
+                      />
+                    </>
                   )}
                 </div>
-                <p style={{ fontSize: 13, color: "var(--ink-tertiary)", lineHeight: 1.5 }}>
-                  {desc}
-                </p>
-              </div>
-              <div style={{ color: "var(--ink-tertiary)", flexShrink: 0 }}>
-                <Settings size={15} />
-              </div>
+              ))}
             </div>
-          ))}
+          )}
+
+          <button
+            onClick={() => mutation.mutate(hours)}
+            disabled={mutation.isPending || isLoading}
+            style={{
+              marginTop: 16,
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              padding: "10px 20px",
+              background: "var(--ink)",
+              color: "#fff",
+              border: "none",
+              borderRadius: 8,
+              fontSize: 13,
+              fontWeight: 500,
+              cursor: mutation.isPending ? "not-allowed" : "pointer",
+              opacity: mutation.isPending ? 0.7 : 1,
+              transition: "opacity 140ms ease",
+            }}
+          >
+            <Save size={14} />
+            {mutation.isPending ? "Sauvegarde…" : "Sauvegarder les horaires"}
+          </button>
         </div>
 
         <div
           style={{
-            marginTop: 24,
             padding: "16px 20px",
             backgroundColor: "var(--accent-tint)",
             border: "1px solid rgba(212,70,110,0.18)",
@@ -137,8 +190,8 @@ export default function SettingsPage() {
           }}
         >
           <p style={{ fontSize: 13, color: "var(--ink-secondary)", lineHeight: 1.6 }}>
-            <strong style={{ color: "var(--accent)", fontWeight: 600 }}>Phase 2 en cours —</strong>{" "}
-            Les paramètres seront entièrement configurables dans la prochaine version.
+            <strong style={{ color: "var(--accent)", fontWeight: 600 }}>À venir —</strong>{" "}
+            La configuration du profil, des notifications et de la sécurité sera disponible dans la prochaine version.
           </p>
         </div>
       </div>
