@@ -24,7 +24,7 @@ import {
   LayoutGrid, List, Compass, CheckCircle2,
   SlidersHorizontal, Layers, ArrowRight,
   Scissors, Sparkles, Heart, Flower2, Hand,
-  Clock, ShieldCheck, Smile,
+  Clock, ShieldCheck, Smile, Plus,
 } from "lucide-react";
 import { useBreakpoint } from "@/hooks/use-mobile";
 
@@ -872,6 +872,96 @@ function ExtraSections({ onCitySelect, onCategorySelect }: {
 }
 
 /* ═══════════════════════════════════════════════════════════
+   FAQ
+═══════════════════════════════════════════════════════════ */
+const FAQ_ITEMS = [
+  {
+    q: "La réservation est-elle gratuite ?",
+    a: "Oui, totalement. Réserver via la plateforme ne coûte rien au client — vous payez uniquement la prestation directement au professionnel.",
+  },
+  {
+    q: "Puis-je réserver sans créer de compte ?",
+    a: "Oui. Vous pouvez effectuer une réservation en tant qu'invité en indiquant simplement votre nom et votre numéro de téléphone pour la confirmation.",
+  },
+  {
+    q: "Comment annuler ou modifier un rendez-vous ?",
+    a: "Depuis votre espace client ou via le lien reçu par SMS/e-mail, vous pouvez annuler ou déplacer votre rendez-vous jusqu'à 24 h avant l'heure prévue.",
+  },
+  {
+    q: "Les disponibilités affichées sont-elles en temps réel ?",
+    a: "Oui. Les créneaux sont synchronisés en temps réel avec l'agenda du professionnel. Un créneau réservé disparaît immédiatement pour les autres visiteurs.",
+  },
+  {
+    q: "Que se passe-t-il si le salon annule de son côté ?",
+    a: "Vous êtes notifié immédiatement par SMS et e-mail. Si aucun autre créneau ne vous convient, vous pouvez demander un remboursement complet sans délai.",
+  },
+];
+
+function FAQ() {
+  const [open, setOpen] = useState<number | null>(null);
+  return (
+    <div style={{
+      borderTop: "1px solid rgba(12,12,14,0.08)",
+      maxWidth: 720, margin: "0 auto",
+      padding: "64px 24px",
+    }}>
+      <h2 style={{
+        fontSize: 22, fontWeight: 600, color: "var(--ink)",
+        letterSpacing: "-0.02em", margin: "0 0 40px",
+      }}>
+        Questions fréquentes
+      </h2>
+      <div>
+        {FAQ_ITEMS.map(({ q, a }, i) => (
+          <div key={i} style={{ borderTop: "1px solid rgba(12,12,14,0.08)" }}>
+            <button
+              onClick={() => setOpen(open === i ? null : i)}
+              style={{
+                width: "100%", background: "none", border: "none",
+                padding: "20px 0", cursor: "pointer",
+                display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16,
+                textAlign: "left", fontFamily: "var(--font)",
+              }}
+            >
+              <span style={{
+                fontSize: 14, fontWeight: 500, color: "var(--ink)",
+                letterSpacing: "-0.01em", lineHeight: 1.4,
+              }}>{q}</span>
+              <motion.span
+                animate={{ rotate: open === i ? 45 : 0 }}
+                transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
+                style={{ flexShrink: 0, display: "flex", alignItems: "center", color: "var(--ink-tertiary)" }}
+              >
+                <Plus size={16} />
+              </motion.span>
+            </button>
+            <AnimatePresence initial={false}>
+              {open === i && (
+                <motion.div
+                  key="answer"
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
+                  style={{ overflow: "hidden" }}
+                >
+                  <p style={{
+                    fontSize: 13, color: "var(--ink-tertiary)",
+                    lineHeight: 1.7, margin: "0 0 20px",
+                    paddingRight: 32,
+                  }}>{a}</p>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        ))}
+        <div style={{ borderTop: "1px solid rgba(12,12,14,0.08)" }} />
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════
    MAIN PAGE
 ═══════════════════════════════════════════════════════════ */
 export default function SearchPage() {
@@ -1396,50 +1486,8 @@ export default function SearchPage() {
         </div>
       </div>
 
-      {/* ④ Engagements strip */}
-      <div style={{
-        borderTop: "1px solid rgba(12,12,14,0.08)",
-        display: "grid",
-        gridTemplateColumns: "repeat(3, 1fr)",
-      }}>
-        {[
-          {
-            heading: "Réservation instantanée",
-            body: "Votre créneau est confirmé en moins de 60 secondes, sans appel téléphonique.",
-          },
-          {
-            heading: "Toujours gratuit pour le client",
-            body: "Aucun frais de réservation, aucune surprise. Vous payez uniquement la prestation.",
-          },
-          {
-            heading: "Annulation sans contrainte",
-            body: "Modifiez ou annulez votre rendez-vous jusqu'à 24 h avant, en un clic.",
-          },
-        ].map(({ heading, body }, i) => (
-          <div
-            key={i}
-            style={{
-              padding: "40px 36px",
-              borderRight: i < 2 ? "1px solid rgba(12,12,14,0.08)" : "none",
-            }}
-          >
-            <p style={{
-              fontSize: 14,
-              fontWeight: 600,
-              color: "var(--ink)",
-              letterSpacing: "-0.015em",
-              margin: "0 0 8px",
-              lineHeight: 1.3,
-            }}>{heading}</p>
-            <p style={{
-              fontSize: 13,
-              color: "var(--ink-tertiary)",
-              margin: 0,
-              lineHeight: 1.65,
-            }}>{body}</p>
-          </div>
-        ))}
-      </div>
+      {/* ④ FAQ */}
+      <FAQ />
 
       {/* ⑤ Footer */}
       <div>
