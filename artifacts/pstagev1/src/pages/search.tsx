@@ -1132,13 +1132,13 @@ export default function SearchPage() {
             style={{
               flexShrink: 0, height: 30, paddingInline: 12,
               border: "none", borderRadius: 9999,
-              background: "var(--accent)", cursor: "pointer",
+              background: "var(--ink)", cursor: "pointer",
               fontSize: 11, fontWeight: 600, color: "#fff",
               fontFamily: "var(--font)", transition: "opacity 140ms ease",
               display: "flex", alignItems: "center", gap: 5,
               letterSpacing: "-0.01em",
             }}
-            onMouseEnter={e => { e.currentTarget.style.opacity = "0.85"; }}
+            onMouseEnter={e => { e.currentTarget.style.opacity = "0.75"; }}
             onMouseLeave={e => { e.currentTarget.style.opacity = "1"; }}
           >
             <X size={10} />Réinitialiser
@@ -1151,12 +1151,15 @@ export default function SearchPage() {
         <CategoryTabs value={categoryId} onChange={v => { setCategoryId(v); setPage(1); }} />
       </div>
 
-      {/* Row 3 — result count only */}
+      {/* Row 3 — result count */}
       <div style={{ paddingInline: 24, paddingBottom: 10 }}>
         <span style={{ fontSize: 12, color: "var(--ink-tertiary)", letterSpacing: "-0.01em" }}>
           {loading
-            ? <span className="skeleton" style={{ width: 32, height: 12, borderRadius: 4, display: "inline-block" }} />
-            : <strong style={{ color: "var(--ink-secondary)", fontWeight: 600 }}>{allResults.length}</strong>
+            ? <span className="skeleton" style={{ width: 80, height: 12, borderRadius: 4, display: "inline-block" }} />
+            : <>
+                <strong style={{ color: "var(--ink-secondary)", fontWeight: 600 }}>{allResults.length}</strong>
+                {" "}établissement{allResults.length !== 1 ? "s" : ""}
+              </>
           }
         </span>
       </div>
@@ -1377,30 +1380,8 @@ export default function SearchPage() {
         {/* Left — results */}
         <div style={{ flex: "0 0 50%", minWidth: 0, borderRight: "1px solid rgba(12,12,14,0.06)" }}>
 
-          {/* Column header — title + subtitle */}
-          <div style={{ padding: "24px 20px 20px" }}>
-            <h1 style={{
-              fontSize: 22, fontWeight: 600, color: "var(--ink)",
-              letterSpacing: "-0.025em", lineHeight: 1.18, margin: 0,
-            }}>
-              {loading
-                ? <span className="skeleton" style={{ width: 220, height: 22, borderRadius: 5, display: "inline-block" }} />
-                : pageTitle
-              }
-            </h1>
-            <p style={{
-              fontSize: 13, color: "var(--ink-tertiary)",
-              margin: "6px 0 0", lineHeight: 1.5, letterSpacing: "-0.005em",
-            }}>
-              {loading
-                ? <span className="skeleton" style={{ width: 280, height: 13, borderRadius: 4, display: "inline-block" }} />
-                : pageSubtitle
-              }
-            </p>
-          </div>
-
           {/* Results */}
-          <div style={{ padding: "0 20px 48px" }}>
+          <div style={{ padding: "16px 20px 48px" }}>
             {resultsContent}
           </div>
         </div>
