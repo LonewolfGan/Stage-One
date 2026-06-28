@@ -39,7 +39,7 @@ export function DashboardSidebar() {
             style={{
               fontSize: 15,
               fontWeight: 600,
-              color: "#D4466E",
+              color: "var(--ink)",
               letterSpacing: "-0.02em",
               display: "block",
             }}
@@ -158,7 +158,7 @@ export function DashboardSidebar() {
             >
               Salon Atlas
             </p>
-            <p style={{ fontSize: 11, color: "#D4466E", fontWeight: 500 }}>
+            <p style={{ fontSize: 11, color: "var(--ink-tertiary)", fontWeight: 500 }}>
               Plan Pro
             </p>
           </div>

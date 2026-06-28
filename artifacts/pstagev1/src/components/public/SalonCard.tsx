@@ -61,8 +61,7 @@ export function SalonCard({ provider, featured = false }: SalonCardProps) {
               left: 12,
               height: 22,
               padding: "0 8px",
-              backgroundColor: "rgba(255, 255, 255, 0.90)",
-              backdropFilter: "blur(6px)",
+              backgroundColor: "#FFFFFF",
               color: "#0C0C0E",
               fontSize: 11,
               fontWeight: 500,
@@ -123,7 +122,7 @@ export function SalonCard({ provider, featured = false }: SalonCardProps) {
 
         <hr style={{ border: "none", borderTop: "1px solid rgba(12, 12, 14, 0.08)", margin: "12px 0" }} />
 
-        <p style={{ fontSize: 12, fontWeight: 500, color: "#D4466E", marginBottom: 8 }}>
+        <p style={{ fontSize: 12, fontWeight: 500, color: "var(--ink-tertiary)", marginBottom: 8 }}>
           {nextAvailableText}
         </p>
 
@@ -146,7 +145,7 @@ export function SalonCard({ provider, featured = false }: SalonCardProps) {
                 background: "transparent",
                 cursor: "pointer",
               }}
-              whileHover={{ borderColor: "#D4466E", color: "#D4466E" }}
+              whileHover={{ backgroundColor: "rgba(12,12,14,0.04)", borderColor: "rgba(12,12,14,0.20)" }}
               whileTap={{ scale: 0.94 }}
               transition={{ duration: 0.15 }}
             >

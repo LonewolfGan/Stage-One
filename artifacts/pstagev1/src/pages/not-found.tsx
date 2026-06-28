@@ -35,7 +35,7 @@ export default function NotFound() {
               fontWeight: 600,
               letterSpacing: "0.08em",
               textTransform: "uppercase",
-              color: "var(--accent)",
+              color: "var(--ink-tertiary)",
               marginBottom: 20,
             }}
           >
@@ -71,22 +71,22 @@ export default function NotFound() {
               gap: 8,
               height: 44,
               paddingInline: 24,
-              backgroundColor: "var(--accent)",
+              backgroundColor: "var(--ink)",
               color: "#FFFFFF",
               fontSize: 14,
               fontWeight: 600,
-              borderRadius: 9999,
+              borderRadius: 8,
               border: "none",
               cursor: "pointer",
               transition: "background-color 140ms ease",
             }}
             onMouseEnter={(e) => {
               (e.currentTarget as HTMLButtonElement).style.backgroundColor =
-                "var(--accent-hover)";
+                "rgba(12,12,14,0.80)";
             }}
             onMouseLeave={(e) => {
               (e.currentTarget as HTMLButtonElement).style.backgroundColor =
-                "var(--accent)";
+                "var(--ink)";
             }}
           >
             <ArrowLeft size={15} />

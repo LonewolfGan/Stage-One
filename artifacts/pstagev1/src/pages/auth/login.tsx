@@ -216,7 +216,7 @@ export default function LoginPage() {
             <button
               onClick={() => setLocation("/auth/register")}
               style={{
-                fontSize: 13, fontWeight: 500, color: "var(--accent)",
+                fontSize: 13, fontWeight: 500, color: "var(--ink)",
                 background: "transparent", border: "none", cursor: "pointer", padding: 0,
               }}
             >

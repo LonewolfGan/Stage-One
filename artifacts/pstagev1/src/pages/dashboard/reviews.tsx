@@ -138,10 +138,10 @@ function ReviewRow({ review }: { review: DashboardReview }) {
         <div
           style={{
             padding: "12px 14px", backgroundColor: "var(--surface-2)",
-            borderRadius: "var(--radius-control)", borderLeft: "2px solid var(--accent)",
+            borderRadius: "var(--radius-control)", border: "1px solid var(--hairline)",
           }}
         >
-          <p style={{ fontSize: 12, fontWeight: 600, color: "var(--accent)", marginBottom: 4 }}>
+          <p style={{ fontSize: 12, fontWeight: 600, color: "var(--ink-secondary)", marginBottom: 4 }}>
             Votre réponse
           </p>
           <p style={{ fontSize: 13, color: "var(--ink-secondary)", lineHeight: 1.55, margin: 0 }}>
@@ -243,7 +243,7 @@ export default function ReviewsPage() {
 
           {isLoading && (
             <div style={{ display: "flex", justifyContent: "center", padding: "64px 0" }}>
-              <div style={{ width: 32, height: 32, border: "2px solid var(--hairline)", borderTop: "2px solid var(--accent)", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+              <div style={{ width: 32, height: 32, border: "2px solid var(--hairline)", borderTop: "2px solid var(--ink)", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
             </div>
           )}
 

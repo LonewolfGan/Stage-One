@@ -387,7 +387,7 @@ function BookingCard({
           </span>
           <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
             {booking.providerSlug && (
-              <Link href={`/${booking.providerSlug}`} style={{ fontSize: 13, color: "var(--accent)", textDecoration: "none", fontWeight: 500 }}>
+              <Link href={`/${booking.providerSlug}`} style={{ fontSize: 13, color: "var(--ink)", textDecoration: "none", fontWeight: 500 }}>
                 Voir le salon
               </Link>
             )}
@@ -399,7 +399,7 @@ function BookingCard({
             {onReview && (
               <button
                 onClick={onReview}
-                style={{ fontSize: 13, color: "var(--accent)", background: "none", border: "none", cursor: "pointer", fontWeight: 500, padding: 0 }}
+                style={{ fontSize: 13, color: "var(--ink-secondary)", background: "none", border: "none", cursor: "pointer", fontWeight: 500, padding: 0 }}
               >
                 Laisser un avis
               </button>

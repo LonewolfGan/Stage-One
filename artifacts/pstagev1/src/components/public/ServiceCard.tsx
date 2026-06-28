@@ -89,12 +89,14 @@ export function ServiceCard({ service, providerSlug }: ServiceCardProps) {
             }}
             onMouseEnter={(e) => {
               const el = e.currentTarget as HTMLButtonElement;
-              el.style.borderColor = "#D4466E";
-              el.style.color = "#D4466E";
+              el.style.borderColor = "var(--ink)";
+              el.style.backgroundColor = "var(--ink)";
+              el.style.color = "#FFFFFF";
             }}
             onMouseLeave={(e) => {
               const el = e.currentTarget as HTMLButtonElement;
               el.style.borderColor = "rgba(12, 12, 14, 0.12)";
+              el.style.backgroundColor = "transparent";
               el.style.color = "#0C0C0E";
             }}
           >

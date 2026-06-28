@@ -50,7 +50,7 @@ export function SearchPill() {
           height: 32,
           paddingLeft: 14,
           paddingRight: 14,
-          backgroundColor: "#D4466E",
+          backgroundColor: "var(--ink)",
           color: "#FFFFFF",
           fontSize: 13,
           fontWeight: 500,
@@ -61,10 +61,10 @@ export function SearchPill() {
           transition: "background-color 140ms ease",
         }}
         onMouseEnter={(e) => {
-          (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#B8345B";
+          (e.currentTarget as HTMLButtonElement).style.backgroundColor = "rgba(12,12,14,0.82)";
         }}
         onMouseLeave={(e) => {
-          (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#D4466E";
+          (e.currentTarget as HTMLButtonElement).style.backgroundColor = "var(--ink)";
         }}
       >
         Rechercher

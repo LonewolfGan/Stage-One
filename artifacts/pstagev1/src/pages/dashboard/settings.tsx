@@ -184,13 +184,13 @@ export default function SettingsPage() {
         <div
           style={{
             padding: "16px 20px",
-            backgroundColor: "var(--accent-tint)",
-            border: "1px solid rgba(212,70,110,0.18)",
+            backgroundColor: "var(--surface-2)",
+            border: "1px solid var(--hairline)",
             borderRadius: 12,
           }}
         >
           <p style={{ fontSize: 13, color: "var(--ink-secondary)", lineHeight: 1.6 }}>
-            <strong style={{ color: "var(--accent)", fontWeight: 600 }}>À venir —</strong>{" "}
+            <strong style={{ color: "var(--ink)", fontWeight: 600 }}>À venir —</strong>{" "}
             La configuration du profil, des notifications et de la sécurité sera disponible dans la prochaine version.
           </p>
         </div>

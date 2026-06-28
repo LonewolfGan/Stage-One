@@ -83,14 +83,14 @@ export default function StaticPage() {
           <div
             style={{
               padding: "20px 24px",
-              backgroundColor: "var(--accent-tint)",
-              border: "1px solid rgba(212,70,110,0.18)",
+              backgroundColor: "var(--surface-2)",
+              border: "1px solid var(--hairline)",
               borderRadius: 12,
               marginBottom: 32,
             }}
           >
             <p style={{ fontSize: 14, color: "var(--ink-secondary)", lineHeight: 1.6, margin: 0 }}>
-              <strong style={{ color: "var(--accent)", fontWeight: 600 }}>Bientôt disponible —</strong>{" "}
+              <strong style={{ color: "var(--ink)", fontWeight: 600 }}>Bientôt disponible —</strong>{" "}
               Cette page sera complétée lors de la mise en production de la plateforme (Phase 3).
             </p>
           </div>

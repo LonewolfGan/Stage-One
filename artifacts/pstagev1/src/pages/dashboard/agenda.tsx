@@ -570,9 +570,9 @@ export default function AgendaPage() {
                     onClick={() => setBlockDuration(d.value)}
                     style={{
                       flex: 1, padding: "8px 4px", borderRadius: "var(--radius-control)",
-                      border: `1px solid ${blockDuration === d.value ? "var(--accent)" : "var(--hairline)"}`,
-                      backgroundColor: blockDuration === d.value ? "var(--accent-tint)" : "transparent",
-                      color: blockDuration === d.value ? "var(--accent)" : "var(--ink)",
+                      border: `1px solid ${blockDuration === d.value ? "var(--ink)" : "var(--hairline)"}`,
+                      backgroundColor: blockDuration === d.value ? "var(--ink)" : "transparent",
+                      color: blockDuration === d.value ? "#FFFFFF" : "var(--ink)",
                       fontSize: 13, fontWeight: 500, cursor: "pointer",
                       fontFamily: "var(--font)",
                     }}

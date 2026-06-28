@@ -93,8 +93,8 @@ function ServiceRow({ service, providerSlug, isLast }: { service: any; providerS
           </span>
           {service.isPopular && (
             <span style={{
-              fontSize: 9, fontWeight: 600, color: "var(--accent)",
-              backgroundColor: "var(--accent-tint)",
+              fontSize: 9, fontWeight: 600, color: "var(--ink-secondary)",
+              backgroundColor: "rgba(12,12,14,0.06)",
               paddingInline: 6, paddingBlock: 2, borderRadius: 4,
               letterSpacing: "0.03em", textTransform: "uppercase" as const,
             }}>
@@ -120,10 +120,10 @@ function ServiceRow({ service, providerSlug, isLast }: { service: any; providerS
           onClick={() => setLocation(`/booking/${providerSlug}?serviceId=${service.id}`)}
           style={{
             height: 32, paddingInline: 16,
-            backgroundColor: hovered ? "#D4466E" : "transparent",
+            backgroundColor: hovered ? "var(--ink)" : "transparent",
             color: hovered ? "#FFFFFF" : "var(--ink)",
             border: "1px solid",
-            borderColor: hovered ? "#D4466E" : "var(--hairline-strong)",
+            borderColor: hovered ? "var(--ink)" : "var(--hairline-strong)",
             borderRadius: 8, fontSize: 13, fontWeight: 500,
             cursor: "pointer", fontFamily: "var(--font)",
             transition: "all 0.15s ease",
@@ -148,7 +148,7 @@ function ReviewItem({ review, isFirst }: { review: any; isFirst: boolean }) {
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <div style={{
             width: 36, height: 36, borderRadius: "50%",
-            backgroundColor: "var(--accent-tint)", color: "var(--accent)",
+            backgroundColor: "rgba(12,12,14,0.07)", color: "var(--ink-secondary)",
             display: "flex", alignItems: "center", justifyContent: "center",
             fontSize: 12, fontWeight: 600, flexShrink: 0,
           }}>
@@ -294,7 +294,7 @@ export default function ProviderProfilePage() {
                   {provider.name}
                 </h1>
                 {provider.isVerified && (
-                  <CheckCircle2 size={20} color="#D4466E" style={{ flexShrink: 0 }} />
+                  <CheckCircle2 size={20} color="var(--ink-secondary)" style={{ flexShrink: 0 }} />
                 )}
               </div>
 
@@ -578,15 +578,15 @@ export default function ProviderProfilePage() {
                 }}>
                   <div style={{
                     width: 32, height: 32, borderRadius: 8,
-                    backgroundColor: "var(--accent-tint)",
+                    backgroundColor: "var(--surface-2)",
                     display: "flex", alignItems: "center", justifyContent: "center",
                     flexShrink: 0,
                   }}>
-                    <Calendar size={14} color="var(--accent)" />
+                    <Calendar size={14} color="var(--ink-secondary)" />
                   </div>
                   <div>
                     <p style={{ fontSize: 11, color: "var(--ink-tertiary)", margin: 0 }}>Prochaine disponibilité</p>
-                    <p style={{ fontSize: 13, fontWeight: 600, color: "var(--accent)", margin: 0, marginTop: 1 }}>
+                    <p style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)", margin: 0, marginTop: 1 }}>
                       {nextSlot}
                     </p>
                   </div>
@@ -598,15 +598,15 @@ export default function ProviderProfilePage() {
                     onClick={() => setLocation(`/booking/${provider.slug}`)}
                     style={{
                       width: "100%", height: 46,
-                      backgroundColor: "#D4466E", color: "#FFFFFF",
-                      border: "none", borderRadius: 12,
+                      backgroundColor: "var(--ink)", color: "#FFFFFF",
+                      border: "none", borderRadius: 10,
                       fontSize: 15, fontWeight: 600,
                       cursor: "pointer", fontFamily: "var(--font)",
                       letterSpacing: "-0.01em",
                       transition: "background-color 0.15s",
                     }}
-                    onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#B8345B"; }}
-                    onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#D4466E"; }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = "rgba(12,12,14,0.80)"; }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = "var(--ink)"; }}
                   >
                     Réserver maintenant
                   </button>
@@ -633,17 +633,17 @@ export default function ProviderProfilePage() {
                           style={{
                             display: "flex", justifyContent: "space-between", alignItems: "center",
                             fontSize: 12,
-                            backgroundColor: isToday ? "var(--accent-tint)" : "transparent",
+                            backgroundColor: isToday ? "var(--surface-2)" : "transparent",
                             marginInline: isToday ? -8 : 0,
                             paddingInline: isToday ? 8 : 0,
                             paddingBlock: isToday ? 3 : 0,
                             borderRadius: isToday ? 6 : 0,
                           }}
                         >
-                          <span style={{ color: isToday ? "var(--accent)" : "var(--ink-tertiary)", fontWeight: isToday ? 600 : 400 }}>
+                          <span style={{ color: isToday ? "var(--ink)" : "var(--ink-tertiary)", fontWeight: isToday ? 600 : 400 }}>
                             {DAY_NAMES[hours.dayOfWeek]}
                           </span>
-                          <span style={{ fontWeight: isToday ? 600 : 500, color: hours.isClosed ? "var(--ink-disabled)" : isToday ? "var(--accent)" : "var(--ink)" }}>
+                          <span style={{ fontWeight: isToday ? 600 : 500, color: hours.isClosed ? "var(--ink-disabled)" : "var(--ink)" }}>
                             {hours.isClosed ? "Fermé" : `${hours.openTime} – ${hours.closeTime}`}
                           </span>
                         </li>
@@ -669,13 +669,13 @@ export default function ProviderProfilePage() {
         }}>
           <div>
             <p style={{ fontSize: 11, color: "var(--ink-tertiary)", margin: 0 }}>Prochaine dispo</p>
-            <p style={{ fontSize: 13, fontWeight: 600, color: "var(--accent)", margin: 0 }}>{nextSlot}</p>
+            <p style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)", margin: 0 }}>{nextSlot}</p>
           </div>
           <button
             onClick={() => setLocation(`/booking/${provider.slug}`)}
             style={{
               height: 42, paddingInline: 28,
-              backgroundColor: "#D4466E", color: "#FFFFFF",
+              backgroundColor: "var(--ink)", color: "#FFFFFF",
               border: "none", borderRadius: 10,
               fontSize: 14, fontWeight: 600,
               cursor: "pointer", fontFamily: "var(--font)",

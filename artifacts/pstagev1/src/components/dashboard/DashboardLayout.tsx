@@ -100,7 +100,7 @@ function NotificationPanel({
                 onClick={markAllRead}
                 style={{
                   fontSize: 11,
-                  color: "var(--accent)",
+                  color: "var(--ink-secondary)",
                   fontWeight: 500,
                   background: "none",
                   border: "none",
@@ -140,7 +140,7 @@ function NotificationPanel({
                     display: "flex",
                     gap: 10,
                     alignItems: "flex-start",
-                    backgroundColor: n.isRead ? "transparent" : "rgba(212,70,110,0.03)",
+                    backgroundColor: n.isRead ? "transparent" : "rgba(12,12,14,0.02)",
                   }}
                 >
                   {/* Unread dot */}
@@ -309,13 +309,13 @@ export function DashboardLayout({ children, title, actions, breadcrumb }: Dashbo
                 width: 28,
                 height: 28,
                 borderRadius: "var(--radius-full)",
-                backgroundColor: "var(--accent-tint)",
+                backgroundColor: "rgba(12,12,14,0.08)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 fontSize: 11,
                 fontWeight: 700,
-                color: "var(--accent)",
+                color: "var(--ink)",
                 flexShrink: 0,
               }}
             >
@@ -325,7 +325,7 @@ export function DashboardLayout({ children, title, actions, breadcrumb }: Dashbo
               <p style={{ fontSize: 12, fontWeight: 600, color: "var(--ink)", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                 Salon Atlas
               </p>
-              <p style={{ fontSize: 11, color: "var(--accent)", margin: 0, fontWeight: 500 }}>Plan Pro</p>
+              <p style={{ fontSize: 11, color: "var(--ink-tertiary)", margin: 0, fontWeight: 500 }}>Plan Pro</p>
             </div>
           </motion.div>
         </div>
@@ -343,7 +343,7 @@ export function DashboardLayout({ children, title, actions, breadcrumb }: Dashbo
               >
                 <Link href={item.href} style={{ textDecoration: "none" }} onClick={() => setSidebarOpen(false)}>
                   <motion.div
-                    whileHover={{ backgroundColor: isActive ? "var(--accent-tint)" : "rgba(12,12,14,0.04)", x: 2 }}
+                    whileHover={{ backgroundColor: isActive ? "var(--surface-3)" : "rgba(12,12,14,0.04)", x: 2 }}
                     whileTap={{ scale: 0.97 }}
                     transition={{ type: "spring", stiffness: 400, damping: 28 }}
                     style={{
@@ -353,8 +353,8 @@ export function DashboardLayout({ children, title, actions, breadcrumb }: Dashbo
                       height: 34,
                       paddingInline: 10,
                       borderRadius: "var(--radius-control)",
-                      backgroundColor: isActive ? "var(--accent-tint)" : "transparent",
-                      color: isActive ? "var(--accent)" : "var(--ink-secondary)",
+                      backgroundColor: isActive ? "var(--surface-2)" : "transparent",
+                      color: isActive ? "var(--ink)" : "var(--ink-secondary)",
                       fontWeight: isActive ? 600 : 400,
                       fontSize: 13,
                       cursor: "pointer",
@@ -368,10 +368,10 @@ export function DashboardLayout({ children, title, actions, breadcrumb }: Dashbo
                         style={{
                           position: "absolute",
                           left: 0,
-                          width: 3,
-                          height: 20,
+                          width: 2,
+                          height: 18,
                           borderRadius: "0 2px 2px 0",
-                          backgroundColor: "var(--accent)",
+                          backgroundColor: "var(--ink)",
                         }}
                         transition={{ type: "spring", stiffness: 500, damping: 36 }}
                       />

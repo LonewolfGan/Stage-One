@@ -220,8 +220,8 @@ export default function CategoryPage() {
                   borderBottom: "1px solid var(--hairline)",
                 }}
               >
-                <Tag size={14} color="var(--accent)" style={{ flexShrink: 0 }} />
-                <span style={{ fontSize: 14, fontWeight: 600, color: "var(--accent)", flex: 1 }}>
+                <Tag size={14} color="var(--ink-secondary)" style={{ flexShrink: 0 }} />
+                <span style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)", flex: 1 }}>
                   {categoryLabel}
                 </span>
               </div>
@@ -352,14 +352,14 @@ export default function CategoryPage() {
                     margin: 7,
                     height: 38,
                     width: 38,
-                    backgroundColor: "var(--accent)",
+                    backgroundColor: "var(--ink)",
                     color: "#FFFFFF",
                     borderRadius: "var(--radius-control)",
                     border: "none",
                     cursor: "pointer",
                   }}
-                  onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = "var(--accent-hover)"; }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = "var(--accent)"; }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = "rgba(12,12,14,0.80)"; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = "var(--ink)"; }}
                 >
                   <Search size={16} />
                 </button>
@@ -383,13 +383,13 @@ export default function CategoryPage() {
                   userSelect: "none",
                 }}
               >
-                <Tag size={13} color="var(--accent)" style={{ flexShrink: 0 }} />
+                <Tag size={13} color="var(--ink-secondary)" style={{ flexShrink: 0 }} />
                 <span
                   style={{
                     flex: 1,
                     fontSize: 13,
                     fontWeight: 600,
-                    color: "var(--accent)",
+                    color: "var(--ink)",
                     whiteSpace: "nowrap",
                   }}
                 >
@@ -533,7 +533,7 @@ export default function CategoryPage() {
                   margin: 7,
                   height: 40,
                   paddingInline: 20,
-                  backgroundColor: "var(--accent)",
+                  backgroundColor: "var(--ink)",
                   color: "#FFFFFF",
                   fontSize: 13,
                   fontWeight: 600,
@@ -545,8 +545,8 @@ export default function CategoryPage() {
                   fontFamily: "var(--font)",
                   transition: "background-color var(--ease)",
                 }}
-                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = "var(--accent-hover)"; }}
-                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = "var(--accent)"; }}
+                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = "rgba(12,12,14,0.80)"; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = "var(--ink)"; }}
               >
                 <Search size={14} />
                 Rechercher
@@ -740,12 +740,12 @@ export default function CategoryPage() {
                 flexShrink: 0,
                 height: 48,
                 paddingInline: 28,
-                backgroundColor: "var(--accent)",
+                backgroundColor: "var(--ink)",
                 color: "#FFFFFF",
                 fontSize: 14,
                 fontWeight: 600,
                 letterSpacing: "-0.01em",
-                borderRadius: 9999,
+                borderRadius: 10,
                 border: "none",
                 cursor: "pointer",
                 fontFamily: "var(--font)",

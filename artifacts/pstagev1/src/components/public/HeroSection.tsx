@@ -297,14 +297,14 @@ export function HeroSection() {
                   margin: 7,
                   height: 38,
                   width: 38,
-                  backgroundColor: "var(--accent)",
+                  backgroundColor: "var(--ink)",
                   color: "#FFFFFF",
                   borderRadius: "var(--radius-control)",
                   border: "none",
                   cursor: "pointer",
                 }}
-                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = "var(--accent-hover)"; }}
-                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = "var(--accent)"; }}
+                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = "rgba(12,12,14,0.82)"; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = "var(--ink)"; }}
               >
                 <Search size={16} />
               </button>
@@ -550,7 +550,7 @@ export function HeroSection() {
                 margin: 7,
                 height: 40,
                 paddingInline: 20,
-                backgroundColor: "var(--accent)",
+                backgroundColor: "var(--ink)",
                 color: "#FFFFFF",
                 fontSize: 13,
                 fontWeight: 600,
@@ -562,8 +562,8 @@ export function HeroSection() {
                 fontFamily: "var(--font)",
                 transition: "background-color var(--ease)",
               }}
-              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = "var(--accent-hover)"; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = "var(--accent)"; }}
+              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = "rgba(12,12,14,0.82)"; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = "var(--ink)"; }}
             >
               <Search size={14} />
               Rechercher

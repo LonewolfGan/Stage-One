@@ -258,7 +258,7 @@ function StickyStepsSection({ isMobile }: { isMobile: boolean }) {
                   <img src={img} alt={title} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
                 </div>
                 <div>
-                  <span style={{ fontSize: 12, fontWeight: 500, color: "var(--accent)", letterSpacing: "0.06em", textTransform: "uppercase" }}>{step}</span>
+                  <span style={{ fontSize: 12, fontWeight: 500, color: "var(--ink-tertiary)", letterSpacing: "0.06em", textTransform: "uppercase" }}>{step}</span>
                   <h3 style={{ fontSize: 20, fontWeight: 600, color: "var(--ink)", margin: "8px 0 10px", letterSpacing: "-0.015em" }}>{title}</h3>
                   <p style={{ fontSize: 15, color: "var(--ink-secondary)", lineHeight: 1.6, margin: 0 }}>{desc}</p>
                 </div>
@@ -372,7 +372,7 @@ function StickyStepsSection({ isMobile }: { isMobile: boolean }) {
                       display: "block",
                       fontSize: 11,
                       fontWeight: 500,
-                      color: isActive ? "var(--accent)" : "var(--ink-tertiary)",
+                      color: isActive ? "var(--ink)" : "var(--ink-tertiary)",
                       letterSpacing: "0.08em",
                       textTransform: "uppercase",
                       marginBottom: 10,
@@ -493,10 +493,8 @@ export default function HomePage() {
                 position: "absolute",
                 bottom: 14,
                 left: 14,
-                backgroundColor: "rgba(255,255,255,0.35)",
-                backdropFilter: "blur(12px)",
-                WebkitBackdropFilter: "blur(12px)",
-                border: "1px solid rgba(255,255,255,0.50)",
+                backgroundColor: "rgba(255,255,255,0.92)",
+                border: "1px solid rgba(255,255,255,0.70)",
                 borderRadius: 9999,
                 padding: "6px 14px",
                 display: "flex",
@@ -504,7 +502,7 @@ export default function HomePage() {
                 gap: 6,
               }}
             >
-              <div style={{ width: 6, height: 6, borderRadius: 9999, backgroundColor: "var(--accent)" }} />
+              <div style={{ width: 6, height: 6, borderRadius: 9999, backgroundColor: "var(--ink)" }} />
               <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--ink)" }}>
                 {label}
               </span>
@@ -539,8 +537,8 @@ export default function HomePage() {
               fontFamily: "'Georgia', 'Times New Roman', serif",
               fontSize: isMobile ? 160 : 280,
               lineHeight: 1,
-              color: "var(--accent)",
-              opacity: 0.18,
+              color: "var(--ink)",
+              opacity: 0.07,
               pointerEvents: "none",
               userSelect: "none",
               fontWeight: 700,
@@ -577,7 +575,7 @@ export default function HomePage() {
                 style={{
                   fontStyle: "normal",
                   fontWeight: 700,
-                  color: "var(--accent)",
+                  color: "var(--ink)",
                   letterSpacing: "-0.03em",
                 }}
               >
@@ -598,7 +596,7 @@ export default function HomePage() {
                 style={{
                   width: 40,
                   height: 1,
-                  backgroundColor: "var(--accent)",
+                  backgroundColor: "var(--hairline-strong)",
                   flexShrink: 0,
                 }}
               />
@@ -659,7 +657,7 @@ export default function HomePage() {
                   style={{
                     position: "relative",
                     height: 380,
-                    borderRadius: 32,
+                    borderRadius: 16,
                     overflow: "hidden",
                     cursor: "pointer",
                     border: "1px solid var(--hairline)",
@@ -778,7 +776,7 @@ export default function HomePage() {
                   paddingBottom: 2,
                   cursor: "pointer",
                 }}
-                whileHover={{ color: "var(--accent)", borderColor: "var(--accent)" }}
+                whileHover={{ opacity: 0.55 }}
                 whileTap={{ scale: 0.96 }}
                 transition={{ duration: 0.15 }}
               >
@@ -801,10 +799,10 @@ export default function HomePage() {
                   <div
                     style={{
                       height: 420,
-                      borderRadius: 40,
+                      borderRadius: 20,
                       overflow: "hidden",
                       marginBottom: 20,
-                      border: "1px solid rgba(255,255,255,0.15)",
+                      border: "1px solid var(--hairline)",
                     }}
                   >
                     <motion.img
@@ -830,7 +828,7 @@ export default function HomePage() {
                       color: "var(--ink)",
                       letterSpacing: "-0.015em",
                     }}
-                    variants={{ rest: { color: "var(--ink)" }, hover: { color: "var(--accent)" } }}
+                    variants={{ rest: { color: "var(--ink)" }, hover: { color: "var(--ink-secondary)" } }}
                     transition={{ duration: 0.2 }}
                   >
                     {provider.name}
@@ -869,17 +867,17 @@ export default function HomePage() {
               style={{
                 height: 44,
                 paddingInline: 28,
-                backgroundColor: "var(--accent)",
+                backgroundColor: "var(--ink)",
                 color: "#FFFFFF",
                 fontSize: 12,
                 fontWeight: 600,
                 letterSpacing: "0.06em",
                 textTransform: "uppercase",
-                borderRadius: 9999,
+                borderRadius: 8,
                 border: "none",
                 cursor: "pointer",
               }}
-              whileHover={{ backgroundColor: "var(--accent-hover)", scale: 1.03 }}
+              whileHover={{ backgroundColor: "rgba(12,12,14,0.80)", scale: 1.03 }}
               whileTap={{ scale: 0.96 }}
               transition={{ type: "spring", stiffness: 400, damping: 28 }}
             >
@@ -940,7 +938,7 @@ export default function HomePage() {
           cursor: "pointer",
         }}
         onMouseEnter={(e) => {
-          (e.currentTarget as HTMLAnchorElement).style.backgroundColor = "var(--accent)";
+          (e.currentTarget as HTMLAnchorElement).style.backgroundColor = "rgba(12,12,14,0.80)";
         }}
         onMouseLeave={(e) => {
           (e.currentTarget as HTMLAnchorElement).style.backgroundColor = "var(--ink)";

@@ -161,12 +161,12 @@ export default function RegisterPage() {
                 <div
                   style={{
                     width: 48, height: 48, borderRadius: "50%",
-                    backgroundColor: "var(--accent-tint)",
+                    backgroundColor: "rgba(12,12,14,0.06)",
                     display: "flex", alignItems: "center", justifyContent: "center",
                     marginBottom: 20,
                   }}
                 >
-                  <Check size={22} color="var(--accent)" strokeWidth={2.5} />
+                  <Check size={22} color="var(--ink)" strokeWidth={2.5} />
                 </div>
                 <h1 style={{ fontSize: 22, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.015em", marginBottom: 8 }}>
                   Compte créé !
@@ -215,9 +215,9 @@ export default function RegisterPage() {
                               display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
                               fontSize: 13,
                               fontWeight: 500,
-                              color: providerType === value ? "var(--accent)" : "var(--ink-secondary)",
-                              backgroundColor: providerType === value ? "var(--accent-tint)" : "#FFFFFF",
-                              border: `1.5px solid ${providerType === value ? "var(--accent)" : "var(--hairline-strong)"}`,
+                              color: providerType === value ? "var(--ink)" : "var(--ink-secondary)",
+                              backgroundColor: providerType === value ? "var(--surface-2)" : "#FFFFFF",
+                              border: `1.5px solid ${providerType === value ? "var(--ink)" : "var(--hairline-strong)"}`,
                               borderRadius: 8,
                               cursor: "pointer",
                               transition: "all 150ms ease",
@@ -364,7 +364,7 @@ export default function RegisterPage() {
                   <button
                     onClick={() => setLocation("/auth/login")}
                     style={{
-                      fontSize: 13, fontWeight: 500, color: "var(--accent)",
+                      fontSize: 13, fontWeight: 500, color: "var(--ink)",
                       background: "transparent", border: "none", cursor: "pointer", padding: 0,
                     }}
                   >

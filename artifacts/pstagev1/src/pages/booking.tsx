@@ -196,7 +196,7 @@ export default function BookingPage() {
       transition={{ duration: 0.4, ease: [0.0, 0.0, 0.2, 1] }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
-        <CreditCard size={18} style={{ color: "var(--accent)" }} />
+        <CreditCard size={18} style={{ color: "var(--ink-secondary)" }} />
         <h2 style={{ fontSize: 17, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.01em" }}>
           Paiement
         </h2>
@@ -222,7 +222,7 @@ export default function BookingPage() {
       <div
         style={{
           padding: "10px 12px",
-          backgroundColor: "var(--accent-tint)",
+          backgroundColor: "var(--surface-2)",
           borderRadius: "var(--radius-control)",
           marginBottom: 20,
           display: "flex",
@@ -230,8 +230,8 @@ export default function BookingPage() {
           gap: 8,
         }}
       >
-        <Clock size={13} style={{ color: "var(--accent)", flexShrink: 0 }} />
-        <span style={{ fontSize: 12, color: "var(--accent)" }}>
+        <Clock size={13} style={{ color: "var(--ink-tertiary)", flexShrink: 0 }} />
+        <span style={{ fontSize: 12, color: "var(--ink-secondary)" }}>
           Créneau réservé pendant 10 minutes
         </span>
       </div>
@@ -429,15 +429,15 @@ export default function BookingPage() {
                             style={{
                               flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
                               width: 60, height: 72, borderRadius: "var(--radius-control)",
-                              border: `1px solid ${isSelected ? "var(--accent)" : isClosed ? "var(--hairline)" : "var(--hairline-strong)"}`,
-                              backgroundColor: isSelected ? "var(--accent-tint)" : "transparent",
-                              color: isSelected ? "var(--accent)" : isClosed ? "var(--ink-disabled)" : "var(--ink)",
+                              border: `1px solid ${isSelected ? "var(--ink)" : isClosed ? "var(--hairline)" : "var(--hairline-strong)"}`,
+                              backgroundColor: isSelected ? "var(--ink)" : "transparent",
+                              color: isSelected ? "#FFFFFF" : isClosed ? "var(--ink-disabled)" : "var(--ink)",
                               cursor: isClosed ? "not-allowed" : "pointer",
                               opacity: isClosed ? 0.5 : 1,
                               transition: "border-color var(--ease), background-color var(--ease)",
                               fontFamily: "var(--font)",
                             }}
-                            onMouseEnter={(e) => { if (!isClosed && !isSelected) (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--accent)"; }}
+                            onMouseEnter={(e) => { if (!isClosed && !isSelected) (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(12,12,14,0.40)"; }}
                             onMouseLeave={(e) => { if (!isClosed && !isSelected) (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--hairline-strong)"; }}
                           >
                             <span style={{ fontSize: 11, fontWeight: 500, textTransform: "uppercase" as const, marginBottom: 4 }}>

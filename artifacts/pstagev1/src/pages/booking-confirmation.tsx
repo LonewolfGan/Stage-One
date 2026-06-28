@@ -25,7 +25,7 @@ export default function BookingConfirmationPage() {
         <TopBar />
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "60vh", gap: 12 }}>
           <p style={{ fontSize: 15, color: "var(--ink-tertiary)" }}>Réservation introuvable.</p>
-          <Link href="/" style={{ color: "var(--accent)", fontSize: 13 }}>Retour à l'accueil</Link>
+          <Link href="/" style={{ color: "var(--ink)", fontSize: 13 }}>Retour à l'accueil</Link>
         </div>
       </div>
     );
@@ -36,7 +36,7 @@ export default function BookingConfirmationPage() {
       <div style={{ minHeight: "100vh", backgroundColor: "var(--canvas)", paddingTop: 96 }}>
         <TopBar />
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "60vh" }}>
-          <div style={{ width: 36, height: 36, border: "2px solid var(--hairline)", borderTop: "2px solid var(--accent)", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+          <div style={{ width: 36, height: 36, border: "2px solid var(--hairline)", borderTop: "2px solid var(--ink)", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
         </div>
       </div>
     );
@@ -48,7 +48,7 @@ export default function BookingConfirmationPage() {
         <TopBar />
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "60vh", gap: 12 }}>
           <p style={{ fontSize: 15, color: "var(--ink-tertiary)" }}>Impossible de charger les détails de la réservation.</p>
-          <Link href="/" style={{ color: "var(--accent)", fontSize: 13 }}>Retour à l'accueil</Link>
+          <Link href="/" style={{ color: "var(--ink)", fontSize: 13 }}>Retour à l'accueil</Link>
         </div>
       </div>
     );

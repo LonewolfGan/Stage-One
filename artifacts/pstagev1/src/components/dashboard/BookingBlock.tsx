@@ -26,9 +26,8 @@ export function BookingBlock({ booking }: BookingBlockProps) {
         position: "absolute",
         left: 4,
         right: 4,
-        backgroundColor: isConfirmed ? "#FBEEF1" : "rgba(12,12,14,0.06)",
-        borderLeft: `2px solid ${isConfirmed ? "#D4466E" : "rgba(12,12,14,0.30)"}`,
-        border: `1px solid ${isConfirmed ? "rgba(212, 70, 110, 0.18)" : "rgba(12, 12, 14, 0.08)"}`,
+        backgroundColor: isConfirmed ? "rgba(12,12,14,0.05)" : "rgba(12,12,14,0.03)",
+        border: `1px solid ${isConfirmed ? "rgba(12,12,14,0.16)" : "rgba(12, 12, 14, 0.08)"}`,
         borderStyle: isConfirmed ? "solid" : "dashed",
         borderRadius: 4,
         padding: "4px 8px",
@@ -40,7 +39,7 @@ export function BookingBlock({ booking }: BookingBlockProps) {
         style={{
           fontSize: 12,
           fontWeight: 500,
-          color: isConfirmed ? "#D4466E" : "#8C8A82",
+          color: isConfirmed ? "var(--ink)" : "var(--ink-tertiary)",
           overflow: "hidden",
           textOverflow: "ellipsis",
           whiteSpace: "nowrap",
@@ -53,7 +52,7 @@ export function BookingBlock({ booking }: BookingBlockProps) {
         <p
           style={{
             fontSize: 11,
-            color: "#8C8A82",
+            color: "var(--ink-tertiary)",
             overflow: "hidden",
             textOverflow: "ellipsis",
             whiteSpace: "nowrap",

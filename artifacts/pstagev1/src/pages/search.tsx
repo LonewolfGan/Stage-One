@@ -39,13 +39,12 @@ const PRICE_SYMBOLS: Record<number, string> = { 1: "MAD", 2: "MAD MAD", 3: "MAD 
    Custom map pin
 ───────────────────────────────────────────── */
 function makePin(selected: boolean) {
-  const bg = selected ? "#D4466E" : "#FFFFFF";
-  const iconColor = selected ? "#FFFFFF" : "#D4466E";
-  const shadow = selected ? "0 4px 16px rgba(212,70,110,0.5)" : "0 2px 8px rgba(10,10,15,0.18)";
-  const border = selected ? "#B8345B" : "rgba(10,10,15,0.12)";
+  const bg = selected ? "#0C0C0E" : "#FFFFFF";
+  const iconColor = selected ? "#FFFFFF" : "#0C0C0E";
+  const border = selected ? "#0C0C0E" : "rgba(10,10,15,0.14)";
   return L.divIcon({
     className: "",
-    html: `<div style="width:36px;height:36px;border-radius:50%;background:${bg};border:2px solid ${border};box-shadow:${shadow};display:flex;align-items:center;justify-content:center;transition:all .2s ease">
+    html: `<div style="width:36px;height:36px;border-radius:50%;background:${bg};border:2px solid ${border};display:flex;align-items:center;justify-content:center;transition:all .2s ease">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
         <circle cx="6" cy="6" r="3" stroke="${iconColor}" stroke-width="2"/>
         <circle cx="6" cy="18" r="3" stroke="${iconColor}" stroke-width="2"/>
@@ -146,8 +145,8 @@ function ResultCard({
       onMouseEnter={onHover}
       onMouseLeave={onLeave}
       style={{
-        backgroundColor: isSelected ? "var(--accent-tint)" : "var(--surface-1)",
-        border: `1px solid ${isSelected ? "rgba(212,70,110,0.35)" : "var(--hairline)"}`,
+        backgroundColor: isSelected ? "rgba(12,12,14,0.03)" : "var(--surface-1)",
+        border: `1px solid ${isSelected ? "var(--hairline-strong)" : "var(--hairline)"}`,
         borderRadius: 16,
         overflow: "hidden",
         display: "flex",
@@ -178,7 +177,7 @@ function ResultCard({
             position: "absolute", top: 10, left: 10,
             height: 20, paddingInline: 8,
             display: "inline-flex", alignItems: "center",
-            backgroundColor: "rgba(255,255,255,0.93)", backdropFilter: "blur(10px)",
+            backgroundColor: "#FFFFFF",
             borderRadius: 9999, fontSize: 9, fontWeight: 600, color: "var(--ink)",
             letterSpacing: "0.04em", pointerEvents: "none", textTransform: "uppercase",
           }}>
@@ -217,7 +216,7 @@ function ResultCard({
             </p>
             <div style={{ display: "flex", alignItems: "center", gap: 5, flexShrink: 0 }}>
               {provider.isVerified && (
-                <CheckCircle2 size={12} color="#D4466E" />
+                <CheckCircle2 size={12} color="var(--ink-secondary)" />
               )}
               <span style={{
                 fontSize: 10, fontWeight: 600, color: "var(--ink-secondary)",
@@ -250,8 +249,8 @@ function ResultCard({
             {provider.distanceKm != null && (
               <span style={{
                 flexShrink: 0, marginLeft: 4,
-                fontSize: 10, fontWeight: 600, color: "#2563EB",
-                backgroundColor: "rgba(37,99,235,0.08)",
+                fontSize: 10, fontWeight: 600, color: "var(--ink-secondary)",
+                backgroundColor: "rgba(12,12,14,0.06)",
                 paddingInline: 6, paddingBlock: 2, borderRadius: 4,
               }}>
                 {provider.distanceKm < 1
@@ -293,29 +292,29 @@ function ResultCard({
         display: "flex", flexDirection: "column",
         alignItems: "center", justifyContent: "center",
         padding: "16px 14px", gap: 10,
-        backgroundColor: isSelected ? "rgba(212,70,110,0.04)" : "transparent",
+        backgroundColor: "transparent",
         transition: "background-color 0.18s ease",
       }}>
         <button
           onClick={e => { e.stopPropagation(); setLocation(`/booking/${provider.slug}`); }}
           style={{
             width: "100%", height: 38,
-            backgroundColor: "#D4466E", color: "#FFFFFF",
+            backgroundColor: "var(--ink)", color: "#FFFFFF",
             border: "none", borderRadius: 10,
             fontSize: 13, fontWeight: 600,
             cursor: "pointer", fontFamily: "var(--font)",
             letterSpacing: "-0.01em",
             transition: "background-color 0.15s ease",
           }}
-          onMouseEnter={e => { e.currentTarget.style.backgroundColor = "#B8345B"; }}
-          onMouseLeave={e => { e.currentTarget.style.backgroundColor = "#D4466E"; }}
+          onMouseEnter={e => { e.currentTarget.style.backgroundColor = "rgba(12,12,14,0.82)"; }}
+          onMouseLeave={e => { e.currentTarget.style.backgroundColor = "var(--ink)"; }}
         >
           Réserver
         </button>
         <div style={{ textAlign: "center" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 4, marginBottom: 2 }}>
-            <Calendar size={10} color="var(--accent)" />
-            <span style={{ fontSize: 10, fontWeight: 600, color: "var(--accent)", letterSpacing: "-0.01em" }}>
+            <Calendar size={10} color="var(--ink-tertiary)" />
+            <span style={{ fontSize: 10, fontWeight: 600, color: "var(--ink-tertiary)", letterSpacing: "-0.01em" }}>
               Prochaine dispo
             </span>
           </div>
@@ -774,7 +773,7 @@ export default function SearchPage() {
               display: "flex", alignItems: "center", gap: 6,
               fontSize: 12, fontWeight: 500, color: "var(--ink-secondary)",
             }}>
-              <span style={{ width: 7, height: 7, borderRadius: "50%", backgroundColor: "#D4466E", display: "inline-block" }} />
+              <span style={{ width: 7, height: 7, borderRadius: "50%", backgroundColor: "var(--ink)", display: "inline-block" }} />
               {mapProviders.length} sur cette page
             </div>
           )}

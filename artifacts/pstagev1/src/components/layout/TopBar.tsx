@@ -206,14 +206,14 @@ export function TopBar() {
                   className="shrink-0 cursor-pointer"
                   style={{
                     height: 32, paddingInline: 16, marginRight: 6,
-                    backgroundColor: "var(--accent)",
+                    backgroundColor: "var(--ink)",
                     color: "#FFFFFF",
                     fontSize: 10, fontWeight: 700,
                     letterSpacing: "0.08em",
                     textTransform: "uppercase",
-                    borderRadius: 9999, border: "none", cursor: "pointer",
+                    borderRadius: "var(--radius-control)", border: "none", cursor: "pointer",
                   }}
-                  whileHover={{ backgroundColor: "var(--accent-hover)" }}
+                  whileHover={{ backgroundColor: "rgba(12,12,14,0.82)" }}
                   whileTap={{ scale: 0.94 }}
                 >
                   Commencer

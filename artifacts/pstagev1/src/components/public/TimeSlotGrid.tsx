@@ -28,7 +28,7 @@ export function TimeSlotGrid({ slots, selectedSlot, onSelectSlot }: TimeSlotGrid
               height: 40,
               border: `1px solid ${
                 isSelected
-                  ? "var(--accent)"
+                  ? "var(--ink)"
                   : slot.available
                   ? "var(--hairline-strong)"
                   : "var(--hairline)"
@@ -37,11 +37,11 @@ export function TimeSlotGrid({ slots, selectedSlot, onSelectSlot }: TimeSlotGrid
               fontSize: 13,
               fontWeight: 500,
               color: isSelected
-                ? "var(--accent)"
+                ? "#FFFFFF"
                 : slot.available
                 ? "var(--ink)"
                 : "var(--ink-disabled)",
-              backgroundColor: isSelected ? "var(--accent-tint)" : "transparent",
+              backgroundColor: isSelected ? "var(--ink)" : "transparent",
               cursor: slot.available ? "pointer" : "not-allowed",
               transition: "border-color 140ms ease, color 140ms ease, background-color 140ms ease",
               fontFamily: "var(--font)",
@@ -49,15 +49,15 @@ export function TimeSlotGrid({ slots, selectedSlot, onSelectSlot }: TimeSlotGrid
             onMouseEnter={(e) => {
               if (slot.available && !isSelected) {
                 const el = e.currentTarget as HTMLButtonElement;
-                el.style.borderColor = "var(--accent)";
-                el.style.color = "var(--accent)";
+                el.style.borderColor = "rgba(12,12,14,0.40)";
+                el.style.backgroundColor = "rgba(12,12,14,0.04)";
               }
             }}
             onMouseLeave={(e) => {
               if (slot.available && !isSelected) {
                 const el = e.currentTarget as HTMLButtonElement;
                 el.style.borderColor = "var(--hairline-strong)";
-                el.style.color = "var(--ink)";
+                el.style.backgroundColor = "transparent";
               }
             }}
           >

@@ -566,7 +566,7 @@
 .ds-btn-danger    { background-color: var(--error-bg); color: var(--error); border: 1px solid rgba(214,51,74,0.2); }
 .ds-btn-danger:hover:not(:disabled)    { background-color: var(--error); color: #FFFFFF; }
 .ds-btn-ink       { background-color: var(--ink); color: var(--canvas); }
-.ds-btn-ink:hover:not(:disabled)       { background-color: var(--accent); }
+.ds-btn-ink:hover:not(:disabled)       { background-color: rgba(12,12,14,0.82); }
 
 /* ═══════════════════════════════════════════════
    RESPONSIVE — Breakpoints: md=768px, lg=1024px
