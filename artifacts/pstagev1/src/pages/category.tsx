@@ -130,6 +130,7 @@ export default function CategoryPage() {
         style={{
           position: "relative",
           height: isMobile ? 280 : 340,
+          marginTop: -72,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -157,6 +158,7 @@ export default function CategoryPage() {
             zIndex: 1,
             textAlign: "center",
             paddingInline: isMobile ? 20 : 40,
+            paddingTop: 72,
             maxWidth: 800,
             width: "100%",
           }}
