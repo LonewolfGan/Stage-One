@@ -1,0 +1,107 @@
+# Installation et utilisation d'Impeccable — nettoyage design complet PSTAGEV1
+
+## Installation
+
+```bash
+npx skills add https://github.com/pbakaus/impeccable --skill impeccable
+```
+
+Puis lance le setup pour que toutes les commandes suivantes connaissent
+notre contexte produit (sans ça, le skill donne des résultats génériques) :
+
+```
+/impeccable init
+```
+
+Réponds aux questions du setup avec ces informations :
+- **Surface** : product (app UI, dashboard, tool) — pas brand/marketing, même
+  si le front public a une page d'accueil éditoriale.
+- **Produit** : SaaS de réservation en ligne pour salons de coiffure et
+  instituts de beauté au Maroc (PSTAGEV1), deux faces : front public client
+  + dashboard prestataire.
+- **Couleurs** : noir `#0C0C0E` comme accent principal (boutons primaires,
+  titres, éléments actifs), blanc `#FFFFFF` comme fond unique (pas de
+  surfaces grises/beiges), rose `#D4466E` comme accent ultra-rare (un seul
+  élément par écran maximum, jamais sur un CTA primaire).
+- **Typographie** : Inter exclusivement.
+- **Composants** : shadcn/ui comme base, Lucide React pour toutes les
+  icônes.
+- **Anti-références explicites** : pas de border-radius en pill sur les
+  boutons, pas de gradient, pas de glassmorphism, pas de card imbriquée
+  dans une card, pas de glow décoratif, pas de hero centré avec badge pill
+  + sous-titre gris + search bar flottante (pattern SaaS générique qu'on a
+  déjà rejeté plusieurs fois sur ce projet).
+
+## Audit complet, page par page
+
+Une fois `init` fait, lance l'audit sur chaque zone du produit
+séparément — pas un audit global unique, pour avoir un rapport actionnable
+par zone :
+
+```
+/impeccable audit la page d'accueil et le hero
+/impeccable audit la page de recherche et résultats
+/impeccable audit la fiche prestataire et le booking
+/impeccable audit l'onboarding et les écrans d'authentification
+/impeccable audit le dashboard prestataire (sidebar, agenda, stats)
+```
+
+Pour chaque audit, demande explicitement la notation 0-4 sur les tells de
+design IA et corrige tout ce qui est noté en dessous de 3.
+
+## Points à faire vérifier en priorité par l'audit (nos problèmes connus)
+
+Demande explicitement à l'agent de vérifier ces points précis en plus de
+l'audit standard, parce que ce sont des régressions déjà identifiées sur ce
+projet :
+1. **Usage du rose** : compte le nombre d'éléments roses visibles
+   simultanément sur chaque écran. Plus d'un élément rose par écran (hors
+   état hover/focus) = à corriger, remplacer par du noir ou un état neutre.
+2. **Border-radius en pill sur les boutons** : tout bouton avec
+   `rounded-full` doit passer à `rounded-control` (8px), sauf s'il s'agit
+   d'un vrai composant pill légitime (tag, badge, avatar) — pas un bouton
+   d'action.
+3. **Couleurs hors palette** : toute couleur qui n'est pas `ink` (#0C0C0E),
+   `canvas`/blanc, `accent` (#D4466E rose rare), ou les couleurs semantic
+   (success/error) est une régression à supprimer.
+4. **Cohérence inter-pages** : le rapport doit signaler si une page utilise
+   une convention différente d'une autre pour le même type de composant
+   (ex. un bouton primaire noir sur une page et rose sur une autre).
+
+## Correction
+
+Une fois les rapports d'audit obtenus, corrige zone par zone dans cet
+ordre, en relançant `/impeccable polish` après chaque correction :
+
+```
+/impeccable polish la page d'accueil et le hero
+/impeccable polish la page de recherche et résultats
+/impeccable polish la fiche prestataire et le booking
+/impeccable polish l'onboarding
+/impeccable polish le dashboard prestataire
+```
+
+## Activation du hook de surveillance continue
+
+Pour que les régressions futures (comme le retour du rose ou des pills)
+soient détectées automatiquement à chaque modification de code, active le
+hook de détection :
+
+```
+/impeccable hooks on
+```
+
+Ça permet d'éviter de refaire un audit complet manuel chaque fois qu'une
+nouvelle page est générée par la suite.
+
+## Validation finale
+
+Demande un dernier passage global :
+
+```
+/impeccable critique le site entier (front public + dashboard)
+```
+
+Et exige un score global ≥ 3/4 sur les tells de design IA avant de
+considérer le travail terminé. Si le score est inférieur, recommence un
+cycle audit → polish sur les zones encore faibles.
