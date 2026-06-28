@@ -708,19 +708,6 @@ export default function HomePage() {
         }}
       >
         <div className="page-container" style={{ marginBottom: 48 }}>
-          <Reveal>
-            <h2
-              style={{
-                fontSize: "clamp(26px, 3vw, 40px)",
-                fontWeight: 600,
-                letterSpacing: "-0.025em",
-                color: "var(--ink)",
-                margin: 0,
-              }}
-            >
-              Ils nous font confiance.
-            </h2>
-          </Reveal>
         </div>
 
         {/* Row 1 — scrolls left */}
