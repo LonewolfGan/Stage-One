@@ -21,7 +21,9 @@ import {
   MapPin, Star, ChevronLeft, ChevronRight,
   Map, X, Calendar, Search, LocateFixed,
   LayoutGrid, List, Compass, CheckCircle2,
-  SlidersHorizontal,
+  SlidersHorizontal, Layers, ArrowRight,
+  Scissors, Sparkles, Heart, Flower2, Hand,
+  Clock, ShieldCheck, Smile,
 } from "lucide-react";
 import { useBreakpoint } from "@/hooks/use-mobile";
 
@@ -33,44 +35,36 @@ const CITY_OPTIONS = [
   ...MOROCCO_CITIES.map(c => ({ id: c, label: c })),
 ];
 const PER_PAGE = 9;
-const TOPBAR_H = 56; // px — hauteur de la TopBar
+const TOPBAR_H = 56;
 
 /* ─────────────────────────────────────────────
-   Map tiles
+   Tile layers
 ───────────────────────────────────────────── */
-const CARTO_LIGHT = "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png";
+const TILE_LIGHT = "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png";
+const TILE_SAT   = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}";
 
 /* ─────────────────────────────────────────────
-   Map pin factory
+   Map pin — always icon-based
 ───────────────────────────────────────────── */
-function makePin(selected: boolean, price?: string) {
-  if (price && !selected) {
-    return L.divIcon({
-      className: "",
-      html: `<div style="
-        padding:4px 10px;border-radius:20px;
-        background:#0C0C0E;color:#fff;
-        font-size:11px;font-weight:600;
-        font-family:'Inter',sans-serif;letter-spacing:-0.01em;
-        white-space:nowrap;border:1.5px solid rgba(255,255,255,0.18);
-        cursor:pointer;
-      ">${price}</div>`,
-      iconSize: [undefined as unknown as number, 28],
-      iconAnchor: [36, 14],
-      popupAnchor: [0, -18],
-    });
-  }
+function makePin(selected: boolean) {
   const bg = selected ? "#D4466E" : "#0C0C0E";
+  const size = selected ? 38 : 30;
+  const border = selected ? "3px solid #fff" : "2.5px solid #fff";
   return L.divIcon({
     className: "",
-    html: `<div style="width:32px;height:32px;border-radius:50%;background:${bg};border:2.5px solid #fff;display:flex;align-items:center;justify-content:center;">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+    html: `<div style="
+      width:${size}px;height:${size}px;border-radius:50%;
+      background:${bg};border:${border};
+      display:flex;align-items:center;justify-content:center;
+      transition:all 200ms ease;
+    ">
+      <svg width="${selected ? 15 : 12}" height="${selected ? 15 : 12}" viewBox="0 0 24 24" fill="none">
         <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="#fff"/>
       </svg>
     </div>`,
-    iconSize: [32, 32],
-    iconAnchor: [16, 16],
-    popupAnchor: [0, -20],
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size / 2],
+    popupAnchor: [0, -(size / 2 + 4)],
   });
 }
 
@@ -83,7 +77,7 @@ function MapFlyTo({ providers }: { providers: Provider[] }) {
     const valid = providers.filter(p => p.latitude && p.longitude);
     if (!valid.length) return;
     if (valid.length === 1) {
-      map.setView([valid[0].latitude!, valid[0].longitude!], 13, { animate: true });
+      map.setView([valid[0].latitude!, valid[0].longitude!], 14, { animate: true });
       return;
     }
     map.fitBounds(
@@ -94,9 +88,6 @@ function MapFlyTo({ providers }: { providers: Provider[] }) {
   return null;
 }
 
-/* ─────────────────────────────────────────────
-   User location dot
-───────────────────────────────────────────── */
 function UserDot({ coords }: { coords: { lat: number; lng: number } | null }) {
   if (!coords) return null;
   return (
@@ -117,8 +108,7 @@ function Stars({ rating, size = 10 }: { rating: number; size?: number }) {
       {[1, 2, 3, 4, 5].map(i => (
         <Star key={i} size={size} style={{
           fill: i <= Math.round(rating) ? "var(--rating)" : "transparent",
-          color: "var(--rating)",
-          flexShrink: 0,
+          color: "var(--rating)", flexShrink: 0,
         }} />
       ))}
     </span>
@@ -126,11 +116,9 @@ function Stars({ rating, size = 10 }: { rating: number; size?: number }) {
 }
 
 /* ─────────────────────────────────────────────
-   ResultCard — List view
+   ResultCard — List
 ───────────────────────────────────────────── */
-function ResultCardList({
-  provider, isSelected, onHover, onLeave, index,
-}: {
+function ResultCardList({ provider, isSelected, onHover, onLeave, index }: {
   provider: Provider; isSelected: boolean;
   onHover: () => void; onLeave: () => void; index: number;
 }) {
@@ -154,13 +142,10 @@ function ResultCardList({
       onMouseLeave={() => { setHov(false); onLeave(); }}
       onClick={() => nav(`/${provider.slug}`)}
       style={{
-        display: "flex",
-        borderRadius: 14,
-        overflow: "hidden",
+        display: "flex", borderRadius: 14, overflow: "hidden",
         border: `1px solid ${active ? "rgba(12,12,14,0.18)" : "rgba(12,12,14,0.08)"}`,
-        backgroundColor: active ? "rgba(12,12,14,0.012)" : "#FFFFFF",
-        cursor: "pointer",
-        transition: "border-color 200ms ease, background-color 200ms ease",
+        backgroundColor: active ? "rgba(12,12,14,0.012)" : "#fff",
+        cursor: "pointer", transition: "border-color 200ms ease, background-color 200ms ease",
         minHeight: 136,
       }}
     >
@@ -172,7 +157,7 @@ function ResultCardList({
           style={{
             width: "100%", height: "100%", objectFit: "cover", display: "block",
             transform: hov ? "scale(1.04)" : "scale(1)",
-            transition: "transform 420ms cubic-bezier(0.16, 1, 0.3, 1)",
+            transition: "transform 420ms cubic-bezier(0.16,1,0.3,1)",
           }}
         />
         <div style={{
@@ -182,56 +167,38 @@ function ResultCardList({
         }} />
         {provider.isPopular && (
           <span style={{
-            position: "absolute", top: 9, left: 9,
-            height: 18, paddingInline: 7,
+            position: "absolute", top: 9, left: 9, height: 18, paddingInline: 7,
             display: "inline-flex", alignItems: "center",
             background: "#fff", borderRadius: 9999,
             fontSize: 9, fontWeight: 700, color: "var(--ink)",
             letterSpacing: "0.06em", textTransform: "uppercase",
-          }}>
-            Top
-          </span>
+          }}>Top</span>
         )}
         {minPrice != null && (
           <span style={{
-            position: "absolute", bottom: 9, left: 9,
-            height: 20, paddingInline: 7,
+            position: "absolute", bottom: 9, left: 9, height: 20, paddingInline: 7,
             display: "inline-flex", alignItems: "center",
             background: "rgba(10,10,15,0.68)", backdropFilter: "blur(8px)",
             borderRadius: 6, fontSize: 11, fontWeight: 600, color: "#fff",
             letterSpacing: "-0.01em",
-          }}>
-            dès {minPrice} MAD
-          </span>
+          }}>dès {minPrice} MAD</span>
         )}
       </div>
 
       {/* Content */}
-      <div style={{
-        flex: 1, minWidth: 0,
-        padding: "14px 16px 12px",
-        display: "flex", flexDirection: "column",
-      }}>
+      <div style={{ flex: 1, minWidth: 0, padding: "14px 16px 12px", display: "flex", flexDirection: "column" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 3 }}>
           <h3 style={{
             fontSize: 15, fontWeight: 600, color: "var(--ink)",
             letterSpacing: "-0.015em", lineHeight: 1.2, margin: 0,
             overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-          }}>
-            {provider.name}
-          </h3>
-          {provider.isVerified && (
-            <CheckCircle2 size={12} color="var(--ink-tertiary)" style={{ flexShrink: 0 }} />
-          )}
+          }}>{provider.name}</h3>
+          {provider.isVerified && <CheckCircle2 size={12} color="var(--ink-tertiary)" style={{ flexShrink: 0 }} />}
         </div>
         <span style={{
-          fontSize: 10, fontWeight: 600,
-          color: "var(--ink-tertiary)",
-          letterSpacing: "0.05em", textTransform: "uppercase",
-          marginBottom: 8,
-        }}>
-          {catLabel}
-        </span>
+          fontSize: 10, fontWeight: 600, color: "var(--ink-tertiary)",
+          letterSpacing: "0.05em", textTransform: "uppercase", marginBottom: 8,
+        }}>{catLabel}</span>
 
         <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
           <Stars rating={provider.rating} />
@@ -243,53 +210,36 @@ function ResultCardList({
             {provider.city}
             {provider.distanceKm != null && (
               <span style={{ color: "var(--ink-secondary)", fontWeight: 500 }}>
-                {" · "}
-                {provider.distanceKm < 1
-                  ? `${Math.round(provider.distanceKm * 1000)} m`
-                  : `${provider.distanceKm} km`}
+                {" · "}{provider.distanceKm < 1 ? `${Math.round(provider.distanceKm * 1000)} m` : `${provider.distanceKm} km`}
               </span>
             )}
           </span>
         </div>
 
-        {/* Services chips */}
-        <div style={{ display: "flex", gap: 4, marginTop: 8, flexWrap: "wrap" }}>
+        <div style={{ display: "flex", gap: 4, marginTop: 8 }}>
           {provider.services.slice(0, 3).map(s => (
             <span key={s.id} style={{
               fontSize: 11, fontWeight: 500, color: "var(--ink-secondary)",
-              background: "rgba(12,12,14,0.04)",
-              border: "1px solid rgba(12,12,14,0.08)",
-              paddingInline: 7, paddingBlock: 3, borderRadius: 5,
-              whiteSpace: "nowrap",
-            }}>
-              {s.name}
-            </span>
+              background: "rgba(12,12,14,0.04)", border: "1px solid rgba(12,12,14,0.08)",
+              paddingInline: 7, paddingBlock: 3, borderRadius: 5, whiteSpace: "nowrap",
+            }}>{s.name}</span>
           ))}
         </div>
 
-        {/* Bottom */}
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: "auto", paddingTop: 10 }}>
-          <div style={{
-            display: "flex", alignItems: "center", gap: 3,
-            fontSize: 11, color: "var(--ink-tertiary)", flex: 1,
-          }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 3, fontSize: 11, color: "var(--ink-tertiary)", flex: 1 }}>
             <Calendar size={10} />
             <span>{nextSlot}</span>
           </div>
           <motion.button
             onClick={e => { e.stopPropagation(); nav(`/booking/${provider.slug}`); }}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.97 }}
+            whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
             style={{
-              height: 30, paddingInline: 14,
-              background: "var(--ink)", color: "#fff",
+              height: 30, paddingInline: 14, background: "var(--ink)", color: "#fff",
               fontSize: 11, fontWeight: 600, letterSpacing: "-0.01em",
-              border: "none", borderRadius: 8, cursor: "pointer",
-              fontFamily: "var(--font)",
+              border: "none", borderRadius: 8, cursor: "pointer", fontFamily: "var(--font)",
             }}
-          >
-            Réserver
-          </motion.button>
+          >Réserver</motion.button>
         </div>
       </div>
     </motion.article>
@@ -297,11 +247,9 @@ function ResultCardList({
 }
 
 /* ─────────────────────────────────────────────
-   ResultCard — Grid view
+   ResultCard — Grid
 ───────────────────────────────────────────── */
-function ResultCardGrid({
-  provider, isSelected, onHover, onLeave, index,
-}: {
+function ResultCardGrid({ provider, isSelected, onHover, onLeave, index }: {
   provider: Provider; isSelected: boolean;
   onHover: () => void; onLeave: () => void; index: number;
 }) {
@@ -338,7 +286,7 @@ function ResultCardGrid({
           style={{
             width: "100%", height: "100%", objectFit: "cover", display: "block",
             transform: hov ? "scale(1.05)" : "scale(1)",
-            transition: "transform 420ms cubic-bezier(0.16, 1, 0.3, 1)",
+            transition: "transform 420ms cubic-bezier(0.16,1,0.3,1)",
           }}
         />
         <div style={{
@@ -348,23 +296,19 @@ function ResultCardGrid({
         }} />
         {provider.isPopular && (
           <span style={{
-            position: "absolute", top: 10, left: 10,
-            height: 18, paddingInline: 7, display: "inline-flex", alignItems: "center",
+            position: "absolute", top: 10, left: 10, height: 18, paddingInline: 7,
+            display: "inline-flex", alignItems: "center",
             background: "#fff", borderRadius: 9999,
             fontSize: 9, fontWeight: 700, color: "var(--ink)",
             letterSpacing: "0.06em", textTransform: "uppercase",
-          }}>
-            Top
-          </span>
+          }}>Top</span>
         )}
         <div style={{ position: "absolute", bottom: 10, left: 10, right: 10 }}>
           <p style={{
             fontSize: 14, fontWeight: 600, color: "#fff",
             letterSpacing: "-0.015em", margin: 0, lineHeight: 1.2,
             overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-          }}>
-            {provider.name}
-          </p>
+          }}>{provider.name}</p>
           <div style={{ display: "flex", alignItems: "center", gap: 5, marginTop: 3 }}>
             <Stars rating={provider.rating} />
             <span style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.9)" }}>{provider.rating}</span>
@@ -372,20 +316,10 @@ function ResultCardGrid({
           </div>
         </div>
       </div>
-
       <div style={{ padding: "12px 14px", flex: 1, display: "flex", flexDirection: "column", gap: 8 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <span style={{
-            fontSize: 10, fontWeight: 600, color: "var(--ink-tertiary)",
-            letterSpacing: "0.05em", textTransform: "uppercase",
-          }}>
-            {catLabel}
-          </span>
-          {minPrice != null && (
-            <span style={{ fontSize: 12, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.01em" }}>
-              dès {minPrice} MAD
-            </span>
-          )}
+          <span style={{ fontSize: 10, fontWeight: 600, color: "var(--ink-tertiary)", letterSpacing: "0.05em", textTransform: "uppercase" }}>{catLabel}</span>
+          {minPrice != null && <span style={{ fontSize: 12, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.01em" }}>dès {minPrice} MAD</span>}
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
           <MapPin size={10} color="var(--ink-tertiary)" />
@@ -393,23 +327,17 @@ function ResultCardGrid({
         </div>
         <div style={{ marginTop: "auto", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 3, fontSize: 11, color: "var(--ink-tertiary)" }}>
-            <Calendar size={10} />
-            <span>{nextSlot}</span>
+            <Calendar size={10} /><span>{nextSlot}</span>
           </div>
           <motion.button
             onClick={e => { e.stopPropagation(); nav(`/booking/${provider.slug}`); }}
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.97 }}
+            whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
             style={{
-              height: 28, paddingInline: 12,
-              background: "var(--ink)", color: "#fff",
-              fontSize: 11, fontWeight: 600,
-              border: "none", borderRadius: 7, cursor: "pointer",
-              fontFamily: "var(--font)",
+              height: 28, paddingInline: 12, background: "var(--ink)", color: "#fff",
+              fontSize: 11, fontWeight: 600, border: "none", borderRadius: 7,
+              cursor: "pointer", fontFamily: "var(--font)",
             }}
-          >
-            Réserver
-          </motion.button>
+          >Réserver</motion.button>
         </div>
       </div>
     </motion.article>
@@ -417,7 +345,7 @@ function ResultCardGrid({
 }
 
 /* ─────────────────────────────────────────────
-   Skeleton
+   Skeletons
 ───────────────────────────────────────────── */
 function SkeletonList() {
   return (
@@ -435,7 +363,6 @@ function SkeletonList() {
     </div>
   );
 }
-
 function SkeletonGrid() {
   return (
     <div style={{ borderRadius: 14, border: "1px solid rgba(12,12,14,0.08)", overflow: "hidden" }}>
@@ -443,7 +370,6 @@ function SkeletonGrid() {
       <div style={{ padding: "12px 14px", display: "flex", flexDirection: "column", gap: 8 }}>
         <div className="skeleton" style={{ width: "48%", height: 10, borderRadius: 4 }} />
         <div className="skeleton" style={{ width: "66%", height: 10, borderRadius: 4 }} />
-        <div className="skeleton" style={{ width: "36%", height: 10, borderRadius: 4 }} />
       </div>
     </div>
   );
@@ -462,7 +388,7 @@ function Pagination({ page, total, onPage }: { page: number; total: number; onPa
     justifyContent: "center", gap: 4, transition: "all 0.15s ease",
     fontFamily: "var(--font)", letterSpacing: "-0.01em",
   };
-  const active: React.CSSProperties = { ...base, background: "var(--ink)", borderColor: "var(--ink)", color: "#fff", fontWeight: 600 };
+  const act: React.CSSProperties = { ...base, background: "var(--ink)", borderColor: "var(--ink)", color: "#fff", fontWeight: 600 };
   const dis: React.CSSProperties = { ...base, opacity: 0.3, cursor: "not-allowed" };
 
   const pages: (number | "…")[] = [];
@@ -477,19 +403,13 @@ function Pagination({ page, total, onPage }: { page: number; total: number; onPa
 
   return (
     <nav style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 4, padding: "24px 0 8px" }}>
-      <button disabled={page === 1} onClick={() => onPage(page - 1)} style={page === 1 ? dis : base}>
-        <ChevronLeft size={13} />
-      </button>
+      <button disabled={page === 1} onClick={() => onPage(page - 1)} style={page === 1 ? dis : base}><ChevronLeft size={13} /></button>
       {pages.map((p, i) =>
-        p === "…" ? (
-          <span key={`e${i}`} style={{ ...base, border: "none", background: "transparent", cursor: "default", color: "var(--ink-tertiary)" }}>…</span>
-        ) : (
-          <button key={p} onClick={() => onPage(p as number)} style={p === page ? active : base}>{p}</button>
-        )
+        p === "…"
+          ? <span key={`e${i}`} style={{ ...base, border: "none", background: "transparent", cursor: "default", color: "var(--ink-tertiary)" }}>…</span>
+          : <button key={p} onClick={() => onPage(p as number)} style={p === page ? act : base}>{p}</button>
       )}
-      <button disabled={page === total} onClick={() => onPage(page + 1)} style={page === total ? dis : base}>
-        <ChevronRight size={13} />
-      </button>
+      <button disabled={page === total} onClick={() => onPage(page + 1)} style={page === total ? dis : base}><ChevronRight size={13} /></button>
     </nav>
   );
 }
@@ -504,41 +424,28 @@ function EmptyState({ onReset }: { onReset: () => void }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
       style={{
-        display: "flex", flexDirection: "column",
-        alignItems: "center", justifyContent: "center",
-        textAlign: "center", paddingBlock: 80, paddingInline: 24,
+        display: "flex", flexDirection: "column", alignItems: "center",
+        justifyContent: "center", textAlign: "center", paddingBlock: 80, paddingInline: 24,
       }}
     >
       <div style={{
         width: 52, height: 52, borderRadius: 14,
         background: "rgba(12,12,14,0.04)",
-        display: "flex", alignItems: "center", justifyContent: "center",
-        marginBottom: 18,
+        display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 18,
       }}>
         <Compass size={22} color="var(--ink-tertiary)" strokeWidth={1.5} />
       </div>
-      <h3 style={{
-        fontSize: 17, fontWeight: 600, color: "var(--ink)",
-        letterSpacing: "-0.02em", margin: "0 0 8px",
-      }}>
+      <h3 style={{ fontSize: 17, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.02em", margin: "0 0 8px" }}>
         Aucun résultat
       </h3>
-      <p style={{
-        fontSize: 13, color: "var(--ink-tertiary)",
-        maxWidth: 280, margin: "0 0 22px", lineHeight: 1.55,
-      }}>
+      <p style={{ fontSize: 13, color: "var(--ink-tertiary)", maxWidth: 280, margin: "0 0 22px", lineHeight: 1.55 }}>
         Essayez d'élargir la recherche ou de modifier les filtres.
       </p>
-      <button
-        onClick={onReset}
-        style={{
-          height: 36, paddingInline: 20,
-          background: "var(--ink)", color: "#fff",
-          fontSize: 12, fontWeight: 600, letterSpacing: "-0.01em",
-          border: "none", borderRadius: 9, cursor: "pointer",
-          fontFamily: "var(--font)",
-        }}
-      >
+      <button onClick={onReset} style={{
+        height: 36, paddingInline: 20, background: "var(--ink)", color: "#fff",
+        fontSize: 12, fontWeight: 600, letterSpacing: "-0.01em",
+        border: "none", borderRadius: 9, cursor: "pointer", fontFamily: "var(--font)",
+      }}>
         Réinitialiser les filtres
       </button>
     </motion.div>
@@ -562,30 +469,19 @@ const CATS = [
 
 function CategoryTabs({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   return (
-    <div style={{
-      display: "flex", gap: 6, overflowX: "auto", flexShrink: 0,
-      scrollbarWidth: "none", WebkitOverflowScrolling: "touch" as React.CSSProperties["WebkitOverflowScrolling"],
-    }}>
+    <div style={{ display: "flex", gap: 6, overflowX: "auto", scrollbarWidth: "none" }}>
       {CATS.map(cat => {
         const active = cat.id === value || (cat.id === "" && !value);
         return (
-          <button
-            key={cat.id}
-            onClick={() => onChange(cat.id)}
-            style={{
-              flexShrink: 0, height: 30, paddingInline: 14,
-              borderRadius: 9999,
-              border: `1px solid ${active ? "var(--ink)" : "rgba(12,12,14,0.10)"}`,
-              background: active ? "var(--ink)" : "transparent",
-              color: active ? "#fff" : "var(--ink-secondary)",
-              fontSize: 12, fontWeight: active ? 600 : 500,
-              cursor: "pointer", fontFamily: "var(--font)",
-              transition: "all 160ms ease", letterSpacing: "-0.01em",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {cat.label}
-          </button>
+          <button key={cat.id} onClick={() => onChange(cat.id)} style={{
+            flexShrink: 0, height: 30, paddingInline: 14, borderRadius: 9999,
+            border: `1px solid ${active ? "var(--ink)" : "rgba(12,12,14,0.10)"}`,
+            background: active ? "var(--ink)" : "transparent",
+            color: active ? "#fff" : "var(--ink-secondary)",
+            fontSize: 12, fontWeight: active ? 600 : 500,
+            cursor: "pointer", fontFamily: "var(--font)",
+            transition: "all 160ms ease", letterSpacing: "-0.01em", whiteSpace: "nowrap",
+          }}>{cat.label}</button>
         );
       })}
     </div>
@@ -593,7 +489,7 @@ function CategoryTabs({ value, onChange }: { value: string; onChange: (v: string
 }
 
 /* ─────────────────────────────────────────────
-   Map view (shared mobile / desktop)
+   Map view — with satellite toggle
 ───────────────────────────────────────────── */
 function MapView({
   providers, selectedId, setSelectedId,
@@ -605,9 +501,34 @@ function MapView({
   defaultCenter: [number, number]; navigate: (path: string) => void;
   instanceKey: string;
 }) {
+  const [satellite, setSatellite] = useState(false);
+
   return (
     <div style={{ width: "100%", height: "100%", position: "relative" }}>
-      {/* Result badge */}
+
+      {/* Satellite toggle — top left */}
+      <button
+        onClick={() => setSatellite(s => !s)}
+        title={satellite ? "Vue plan" : "Vue satellite"}
+        style={{
+          position: "absolute", top: 12, left: 12, zIndex: 800,
+          height: 32, paddingInline: 12,
+          background: satellite ? "rgba(255,255,255,0.96)" : "rgba(12,12,14,0.82)",
+          backdropFilter: "blur(12px)",
+          borderRadius: 9999,
+          border: satellite ? "1px solid rgba(12,12,14,0.12)" : "1px solid rgba(255,255,255,0.14)",
+          display: "flex", alignItems: "center", gap: 6,
+          fontSize: 11, fontWeight: 600,
+          color: satellite ? "var(--ink)" : "#fff",
+          cursor: "pointer", fontFamily: "var(--font)",
+          letterSpacing: "-0.01em", transition: "all 220ms ease",
+        }}
+      >
+        <Layers size={12} />
+        {satellite ? "Plan" : "Satellite"}
+      </button>
+
+      {/* Result count — top right */}
       {providers.length > 0 && (
         <div style={{
           position: "absolute", top: 12, right: 12, zIndex: 800,
@@ -630,50 +551,308 @@ function MapView({
         scrollWheelZoom={true}
       >
         <ZoomControl position="bottomright" />
-        <TileLayer url={CARTO_LIGHT} attribution="© CARTO" />
+        <TileLayer
+          key={satellite ? "sat" : "light"}
+          url={satellite ? TILE_SAT : TILE_LIGHT}
+          attribution={satellite ? "© Esri" : "© CARTO"}
+        />
         <MapFlyTo providers={providers} />
         <UserDot coords={userCoords} />
-        {providers.map(p => {
-          const minPrice = p.minPriceCents != null
-            ? `${Math.round(p.minPriceCents / 100)} MAD`
-            : p.services.length > 0
-              ? `${Math.round(Math.min(...p.services.map(s => s.priceCents)) / 100)} MAD`
-              : undefined;
-          return (
-            <Marker
-              key={p.id}
-              position={[p.latitude!, p.longitude!]}
-              icon={makePin(selectedId === p.id, minPrice)}
-              eventHandlers={{
-                click: () => setSelectedId(selectedId === p.id ? null : p.id),
-                mouseover: () => setSelectedId(p.id),
-                mouseout: () => setSelectedId(null),
-              }}
-            >
-              <Popup closeButton={false} offset={[0, -20]}>
-                <div
-                  onClick={() => navigate(`/${p.slug}`)}
-                  style={{
-                    width: 210, cursor: "pointer",
-                    fontFamily: "var(--font)", borderRadius: 12, overflow: "hidden",
-                  }}
-                >
-                  <img src={p.photos[0]} alt={p.name} style={{ width: "100%", height: 96, objectFit: "cover", display: "block" }} />
-                  <div style={{ padding: "10px 12px" }}>
-                    <p style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)", margin: "0 0 3px", letterSpacing: "-0.01em" }}>{p.name}</p>
-                    <p style={{ fontSize: 11, color: "var(--ink-tertiary)", margin: "0 0 6px" }}>{p.city}</p>
-                    <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                      <Stars rating={p.rating} />
-                      <span style={{ fontSize: 11, fontWeight: 600, color: "var(--ink)" }}>{p.rating}</span>
-                      <span style={{ fontSize: 11, color: "var(--ink-tertiary)" }}>({p.reviewCount})</span>
-                    </div>
+        {providers.map(p => (
+          <Marker
+            key={p.id}
+            position={[p.latitude!, p.longitude!]}
+            icon={makePin(selectedId === p.id)}
+            eventHandlers={{
+              click: () => setSelectedId(selectedId === p.id ? null : p.id),
+              mouseover: () => setSelectedId(p.id),
+              mouseout: () => setSelectedId(null),
+            }}
+          >
+            <Popup closeButton={false} offset={[0, -18]}>
+              <div
+                onClick={() => navigate(`/${p.slug}`)}
+                style={{ width: 210, cursor: "pointer", fontFamily: "var(--font)", borderRadius: 12, overflow: "hidden" }}
+              >
+                <img src={p.photos[0] || "https://images.unsplash.com/photo-1560066984-138dadb4c035?w=400&q=80"} alt={p.name} style={{ width: "100%", height: 96, objectFit: "cover", display: "block" }} />
+                <div style={{ padding: "10px 12px" }}>
+                  <p style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)", margin: "0 0 2px", letterSpacing: "-0.01em" }}>{p.name}</p>
+                  <p style={{ fontSize: 11, color: "var(--ink-tertiary)", margin: "0 0 6px" }}>{p.city}</p>
+                  <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                    <Stars rating={p.rating} />
+                    <span style={{ fontSize: 11, fontWeight: 600, color: "var(--ink)" }}>{p.rating}</span>
+                    <span style={{ fontSize: 11, color: "var(--ink-tertiary)" }}>({p.reviewCount})</span>
                   </div>
+                  {p.minPriceCents != null && (
+                    <p style={{ fontSize: 11, color: "var(--ink-secondary)", margin: "6px 0 0", fontWeight: 500 }}>
+                      Dès {Math.round(p.minPriceCents / 100)} MAD
+                    </p>
+                  )}
                 </div>
-              </Popup>
-            </Marker>
-          );
-        })}
+              </div>
+            </Popup>
+          </Marker>
+        ))}
       </MapContainer>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   EXTRA SECTIONS (below two-column, above footer)
+───────────────────────────────────────────── */
+
+/* Popular cities */
+const POPULAR_CITIES = [
+  { name: "Casablanca",   img: "https://images.unsplash.com/photo-1553603227-2c0a8c8e5f89?w=600&q=80", count: 142 },
+  { name: "Marrakech",   img: "https://images.unsplash.com/photo-1587974928442-77dc3e0dba72?w=600&q=80", count: 98  },
+  { name: "Rabat",       img: "https://images.unsplash.com/photo-1539768942893-daf53e448371?w=600&q=80", count: 76  },
+  { name: "Tanger",      img: "https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=600&q=80", count: 54  },
+  { name: "Agadir",      img: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&q=80", count: 43  },
+  { name: "Fès",         img: "https://images.unsplash.com/photo-1539650116574-75c0c6d73f6e?w=600&q=80", count: 38  },
+];
+
+function CityCard({ city, onClick }: { city: typeof POPULAR_CITIES[0]; onClick: () => void }) {
+  const [hov, setHov] = useState(false);
+  return (
+    <motion.button
+      onClick={onClick}
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
+      whileHover={{ scale: 1.01 }}
+      whileTap={{ scale: 0.98 }}
+      style={{
+        position: "relative", overflow: "hidden",
+        borderRadius: 14, border: "1px solid rgba(12,12,14,0.08)",
+        aspectRatio: "3/2", cursor: "pointer",
+        background: "none", padding: 0, display: "block", width: "100%",
+        flexShrink: 0,
+      }}
+    >
+      <img
+        src={city.img} alt={city.name}
+        style={{
+          width: "100%", height: "100%", objectFit: "cover", display: "block",
+          transform: hov ? "scale(1.05)" : "scale(1)",
+          transition: "transform 500ms cubic-bezier(0.16,1,0.3,1)",
+        }}
+      />
+      <div style={{
+        position: "absolute", inset: 0,
+        background: "linear-gradient(180deg, rgba(10,10,15,0.1) 0%, rgba(10,10,15,0.7) 100%)",
+      }} />
+      <div style={{
+        position: "absolute", bottom: 14, left: 14, right: 14,
+        display: "flex", alignItems: "flex-end", justifyContent: "space-between",
+      }}>
+        <div>
+          <p style={{ fontSize: 15, fontWeight: 600, color: "#fff", margin: 0, letterSpacing: "-0.02em" }}>{city.name}</p>
+          <p style={{ fontSize: 11, color: "rgba(255,255,255,0.72)", margin: "2px 0 0" }}>{city.count} établissements</p>
+        </div>
+        <div style={{
+          width: 28, height: 28, borderRadius: "50%",
+          background: "rgba(255,255,255,0.18)", backdropFilter: "blur(8px)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          opacity: hov ? 1 : 0, transition: "opacity 200ms ease",
+        }}>
+          <ArrowRight size={12} color="#fff" />
+        </div>
+      </div>
+    </motion.button>
+  );
+}
+
+/* Category showcase */
+const CAT_SHOWCASE = [
+  { id: "coiffeur",   label: "Coiffeur",          Icon: Scissors,  bg: "#F0F4FF", color: "#3B5BDB" },
+  { id: "barbier",    label: "Barbier",            Icon: Sparkles,  bg: "#FFF0F6", color: "#C2255C" },
+  { id: "beaute",     label: "Institut beauté",    Icon: Flower2,   bg: "#FFF9DB", color: "#E67700" },
+  { id: "bien-etre",  label: "Bien-être",          Icon: Heart,     bg: "#F3FBF4", color: "#2F9E44" },
+  { id: "manucure",   label: "Manucure",           Icon: Hand,      bg: "#FFF4E6", color: "#D9480F" },
+  { id: "maquillage", label: "Maquillage",         Icon: Smile,     bg: "#F8F0FF", color: "#7048E8" },
+];
+
+function CategoryShowcase({ onSelect }: { onSelect: (id: string) => void }) {
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
+      {CAT_SHOWCASE.map(({ id, label, Icon, bg, color }) => (
+        <motion.button
+          key={id}
+          onClick={() => onSelect(id)}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.97 }}
+          style={{
+            padding: "16px 14px",
+            background: bg, borderRadius: 12,
+            border: "1px solid rgba(12,12,14,0.06)",
+            cursor: "pointer", textAlign: "left",
+            display: "flex", flexDirection: "column", gap: 10,
+          }}
+        >
+          <div style={{
+            width: 36, height: 36, borderRadius: 10,
+            background: "#fff",
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}>
+            <Icon size={16} color={color} strokeWidth={1.5} />
+          </div>
+          <span style={{
+            fontSize: 12, fontWeight: 600, color: "var(--ink)",
+            letterSpacing: "-0.01em", lineHeight: 1.3,
+          }}>{label}</span>
+        </motion.button>
+      ))}
+    </div>
+  );
+}
+
+/* How it works */
+const HOW_STEPS = [
+  { Icon: Search,      title: "Cherchez",      desc: "Entrez une ville, un type de prestation ou un nom de salon." },
+  { Icon: Calendar,    title: "Choisissez",    desc: "Sélectionnez un créneau disponible parmi les horaires proposés." },
+  { Icon: CheckCircle2,title: "Confirmez",    desc: "Recevez votre confirmation instantanée par e-mail ou SMS." },
+];
+
+function HowItWorks() {
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 1 }}>
+      {HOW_STEPS.map(({ Icon, title, desc }, i) => (
+        <div key={i} style={{
+          padding: "32px 28px",
+          borderRight: i < 2 ? "1px solid rgba(12,12,14,0.08)" : "none",
+          display: "flex", flexDirection: "column", gap: 12,
+        }}>
+          <div style={{
+            width: 40, height: 40, borderRadius: 10,
+            background: "rgba(12,12,14,0.04)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}>
+            <Icon size={18} color="var(--ink)" strokeWidth={1.5} />
+          </div>
+          <div>
+            <p style={{
+              fontSize: 15, fontWeight: 600, color: "var(--ink)",
+              letterSpacing: "-0.02em", margin: "0 0 6px",
+            }}>{i + 1}. {title}</p>
+            <p style={{ fontSize: 13, color: "var(--ink-tertiary)", margin: 0, lineHeight: 1.6 }}>{desc}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* Trust bar */
+function TrustBar() {
+  const stats = [
+    { value: "3 400+", label: "Professionnels" },
+    { value: "48 000+", label: "Réservations" },
+    { value: "28",     label: "Villes couvertes" },
+    { value: "4.8 / 5", label: "Note moyenne" },
+  ];
+  return (
+    <div style={{
+      display: "grid", gridTemplateColumns: "repeat(4, 1fr)",
+      borderTop: "1px solid rgba(12,12,14,0.08)",
+      borderBottom: "1px solid rgba(12,12,14,0.08)",
+    }}>
+      {stats.map((s, i) => (
+        <div key={i} style={{
+          padding: "28px 0", textAlign: "center",
+          borderRight: i < 3 ? "1px solid rgba(12,12,14,0.08)" : "none",
+        }}>
+          <p style={{ fontSize: 28, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.03em", margin: 0 }}>{s.value}</p>
+          <p style={{ fontSize: 12, color: "var(--ink-tertiary)", margin: "4px 0 0", letterSpacing: "0.02em" }}>{s.label}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function ExtraSections({ onCitySelect, onCategorySelect }: {
+  onCitySelect: (city: string) => void;
+  onCategorySelect: (cat: string) => void;
+}) {
+  return (
+    <div style={{ background: "#FBFBFC" }}>
+      {/* Trust bar */}
+      <div style={{ background: "#fff" }}>
+        <TrustBar />
+      </div>
+
+      {/* Villes populaires */}
+      <section style={{ padding: "64px 0 0" }}>
+        <div style={{ paddingInline: 24, marginBottom: 24, display: "flex", alignItems: "baseline", justifyContent: "space-between" }}>
+          <div>
+            <h2 style={{ fontSize: 22, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.02em", margin: "0 0 4px" }}>
+              Explorez par ville
+            </h2>
+            <p style={{ fontSize: 13, color: "var(--ink-tertiary)", margin: 0 }}>
+              Les destinations beauté les plus demandées au Maroc
+            </p>
+          </div>
+          <button onClick={() => onCitySelect("")} style={{
+            fontSize: 12, fontWeight: 600, color: "var(--ink-secondary)",
+            background: "none", border: "none", cursor: "pointer",
+            fontFamily: "var(--font)", letterSpacing: "-0.01em",
+            display: "flex", alignItems: "center", gap: 4,
+          }}>
+            Voir tout <ArrowRight size={12} />
+          </button>
+        </div>
+        <div style={{
+          paddingInline: 24,
+          display: "grid",
+          gridTemplateColumns: "repeat(6, 1fr)",
+          gap: 10,
+        }}>
+          {POPULAR_CITIES.map(city => (
+            <CityCard key={city.name} city={city} onClick={() => onCitySelect(city.name)} />
+          ))}
+        </div>
+      </section>
+
+      {/* Two-column: catégories + comment ça marche */}
+      <section style={{ padding: "64px 24px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 40, alignItems: "start" }}>
+          {/* Left: categories */}
+          <div>
+            <h2 style={{ fontSize: 22, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.02em", margin: "0 0 4px" }}>
+              Nos catégories
+            </h2>
+            <p style={{ fontSize: 13, color: "var(--ink-tertiary)", margin: "0 0 20px" }}>
+              Trouvez le professionnel adapté à votre besoin
+            </p>
+            <CategoryShowcase onSelect={onCategorySelect} />
+          </div>
+
+          {/* Right: how it works */}
+          <div>
+            <h2 style={{ fontSize: 22, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.02em", margin: "0 0 4px" }}>
+              Comment ça marche
+            </h2>
+            <p style={{ fontSize: 13, color: "var(--ink-tertiary)", margin: "0 0 0" }}>
+              Réservez en moins de 2 minutes, sans compte
+            </p>
+            <div style={{ borderRadius: 14, border: "1px solid rgba(12,12,14,0.08)", overflow: "hidden", marginTop: 20, background: "#fff" }}>
+              <HowItWorks />
+            </div>
+            {/* Trust icons */}
+            <div style={{ display: "flex", gap: 20, marginTop: 20 }}>
+              {[
+                { Icon: ShieldCheck, label: "Paiement sécurisé" },
+                { Icon: Clock,       label: "Disponible 24h/24" },
+                { Icon: CheckCircle2,label: "Annulation gratuite" },
+              ].map(({ Icon, label }, i) => (
+                <div key={i} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <Icon size={13} color="var(--ink-tertiary)" strokeWidth={1.5} />
+                  <span style={{ fontSize: 12, color: "var(--ink-tertiary)" }}>{label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
@@ -687,7 +866,7 @@ export default function SearchPage() {
   const params = new URLSearchParams(searchString);
   const { isMobile, isLg } = useBreakpoint();
 
-  /* ── filter bar height measurement (for sticky map offset) ── */
+  /* filter bar height for sticky map offset */
   const filterBarRef = useRef<HTMLDivElement>(null);
   const [filterBarH, setFilterBarH] = useState(140);
   useEffect(() => {
@@ -698,7 +877,7 @@ export default function SearchPage() {
     return () => ro.disconnect();
   }, []);
 
-  /* ── State ── */
+  /* State */
   const [q, setQ] = useState(params.get("q") || "");
   const [categoryId, setCategoryId] = useState(params.get("category") || "");
   const [cityId, setCityId] = useState(params.get("city") || "");
@@ -713,7 +892,7 @@ export default function SearchPage() {
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
 
-  /* ── Data ── */
+  /* Data */
   const { data: rawProviders, isLoading: apiLoading } = useQuery({
     queryKey: ["providers", cityId, userCoords?.lat, userCoords?.lng],
     queryFn: () => api.searchProviders({
@@ -739,7 +918,7 @@ export default function SearchPage() {
     setPage(1);
   }, [categoryId, cityId, q]);
 
-  /* ── Derived data ── */
+  /* Derived */
   const adaptedProviders = adaptProviderList(rawProviders ?? []);
   const allResults = useMemo(() => {
     const sq = q.toLowerCase().trim();
@@ -806,19 +985,14 @@ export default function SearchPage() {
     exit: (dir: number) => ({ y: dir > 0 ? -14 : 14, opacity: 0 }),
   };
 
-  /* ──────────────────────────────────────────────
-     FILTER BAR (full-width, sticky under TopBar)
-  ────────────────────────────────────────────── */
+  /* ── Filter bar ── */
   const filterBar = (
     <div
       ref={filterBarRef}
       style={{
-        position: "sticky",
-        top: TOPBAR_H,
-        zIndex: 100,
+        position: "sticky", top: TOPBAR_H, zIndex: 100,
         background: "rgba(251,251,252,0.97)",
-        backdropFilter: "blur(20px)",
-        WebkitBackdropFilter: "blur(20px)",
+        backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
         borderBottom: "1px solid rgba(12,12,14,0.08)",
       }}
     >
@@ -844,55 +1018,40 @@ export default function SearchPage() {
               fontSize: 13, color: "var(--ink)",
               fontFamily: "var(--font)", transition: "border-color 160ms ease, background 160ms ease",
             }}
-            onFocus={e => {
-              e.currentTarget.style.borderColor = "rgba(12,12,14,0.24)";
-              e.currentTarget.style.background = "#fff";
-            }}
-            onBlur={e => {
-              e.currentTarget.style.borderColor = "rgba(12,12,14,0.10)";
-              e.currentTarget.style.background = "rgba(12,12,14,0.04)";
-            }}
+            onFocus={e => { e.currentTarget.style.borderColor = "rgba(12,12,14,0.24)"; e.currentTarget.style.background = "#fff"; }}
+            onBlur={e => { e.currentTarget.style.borderColor = "rgba(12,12,14,0.10)"; e.currentTarget.style.background = "rgba(12,12,14,0.04)"; }}
           />
           {q && (
             <button onClick={() => setQ("")} style={{
               position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)",
-              background: "none", border: "none", cursor: "pointer", color: "var(--ink-tertiary)",
-              display: "flex", alignItems: "center", padding: 2,
+              background: "none", border: "none", cursor: "pointer",
+              color: "var(--ink-tertiary)", display: "flex", alignItems: "center", padding: 2,
             }}>
               <X size={12} />
             </button>
           )}
         </div>
 
-        {/* Divider */}
-        {!isMobile && (
-          <div style={{ width: 1, height: 20, background: "rgba(12,12,14,0.10)", flexShrink: 0 }} />
-        )}
+        {!isMobile && <div style={{ width: 1, height: 20, background: "rgba(12,12,14,0.10)", flexShrink: 0 }} />}
 
-        {/* City */}
         {!isMobile && (
           <div style={{ width: 148, flexShrink: 0 }}>
             <NiceSelect
-              options={CITY_OPTIONS}
-              value={cityId}
+              options={CITY_OPTIONS} value={cityId}
               onChange={v => { setCityId(v); setUserCoords(null); }}
-              placeholder="Ville"
-              searchable
+              placeholder="Ville" searchable
             />
           </div>
         )}
 
-        {/* Sort */}
         {!isMobile && (
           <div style={{ width: 158, flexShrink: 0 }}>
             <NiceSelect options={SORT_OPTIONS} value={sortId} onChange={setSortId} placeholder="Trier par" />
           </div>
         )}
 
-        {/* Spacer */}
         {!isMobile && <div style={{ flex: 1 }} />}
 
-        {/* Mobile filters btn */}
         {isMobile && (
           <button
             onClick={() => setMobileFilterOpen(x => !x)}
@@ -914,9 +1073,8 @@ export default function SearchPage() {
 
         {/* Locate me */}
         <button
-          onClick={handleLocateMe}
-          disabled={geoLoading}
-          title="Résultats près de moi"
+          onClick={handleLocateMe} disabled={geoLoading}
+          title="Près de moi"
           style={{
             flexShrink: 0, width: 36, height: 36,
             border: `1px solid ${userCoords ? "var(--ink)" : "rgba(12,12,14,0.10)"}`,
@@ -926,13 +1084,13 @@ export default function SearchPage() {
             color: userCoords ? "#fff" : "var(--ink-tertiary)",
             transition: "all 160ms ease",
           }}
-          onMouseEnter={e => { if (!userCoords) { e.currentTarget.style.borderColor = "var(--ink)"; } }}
-          onMouseLeave={e => { if (!userCoords) { e.currentTarget.style.borderColor = "rgba(12,12,14,0.10)"; } }}
+          onMouseEnter={e => { if (!userCoords) e.currentTarget.style.borderColor = "var(--ink)"; }}
+          onMouseLeave={e => { if (!userCoords) e.currentTarget.style.borderColor = "rgba(12,12,14,0.10)"; }}
         >
           <LocateFixed size={14} />
         </button>
 
-        {/* View toggle (desktop only) */}
+        {/* View toggle */}
         {!isMobile && (
           <div style={{
             display: "flex", gap: 2,
@@ -940,26 +1098,20 @@ export default function SearchPage() {
             borderRadius: 8, padding: 2, flexShrink: 0,
           }}>
             {([["list", List], ["grid", LayoutGrid]] as const).map(([mode, Icon]) => (
-              <button
-                key={mode}
-                onClick={() => setViewMode(mode)}
-                style={{
-                  width: 30, height: 30, borderRadius: 6,
-                  cursor: "pointer",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  background: viewMode === mode ? "#fff" : "transparent",
-                  color: viewMode === mode ? "var(--ink)" : "var(--ink-tertiary)",
-                  transition: "all 140ms ease",
-                  border: `1px solid ${viewMode === mode ? "rgba(12,12,14,0.10)" : "transparent"}`,
-                }}
-              >
+              <button key={mode} onClick={() => setViewMode(mode)} style={{
+                width: 30, height: 30, borderRadius: 6, cursor: "pointer",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                background: viewMode === mode ? "#fff" : "transparent",
+                color: viewMode === mode ? "var(--ink)" : "var(--ink-tertiary)",
+                transition: "all 140ms ease",
+                border: `1px solid ${viewMode === mode ? "rgba(12,12,14,0.10)" : "transparent"}`,
+              }}>
                 <Icon size={13} />
               </button>
             ))}
           </div>
         )}
 
-        {/* Reset */}
         {hasFilters && !isMobile && (
           <button
             onClick={resetFilters}
@@ -974,8 +1126,7 @@ export default function SearchPage() {
             onMouseEnter={e => { e.currentTarget.style.color = "var(--ink)"; e.currentTarget.style.borderColor = "rgba(12,12,14,0.24)"; }}
             onMouseLeave={e => { e.currentTarget.style.color = "var(--ink-tertiary)"; e.currentTarget.style.borderColor = "rgba(12,12,14,0.10)"; }}
           >
-            <X size={10} />
-            Réinit.
+            <X size={10} />Réinit.
           </button>
         )}
       </div>
@@ -985,22 +1136,21 @@ export default function SearchPage() {
         <CategoryTabs value={categoryId} onChange={v => { setCategoryId(v); setPage(1); }} />
       </div>
 
-      {/* Row 3 — result count + active filter chips */}
+      {/* Row 3 — result count + active chips */}
       <div style={{
         paddingInline: 24, paddingBottom: 10,
         display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap",
       }}>
         <span style={{ fontSize: 12, color: "var(--ink-tertiary)", letterSpacing: "-0.01em", flexShrink: 0 }}>
-          {loading ? (
-            <span className="skeleton" style={{ width: 80, height: 12, borderRadius: 4, display: "inline-block" }} />
-          ) : (
-            <>
-              <strong style={{ color: "var(--ink-secondary)", fontWeight: 600 }}>{allResults.length}</strong>
-              {" "}établissement{allResults.length !== 1 ? "s" : ""}
-              {categoryLabel && <span> · {categoryLabel}</span>}
-              {cityId && <span> à {cityId}</span>}
-            </>
-          )}
+          {loading
+            ? <span className="skeleton" style={{ width: 80, height: 12, borderRadius: 4, display: "inline-block" }} />
+            : <>
+                <strong style={{ color: "var(--ink-secondary)", fontWeight: 600 }}>{allResults.length}</strong>
+                {" "}établissement{allResults.length !== 1 ? "s" : ""}
+                {categoryLabel && <span> · {categoryLabel}</span>}
+                {cityId && <span> à {cityId}</span>}
+              </>
+          }
         </span>
         {categoryId && categoryLabel && (
           <button onClick={() => setCategoryId("")} style={{
@@ -1051,17 +1201,14 @@ export default function SearchPage() {
               <div style={{ display: "flex", gap: 8 }}>
                 <div style={{ flex: 1 }}>
                   <NiceSelect
-                    options={CITY_OPTIONS}
-                    value={cityId}
+                    options={CITY_OPTIONS} value={cityId}
                     onChange={v => { setCityId(v); setUserCoords(null); setMobileFilterOpen(false); }}
-                    placeholder="Ville"
-                    searchable
+                    placeholder="Ville" searchable
                   />
                 </div>
                 <div style={{ flex: 1 }}>
                   <NiceSelect
-                    options={SORT_OPTIONS}
-                    value={sortId}
+                    options={SORT_OPTIONS} value={sortId}
                     onChange={v => { setSortId(v); setMobileFilterOpen(false); }}
                     placeholder="Trier"
                   />
@@ -1089,91 +1236,75 @@ export default function SearchPage() {
     </div>
   );
 
-  /* ──────────────────────────────────────────────
-     RESULTS content
-  ────────────────────────────────────────────── */
+  /* ── Results content ── */
   const resultsContent = (
     <>
       {loading && (
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          {viewMode === "grid" ? (
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-              {Array(6).fill(0).map((_, i) => <SkeletonGrid key={i} />)}
-            </div>
-          ) : (
-            Array(4).fill(0).map((_, i) => <SkeletonList key={i} />)
-          )}
+          {viewMode === "grid"
+            ? <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>{Array(6).fill(0).map((_, i) => <SkeletonGrid key={i} />)}</div>
+            : Array(4).fill(0).map((_, i) => <SkeletonList key={i} />)
+          }
         </div>
       )}
-
       {!loading && results.length > 0 && (
         <AnimatePresence mode="wait" custom={pageDir}>
           <motion.div
             key={`${page}-${viewMode}`}
             custom={pageDir}
             variants={slideVariants}
-            initial="enter"
-            animate="center"
-            exit="exit"
+            initial="enter" animate="center" exit="exit"
             transition={{ duration: 0.18, ease: [0.4, 0, 0.2, 1] }}
-            style={viewMode === "grid" ? {
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
-              gap: 10,
-            } : {
-              display: "flex", flexDirection: "column", gap: 8,
-            }}
+            style={viewMode === "grid"
+              ? { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 10 }
+              : { display: "flex", flexDirection: "column", gap: 8 }
+            }
           >
             {results.map((p, i) =>
-              viewMode === "grid" ? (
-                <ResultCardGrid key={p.id} provider={p} isSelected={selectedId === p.id}
-                  onHover={() => setSelectedId(p.id)} onLeave={() => setSelectedId(null)} index={i} />
-              ) : (
-                <ResultCardList key={p.id} provider={p} isSelected={selectedId === p.id}
-                  onHover={() => setSelectedId(p.id)} onLeave={() => setSelectedId(null)} index={i} />
-              )
+              viewMode === "grid"
+                ? <ResultCardGrid key={p.id} provider={p} isSelected={selectedId === p.id}
+                    onHover={() => setSelectedId(p.id)} onLeave={() => setSelectedId(null)} index={i} />
+                : <ResultCardList key={p.id} provider={p} isSelected={selectedId === p.id}
+                    onHover={() => setSelectedId(p.id)} onLeave={() => setSelectedId(null)} index={i} />
             )}
           </motion.div>
         </AnimatePresence>
       )}
-
       {!loading && results.length === 0 && <EmptyState onReset={resetFilters} />}
-
-      {!loading && totalPages > 1 && (
-        <Pagination page={page} total={totalPages} onPage={goPage} />
-      )}
+      {!loading && totalPages > 1 && <Pagination page={page} total={totalPages} onPage={goPage} />}
     </>
   );
 
-  /* ══════════════════════════════════════════════
-     MOBILE LAYOUT
-  ══════════════════════════════════════════════ */
+  /* ════════════════════════
+     MOBILE
+  ════════════════════════ */
   if (isMobile) {
     return (
       <div style={{ minHeight: "100dvh", background: "var(--canvas)", display: "flex", flexDirection: "column" }}>
         <TopBar />
         {filterBar}
-
-        {/* Results */}
         <div style={{ flex: 1, padding: "12px 20px 100px" }}>
           {resultsContent}
         </div>
+        {/* Extra sections */}
+        <div style={{ paddingInline: 20 }}>
+          <ExtraSections
+            onCitySelect={city => { setCityId(city); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+            onCategorySelect={cat => { setCategoryId(cat); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+          />
+        </div>
 
-        {/* Bottom sheet map */}
+        {/* Mobile map bottom sheet */}
         <AnimatePresence>
           {mobileMapOpen && (
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               transition={{ duration: 0.18 }}
               style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(0,0,0,0.48)" }}
               onClick={() => setMobileMapOpen(false)}
             >
               <motion.div
-                initial={{ y: "100%" }}
-                animate={{ y: 0 }}
-                exit={{ y: "100%" }}
+                initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
                 transition={{ type: "spring", stiffness: 380, damping: 38 }}
                 onClick={e => e.stopPropagation()}
                 style={{
@@ -1184,18 +1315,15 @@ export default function SearchPage() {
               >
                 <div style={{
                   position: "absolute", top: 10, left: "50%", transform: "translateX(-50%)",
-                  zIndex: 10, width: 36, height: 4, borderRadius: 9999,
-                  background: "rgba(12,12,14,0.12)",
+                  zIndex: 10, width: 36, height: 4, borderRadius: 9999, background: "rgba(12,12,14,0.12)",
                 }} />
                 <button
                   onClick={() => setMobileMapOpen(false)}
                   style={{
                     position: "absolute", top: 12, right: 12, zIndex: 801,
                     width: 32, height: 32, borderRadius: "50%",
-                    background: "rgba(255,255,255,0.96)",
-                    border: "1px solid rgba(12,12,14,0.10)",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    cursor: "pointer",
+                    background: "rgba(255,255,255,0.96)", border: "1px solid rgba(12,12,14,0.10)",
+                    display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer",
                   }}
                 >
                   <X size={13} color="var(--ink)" />
@@ -1210,14 +1338,11 @@ export default function SearchPage() {
           )}
         </AnimatePresence>
 
-        {/* Floating Voir la carte */}
         <motion.button
           onClick={() => setMobileMapOpen(true)}
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
+          initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.35, duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
-          whileHover={{ scale: 1.04 }}
-          whileTap={{ scale: 0.96 }}
+          whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
           style={{
             position: "fixed", bottom: 24, left: "50%", transform: "translateX(-50%)",
             zIndex: 150, height: 44, paddingInline: 22,
@@ -1234,9 +1359,7 @@ export default function SearchPage() {
             <span style={{
               background: "rgba(255,255,255,0.2)", borderRadius: 9999,
               paddingInline: 6, paddingBlock: 2, fontSize: 11, fontWeight: 700,
-            }}>
-              {mapProviders.length}
-            </span>
+            }}>{mapProviders.length}</span>
           )}
         </motion.button>
 
@@ -1245,17 +1368,9 @@ export default function SearchPage() {
     );
   }
 
-  /* ══════════════════════════════════════════════
-     DESKTOP LAYOUT
-     ─────────────────────────────────────────────
-     Structure :
-       TopBar (sticky, top: 0, full width)
-       FilterBar (sticky, top: 56px, full width)   ← ref measured
-       Two-column flex:
-         Left — results (scrollable naturally)
-         Right — map (sticky, top: 56 + filterBarH)
-       Footer (full width)
-  ══════════════════════════════════════════════ */
+  /* ════════════════════════
+     DESKTOP
+  ════════════════════════ */
   const mapStickyTop = TOPBAR_H + filterBarH;
   const mapHeight = `calc(100vh - ${mapStickyTop}px)`;
   const listWidth = isLg ? 640 : 500;
@@ -1265,34 +1380,18 @@ export default function SearchPage() {
       {/* ① TopBar */}
       <TopBar />
 
-      {/* ② Filter bar — full width, sticky under TopBar */}
+      {/* ② Full-width filter bar */}
       {filterBar}
 
-      {/* ③ Two-column content */}
+      {/* ③ Two-column */}
       <div style={{ display: "flex", alignItems: "flex-start" }}>
-
-        {/* LEFT — Results list */}
-        <div
-          style={{
-            width: listWidth,
-            flexShrink: 0,
-            padding: "16px 20px 48px",
-            borderRight: "1px solid rgba(12,12,14,0.06)",
-          }}
-        >
+        {/* Left — results */}
+        <div style={{ width: listWidth, flexShrink: 0, padding: "16px 20px 48px", borderRight: "1px solid rgba(12,12,14,0.06)" }}>
           {resultsContent}
         </div>
 
-        {/* RIGHT — Sticky map */}
-        <div
-          style={{
-            flex: 1,
-            position: "sticky",
-            top: mapStickyTop,
-            height: mapHeight,
-            overflow: "hidden",
-          }}
-        >
+        {/* Right — sticky map */}
+        <div style={{ flex: 1, position: "sticky", top: mapStickyTop, height: mapHeight, overflow: "hidden" }}>
           <MapView
             providers={mapProviders} selectedId={selectedId} setSelectedId={setSelectedId}
             userCoords={userCoords} defaultCenter={defaultCenter}
@@ -1301,7 +1400,19 @@ export default function SearchPage() {
         </div>
       </div>
 
-      {/* ④ Footer */}
+      {/* ④ Extra sections */}
+      <ExtraSections
+        onCitySelect={city => {
+          setCityId(city); setPage(1);
+          window.scrollTo({ top: TOPBAR_H + filterBarH, behavior: "smooth" });
+        }}
+        onCategorySelect={cat => {
+          setCategoryId(cat); setPage(1);
+          window.scrollTo({ top: TOPBAR_H + filterBarH, behavior: "smooth" });
+        }}
+      />
+
+      {/* ⑤ Footer */}
       <Footer />
     </div>
   );
