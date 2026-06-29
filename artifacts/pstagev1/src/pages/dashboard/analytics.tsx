@@ -84,8 +84,8 @@ function KpiCard({
           <span style={{
             display: "flex", alignItems: "center", gap: 3,
             fontSize: 11, fontWeight: 600,
-            color: positive ? "var(--success)" : "var(--error)",
-            backgroundColor: positive ? "var(--success-bg)" : "var(--error-bg)",
+            color:           positive ? "#166534" : "#9B1239",
+            backgroundColor: positive ? "#DCFCE7"  : "#FCE7F0",
             padding: "3px 8px", borderRadius: 20,
           }}>
             {positive ? <ArrowUpRight size={11} /> : <ArrowDownRight size={11} />}{delta}
