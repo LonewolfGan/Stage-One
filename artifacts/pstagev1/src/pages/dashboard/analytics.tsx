@@ -41,6 +41,14 @@ const MOCK_SERVICES = [
   { name: "Épilation",        count: 16, color: "#B0B3B8", max: 48 },
 ];
 
+/* Staff performance — mock for Phase 1 */
+const MOCK_STAFF_PERF = [
+  { name: "Yasmine B.",  role: "Coiffure",   bookings: 38, revenueCents: 1_140_000 },
+  { name: "Karim L.",    role: "Coupe homme", bookings: 29, revenueCents:   754_000 },
+  { name: "Sara M.",     role: "Manucure",   bookings: 21, revenueCents:   504_000 },
+  { name: "Nadia R.",    role: "Esthétique", bookings: 12, revenueCents:   288_000 },
+];
+
 const tooltipStyle = {
   borderRadius: 8,
   border: "1px solid var(--hairline)",
@@ -496,26 +504,117 @@ export default function AnalyticsPage() {
           </div>
         </motion.div>
 
-        {/* Stat widgets — harmonized */}
+        {/* Staff performance leaderboard */}
         <motion.div
+          className="ds-card"
           initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.34, duration: 0.4, ease: [0, 0, 0.2, 1] }}
-          style={{ display: "flex", flexDirection: "column", gap: 10 }}
+          style={{ overflow: "hidden" }}
         >
-          <StatWidget label="CA aujourd'hui" value="1 080 MAD" sub="+12% vs hier" dark />
-          <StatWidget label="RDV aujourd'hui" value={`${totalBookings || 8}`} sub="sur 12 créneaux" />
-          <div className="ds-card" style={{ padding: "14px 18px", flex: 1 }}>
-            <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.03em", textTransform: "uppercase", color: "var(--ink-tertiary)", margin: "0 0 6px" }}>
-              Solde total
-            </p>
-            <p style={{ fontSize: 22, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.02em", margin: 0 }}>
-              {revenueMad.toLocaleString("fr-MA")} MAD
-            </p>
-            <div style={{ display: "flex", alignItems: "center", gap: 5, marginTop: 6 }}>
-              <ArrowUpRight size={12} color="var(--success)" />
-              <span style={{ fontSize: 11, color: "var(--success)", fontWeight: 500 }}>En hausse ce mois</span>
+          {/* Header */}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 4 }}>
+            <div>
+              <h2 style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.01em", margin: 0 }}>
+                Performance équipe
+              </h2>
+              <p style={{ fontSize: 12, color: "var(--ink-tertiary)", margin: "3px 0 0" }}>Ce mois — par RDV</p>
             </div>
+            <span style={{
+              fontSize: 11, fontWeight: 600, color: "var(--ink-secondary)",
+              backgroundColor: "var(--surface-2)",
+              border: "1px solid var(--hairline)",
+              borderRadius: 6, padding: "3px 8px",
+              fontVariantNumeric: "tabular-nums", letterSpacing: "-0.01em",
+              flexShrink: 0,
+            }}>
+              {MOCK_STAFF_PERF.reduce((s, x) => s + x.bookings, 0)} RDV
+            </span>
           </div>
+
+          {/* Ranked rows */}
+          <div style={{ marginTop: 8 }}>
+            {MOCK_STAFF_PERF.map((member, i) => {
+              const maxBookings = MOCK_STAFF_PERF[0].bookings;
+              const total       = MOCK_STAFF_PERF.reduce((s, x) => s + x.bookings, 0);
+              return (
+                <motion.div
+                  key={member.name}
+                  initial={{ opacity: 0, x: -12 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.38 + i * 0.07, duration: 0.38, ease: [0, 0, 0.2, 1] }}
+                  style={{
+                    paddingBlock: 10,
+                    borderBottom: i < MOCK_STAFF_PERF.length - 1 ? "1px solid var(--hairline)" : "none",
+                    backgroundColor: i === 0 ? "rgba(212,70,110,0.035)" : "transparent",
+                    marginInline: i === 0 ? -20 : 0,
+                    paddingInline: i === 0 ? 20 : 0,
+                  }}
+                >
+                  {/* Top line */}
+                  <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 6 }}>
+                    <span style={{
+                      fontSize: 10, fontWeight: 600, letterSpacing: "0.05em",
+                      color: i === 0 ? "var(--accent)" : "var(--ink-disabled)",
+                      fontVariantNumeric: "tabular-nums",
+                      minWidth: 18, flexShrink: 0,
+                    }}>
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                    <span style={{
+                      fontSize: 13, fontWeight: 500, color: "var(--ink)",
+                      letterSpacing: "-0.01em", flex: 1,
+                    }}>
+                      {member.name}
+                    </span>
+                    <span style={{
+                      fontSize: 14, fontWeight: 600, color: "var(--ink)",
+                      letterSpacing: "-0.02em", fontVariantNumeric: "tabular-nums",
+                    }}>
+                      {member.bookings}
+                    </span>
+                    <span style={{
+                      fontSize: 10, color: "var(--ink-tertiary)",
+                      fontVariantNumeric: "tabular-nums", minWidth: 26, textAlign: "right",
+                    }}>
+                      {Math.round((member.bookings / total) * 100)}%
+                    </span>
+                  </div>
+                  {/* Role + bar */}
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, paddingLeft: 26 }}>
+                    <span style={{ fontSize: 11, color: "var(--ink-tertiary)", flexShrink: 0 }}>
+                      {member.role}
+                    </span>
+                    <div style={{ flex: 1, height: 3, backgroundColor: "var(--surface-3)", borderRadius: 2, overflow: "hidden" }}>
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${(member.bookings / maxBookings) * 100}%` }}
+                        transition={{ delay: 0.56 + i * 0.07, duration: 0.72, ease: [0.4, 0, 0.2, 1] }}
+                        style={{
+                          height: "100%", borderRadius: 2,
+                          backgroundColor: BAR_COLORS[i] ?? "#8A8D93",
+                        }}
+                      />
+                    </div>
+                    <span style={{
+                      fontSize: 10, color: "var(--ink-disabled)",
+                      fontVariantNumeric: "tabular-nums", flexShrink: 0, textAlign: "right",
+                    }}>
+                      {Math.round(member.revenueCents / 100).toLocaleString("fr-MA")} MAD
+                    </span>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+
+          {/* Footer */}
+          <p style={{
+            fontSize: 11, color: "var(--ink-disabled)",
+            margin: "10px 0 0", textAlign: "right",
+            letterSpacing: "0.01em",
+          }}>
+            {MOCK_STAFF_PERF.length} membres actifs
+          </p>
         </motion.div>
       </div>
     </DashboardLayout>
