@@ -139,24 +139,20 @@ function BookingPopup({
         top:             position.top,
         left,
         width:           POPUP_W,
-        backgroundColor: "#ffffff",
-        borderRadius:    12,
-        boxShadow:       "0 4px 6px -1px rgba(0,0,0,0.10), 0 16px 40px -4px rgba(0,0,0,0.18)",
+        backgroundColor: "#0E0E12",
+        borderRadius:    10,
         overflow:        "hidden",
         zIndex:          300,
         pointerEvents:   "none",
       }}
     >
-      {/* Color band at top */}
-      <div style={{ height: 4, backgroundColor: color }} />
-
       {/* Content */}
       <div style={{ padding: "12px 14px 14px" }}>
         {/* Service name */}
         <p style={{
           fontSize:      13,
           fontWeight:    600,
-          color:         "#0C0C0E",
+          color:         "#FFFFFF",
           margin:        "0 0 8px",
           lineHeight:    1.3,
           letterSpacing: "-0.01em",
@@ -165,7 +161,7 @@ function BookingPopup({
         </p>
 
         {/* Divider */}
-        <div style={{ height: 1, backgroundColor: "rgba(12,12,14,0.08)", margin: "0 0 8px" }} />
+        <div style={{ height: 1, backgroundColor: "rgba(255,255,255,0.10)", margin: "0 0 8px" }} />
 
         {/* Time */}
         <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 5 }}>
@@ -177,12 +173,12 @@ function BookingPopup({
             backgroundColor: color,
             flexShrink:      0,
           }} />
-          <span style={{ fontSize: 12, fontWeight: 600, color: "#0C0C0E", letterSpacing: "-0.01em" }}>
+          <span style={{ fontSize: 12, fontWeight: 600, color: "#FFFFFF", letterSpacing: "-0.01em" }}>
             {timeLabel}
           </span>
           <span style={{
             fontSize:        11,
-            color:           "rgba(12,12,14,0.45)",
+            color:           "rgba(255,255,255,0.40)",
             fontWeight:      500,
             marginLeft:      "auto",
           }}>
@@ -198,10 +194,10 @@ function BookingPopup({
               width:           6,
               height:          6,
               borderRadius:    "50%",
-              backgroundColor: "rgba(12,12,14,0.20)",
+              backgroundColor: "rgba(255,255,255,0.20)",
               flexShrink:      0,
             }} />
-            <span style={{ fontSize: 12, fontWeight: 500, color: "rgba(12,12,14,0.65)" }}>
+            <span style={{ fontSize: 12, fontWeight: 500, color: "rgba(255,255,255,0.55)" }}>
               {client}
             </span>
           </div>
