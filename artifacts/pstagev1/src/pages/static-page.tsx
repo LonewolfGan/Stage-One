@@ -95,23 +95,20 @@ export default function StaticPage() {
             </p>
           </div>
 
-          <Link href="/" style={{ textDecoration: "none" }}>
-            <span
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 6,
-                fontSize: 14,
-                fontWeight: 500,
-                color: "var(--ink-secondary)",
-                transition: "color 140ms ease",
-              }}
-              onMouseEnter={e => { (e.currentTarget as HTMLSpanElement).style.color = "var(--ink)"; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLSpanElement).style.color = "var(--ink-secondary)"; }}
-            >
-              <ArrowLeft size={15} />
-              Retour à l'accueil
-            </span>
+          <Link
+            href="/"
+            style={{
+              display: "inline-flex", alignItems: "center", gap: 6,
+              fontSize: 13, color: "#fff", textDecoration: "none",
+              background: "var(--ink)", borderRadius: 8, padding: "8px 14px",
+              fontWeight: 500, letterSpacing: "-0.01em",
+              transition: "opacity 140ms ease",
+            }}
+            onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.opacity = "0.82"; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.opacity = "1"; }}
+          >
+            <ArrowLeft size={14} />
+            Retour à l&apos;accueil
           </Link>
         </div>
       </main>

@@ -116,28 +116,23 @@ export default function NotFoundPage() {
               whileTap={{ scale: 0.97 }}
               style={{
                 height: 40,
-                paddingInline: 24,
-                background: "var(--accent)",
+                paddingInline: 20,
+                background: "var(--ink)",
                 color: "#fff",
                 fontSize: 13,
-                fontWeight: 600,
+                fontWeight: 500,
                 letterSpacing: "-0.01em",
                 border: "none",
-                borderRadius: 10,
+                borderRadius: 8,
                 cursor: "pointer",
                 fontFamily: "var(--font)",
-                transition: "background 140ms ease",
+                transition: "opacity 140ms ease",
+                display: "inline-flex", alignItems: "center", gap: 6,
               }}
-              onMouseEnter={e =>
-                ((e.currentTarget as HTMLButtonElement).style.background =
-                  "var(--accent-hover)")
-              }
-              onMouseLeave={e =>
-                ((e.currentTarget as HTMLButtonElement).style.background =
-                  "var(--accent)")
-              }
+              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.opacity = "0.82"; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.opacity = "1"; }}
             >
-              Retour à l'accueil
+              Retour à l&apos;accueil
             </motion.button>
 
             <motion.button

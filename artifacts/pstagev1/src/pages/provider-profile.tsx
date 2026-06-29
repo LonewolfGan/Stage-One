@@ -480,30 +480,31 @@ export default function ProviderProfilePage() {
       <main style={{ flex: 1 }}>
 
         {/* ── Hero ── */}
-        <div style={{ padding: "20px 48px 0" }}>
+        <div style={{ maxWidth: 1280, margin: "0 auto", padding: "20px 48px 0" }}>
           <HeroGallery photos={provider.photos} providerName={provider.name} />
         </div>
 
         {/* ── Content wrapper ── */}
-        <div style={{ width: "100%", padding: "0 48px" }}>
+        <div style={{ maxWidth: 1280, margin: "0 auto", padding: "0 48px" }}>
 
           {/* ── Breadcrumb + title ── */}
           <div style={{ paddingTop: 28, paddingBottom: 32, borderBottom: "1px solid var(--hairline)" }}>
 
-            {/* Back link */}
+            {/* Back button */}
             <button
               onClick={() => setLocation("/search")}
               style={{
-                display: "inline-flex", alignItems: "center", gap: 4,
-                fontSize: 12, color: "var(--ink-tertiary)",
-                background: "none", border: "none", cursor: "pointer",
-                padding: 0, marginBottom: 14, fontFamily: "var(--font)",
-                transition: "color 140ms",
+                display: "inline-flex", alignItems: "center", gap: 6,
+                fontSize: 13, color: "#fff",
+                background: "var(--ink)", border: "none", cursor: "pointer",
+                padding: "8px 14px", marginBottom: 20, fontFamily: "var(--font)",
+                borderRadius: 8, fontWeight: 500, letterSpacing: "-0.01em",
+                transition: "opacity 140ms",
               }}
-              onMouseEnter={e => { e.currentTarget.style.color = "var(--ink)"; }}
-              onMouseLeave={e => { e.currentTarget.style.color = "var(--ink-tertiary)"; }}
+              onMouseEnter={e => { e.currentTarget.style.opacity = "0.82"; }}
+              onMouseLeave={e => { e.currentTarget.style.opacity = "1"; }}
             >
-              <ChevronLeft size={13} />
+              <ChevronLeft size={14} />
               Retour aux résultats
             </button>
 

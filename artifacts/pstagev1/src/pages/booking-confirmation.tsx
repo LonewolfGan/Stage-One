@@ -25,7 +25,12 @@ export default function BookingConfirmationPage() {
         <TopBar />
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "60vh", gap: 12 }}>
           <p style={{ fontSize: 15, color: "var(--ink-tertiary)" }}>Réservation introuvable.</p>
-          <Link href="/" style={{ color: "var(--ink)", fontSize: 13 }}>Retour à l'accueil</Link>
+          <Link href="/" style={{
+            display: "inline-flex", alignItems: "center", gap: 6,
+            fontSize: 13, color: "#fff", textDecoration: "none",
+            background: "var(--ink)", borderRadius: 8, padding: "8px 14px",
+            fontWeight: 500, letterSpacing: "-0.01em",
+          }}>Retour à l&apos;accueil</Link>
         </div>
       </div>
     );
@@ -48,7 +53,12 @@ export default function BookingConfirmationPage() {
         <TopBar />
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "60vh", gap: 12 }}>
           <p style={{ fontSize: 15, color: "var(--ink-tertiary)" }}>Impossible de charger les détails de la réservation.</p>
-          <Link href="/" style={{ color: "var(--ink)", fontSize: 13 }}>Retour à l'accueil</Link>
+          <Link href="/" style={{
+            display: "inline-flex", alignItems: "center", gap: 6,
+            fontSize: 13, color: "#fff", textDecoration: "none",
+            background: "var(--ink)", borderRadius: 8, padding: "8px 14px",
+            fontWeight: 500, letterSpacing: "-0.01em",
+          }}>Retour à l&apos;accueil</Link>
         </div>
       </div>
     );

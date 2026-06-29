@@ -370,9 +370,16 @@ export default function BookingPage() {
           <div style={{ gridColumn: isLg ? "1 / 9" : "1", display: "flex", flexDirection: "column", gap: 16 }}>
             <Link
               href={`/${provider.slug}`}
-              style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 13, color: "var(--ink-tertiary)", textDecoration: "none", marginBottom: 8, transition: "color var(--ease)" }}
-              onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "var(--ink)"; }}
-              onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "var(--ink-tertiary)"; }}
+              style={{
+                display: "inline-flex", alignItems: "center", gap: 6,
+                fontSize: 13, color: "#fff", textDecoration: "none",
+                background: "var(--ink)", borderRadius: 8,
+                padding: "8px 14px", marginBottom: 8,
+                fontWeight: 500, letterSpacing: "-0.01em",
+                transition: "opacity 140ms",
+              }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.opacity = "0.82"; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.opacity = "1"; }}
             >
               <ChevronLeft size={14} /> Retour
             </Link>
