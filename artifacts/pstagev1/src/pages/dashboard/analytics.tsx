@@ -381,10 +381,6 @@ export default function AnalyticsPage() {
               </h2>
               <p style={{ fontSize: 12, color: "var(--ink-tertiary)", margin: "3px 0 0" }}>30 derniers jours</p>
             </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-              <div style={{ width: 8, height: 8, borderRadius: "50%", backgroundColor: "#33CA7F" }} />
-              <span style={{ fontSize: 11, color: "var(--ink-tertiary)" }}>Réservations</span>
-            </div>
           </div>
           <div style={{ height: 220 }}>
             <ResponsiveContainer width="100%" height="100%">
