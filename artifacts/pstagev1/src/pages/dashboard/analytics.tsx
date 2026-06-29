@@ -470,9 +470,6 @@ export default function AnalyticsPage() {
           <p style={{ fontSize: 12, color: "var(--ink-tertiary)", margin: "0 0 12px" }}>Aujourd'hui</p>
           <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12 }}>
             <CircularFillRate rate={dailyFillRate} />
-            <p style={{ fontSize: 12, color: "var(--ink-tertiary)", margin: 0 }}>
-              {todayBookings} RDV sur {DAILY_CAPACITY} créneaux
-            </p>
           </div>
         </motion.div>
 
