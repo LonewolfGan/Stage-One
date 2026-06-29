@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Switch, Route, Router as WouterRouter, useLocation, Redirect } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -76,6 +77,27 @@ function AnimatedRouter() {
   );
 }
 
+function DevAutoLogin() {
+  useEffect(() => {
+    if (!import.meta.env.DEV) return;
+    if (localStorage.getItem("auth_token")) return;
+    fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: "owner@salonatlas.ma", password: "atlas2026" }),
+    })
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.token) {
+          localStorage.setItem("auth_token", d.token);
+          window.location.reload();
+        }
+      })
+      .catch(() => {});
+  }, []);
+  return null;
+}
+
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -83,6 +105,7 @@ export default function App() {
         <WouterRouter base={import.meta.env.BASE_URL?.replace(/\/$/, "") || ""}>
           <AnimatedRouter />
         </WouterRouter>
+        <DevAutoLogin />
         <Toaster />
         <SonnerToaster position="top-right" richColors closeButton />
       </TooltipProvider>
