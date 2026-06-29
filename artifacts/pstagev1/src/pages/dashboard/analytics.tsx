@@ -108,31 +108,86 @@ function KpiCard({
   );
 }
 
-/* Pill bar — ranked by shade */
-function PillBar({ value, max, color, label }: { value: number; max: number; color: string; label: string }) {
-  const filled   = Math.round((value / max) * 7);
-  const segments = 7;
+/* ── Ranked service row — leaderboard style ── */
+const BAR_COLORS = [
+  "#0E0E12",   // ink     — rank 1
+  "#0E0E12",   // ink     — rank 2
+  "#53565C",   // ink-secondary — rank 3
+  "#53565C",   // ink-secondary — rank 4
+  "#8A8D93",   // ink-tertiary  — rank 5
+];
+
+function ServiceRankRow({
+  rank, name, count, pct, percent, delay,
+}: {
+  rank: number; name: string; count: number;
+  pct: number; percent: number; delay: number;
+}) {
+  const barColor = BAR_COLORS[rank - 1] ?? "#8A8D93";
+  const isFirst  = rank === 1;
 
   return (
-    <div>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-        <span style={{ fontSize: 12, color: "var(--ink-secondary)", fontWeight: 500 }}>{label}</span>
-        <span style={{ fontSize: 12, fontWeight: 600, color: "var(--ink)" }}>{value}</span>
+    <motion.div
+      initial={{ opacity: 0, x: -12 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay, duration: 0.38, ease: [0, 0, 0.2, 1] }}
+      style={{
+        paddingBlock: 11,
+        borderBottom: "1px solid var(--hairline)",
+        backgroundColor: isFirst ? "rgba(212,70,110,0.035)" : "transparent",
+        marginInline: isFirst ? -20 : 0,
+        paddingInline: isFirst ? 20 : 0,
+      }}
+    >
+      {/* Top line: rank · name · count · percent */}
+      <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 7 }}>
+        <span style={{
+          fontSize: 10, fontWeight: 600, letterSpacing: "0.05em",
+          color: isFirst ? "var(--accent)" : "var(--ink-disabled)",
+          fontVariantNumeric: "tabular-nums",
+          minWidth: 18, flexShrink: 0,
+        }}>
+          {String(rank).padStart(2, "0")}
+        </span>
+
+        <span style={{
+          fontSize: 13, fontWeight: 500, color: "var(--ink)",
+          letterSpacing: "-0.01em", flex: 1,
+          overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+        }}>
+          {name}
+        </span>
+
+        <span style={{
+          fontSize: 14, fontWeight: 600, color: "var(--ink)",
+          letterSpacing: "-0.02em", fontVariantNumeric: "tabular-nums",
+        }}>
+          {count}
+        </span>
+
+        <span style={{
+          fontSize: 10, color: "var(--ink-tertiary)",
+          fontVariantNumeric: "tabular-nums", minWidth: 26, textAlign: "right",
+        }}>
+          {percent}%
+        </span>
       </div>
-      <div style={{ display: "flex", gap: 3, height: 24 }}>
-        {Array.from({ length: segments }, (_, i) => (
-          <div
-            key={i}
-            style={{
-              flex: 1,
-              borderRadius: 20,
-              backgroundColor: i < filled ? color : "var(--surface-3)",
-              transition: `background-color ${0.05 * i + 0.2}s ease`,
-            }}
+
+      {/* Bar track */}
+      <div style={{ paddingLeft: 26 }}>
+        <div style={{
+          height: 3, backgroundColor: "var(--surface-3)",
+          borderRadius: 2, overflow: "hidden",
+        }}>
+          <motion.div
+            initial={{ width: 0 }}
+            animate={{ width: `${pct * 100}%` }}
+            transition={{ delay: delay + 0.18, duration: 0.72, ease: [0.4, 0, 0.2, 1] }}
+            style={{ height: "100%", backgroundColor: barColor, borderRadius: 2 }}
           />
-        ))}
+        </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -339,25 +394,55 @@ export default function AnalyticsPage() {
           className="ds-card"
           initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.16, duration: 0.4, ease: [0, 0, 0.2, 1] }}
+          style={{ overflow: "hidden" }}
         >
-          <div style={{ marginBottom: 18 }}>
-            <h2 style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.01em", margin: 0 }}>
-              Prestations populaires
-            </h2>
-            <p style={{ fontSize: 12, color: "var(--ink-tertiary)", margin: "3px 0 0" }}>Ce mois — par volume</p>
+          {/* Header */}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 4 }}>
+            <div>
+              <h2 style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.01em", margin: 0 }}>
+                Prestations populaires
+              </h2>
+              <p style={{ fontSize: 12, color: "var(--ink-tertiary)", margin: "3px 0 0" }}>Ce mois — par volume</p>
+            </div>
+            <span style={{
+              fontSize: 11, fontWeight: 600, color: "var(--ink-secondary)",
+              backgroundColor: "var(--surface-2)",
+              border: "1px solid var(--hairline)",
+              borderRadius: 6, padding: "3px 8px",
+              fontVariantNumeric: "tabular-nums", letterSpacing: "-0.01em",
+              flexShrink: 0,
+            }}>
+              {serviceData.reduce((s, x) => s + x.count, 0)} RDV
+            </span>
           </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-            {serviceData.map((s, i) => (
-              <motion.div
-                key={s.name}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.2 + i * 0.07, duration: 0.35, ease: [0, 0, 0.2, 1] }}
-              >
-                <PillBar value={s.count} max={s.max} color={s.color} label={s.name} />
-              </motion.div>
-            ))}
+
+          {/* Ranked rows */}
+          <div style={{ marginTop: 8 }}>
+            {serviceData.map((s, i) => {
+              const maxCount = serviceData[0]?.count ?? 1;
+              const total    = serviceData.reduce((acc, x) => acc + x.count, 0);
+              return (
+                <ServiceRankRow
+                  key={s.name}
+                  rank={i + 1}
+                  name={s.name}
+                  count={s.count}
+                  pct={s.count / maxCount}
+                  percent={Math.round((s.count / total) * 100)}
+                  delay={0.18 + i * 0.07}
+                />
+              );
+            })}
           </div>
+
+          {/* Footer — total context */}
+          <p style={{
+            fontSize: 11, color: "var(--ink-disabled)",
+            margin: "12px 0 0", textAlign: "right",
+            letterSpacing: "0.01em",
+          }}>
+            {serviceData.length} prestations suivies
+          </p>
         </motion.div>
       </div>
 
