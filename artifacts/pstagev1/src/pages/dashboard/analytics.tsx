@@ -90,8 +90,8 @@ function KpiCard({
       </div>
       <p style={{ fontSize: 12, color: "var(--ink-tertiary)", margin: "0 0 12px" }}>{label}</p>
 
-      {/* Sparkline — subtle ink tone */}
-      <div style={{ height: 36, marginInline: -20, marginBottom: -20 }}>
+      {/* Sparkline — black footer */}
+      <div style={{ height: 36, marginInline: -20, marginBottom: -20, backgroundColor: "#0C0C0E" }}>
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={sparkData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
             <defs>
