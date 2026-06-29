@@ -90,17 +90,17 @@ function KpiCard({
       </div>
       <p style={{ fontSize: 12, color: "var(--ink-tertiary)", margin: "0 0 12px" }}>{label}</p>
 
-      {/* Sparkline — black footer */}
-      <div style={{ height: 36, marginInline: -20, marginBottom: -20, backgroundColor: "#0C0C0E" }}>
+      {/* Sparkline — subtle ink tone */}
+      <div style={{ height: 36, marginInline: -20, marginBottom: -20 }}>
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={sparkData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
             <defs>
               <linearGradient id={`sk-${label}`} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#ffffff" stopOpacity={0.25} />
-                <stop offset="100%" stopColor="#ffffff" stopOpacity={0} />
+                <stop offset="0%" stopColor="#0C0C0E" stopOpacity={0.12} />
+                <stop offset="100%" stopColor="#0C0C0E" stopOpacity={0} />
               </linearGradient>
             </defs>
-            <Area type="monotone" dataKey="v" stroke="#ffffff" strokeWidth={1.5} fill={`url(#sk-${label})`} dot={false} isAnimationActive={false} />
+            <Area type="monotone" dataKey="v" stroke="rgba(12,12,14,0.25)" strokeWidth={1.5} fill={`url(#sk-${label})`} dot={false} isAnimationActive={false} />
           </AreaChart>
         </ResponsiveContainer>
       </div>
