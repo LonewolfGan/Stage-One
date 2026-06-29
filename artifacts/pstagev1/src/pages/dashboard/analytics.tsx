@@ -4,7 +4,7 @@ import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { api } from "@/lib/api";
 import {
   AreaChart, Area, XAxis, YAxis, Tooltip,
-  ResponsiveContainer, CartesianGrid, PieChart, Pie, Cell,
+  ResponsiveContainer, CartesianGrid,
   BarChart, Bar,
 } from "recharts";
 import { TrendingUp, Users, Scissors, Star, ArrowUpRight, ArrowDownRight } from "lucide-react";
@@ -150,6 +150,83 @@ function CustomTooltip({ active, payload, label }: any) {
   );
 }
 
+/* ── Circular fill-rate gauge (Figma-style, palette adaptée) ── */
+function CircularFillRate({ rate }: { rate: number }) {
+  const SIZE    = 194;
+  const CX      = SIZE / 2;         // 97
+  const CY      = SIZE / 2;         // 97
+  const R_OUTER = 90;               // rayon de la piste extérieure
+  const R_INNER = 43;               // rayon du cercle plein central
+  const STROKE  = 14;               // épaisseur de la piste
+  const clipped = Math.min(Math.max(rate, 0), 100);
+
+  // Stroke-dasharray pour l'arc de progression
+  const circ  = 2 * Math.PI * R_OUTER;
+  const dash  = (clipped / 100) * circ;
+  const gap   = circ - dash;
+
+  // Rotation : on commence à midi (−90°)
+  const startRot = -90;
+
+  return (
+    <svg
+      width={SIZE}
+      height={SIZE}
+      viewBox={`0 0 ${SIZE} ${SIZE}`}
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      style={{ overflow: "visible" }}
+    >
+      {/* Piste de fond */}
+      <circle
+        cx={CX}
+        cy={CY}
+        r={R_OUTER}
+        stroke="var(--accent-tint)"
+        strokeWidth={STROKE}
+        fill="none"
+      />
+
+      {/* Arc de progression */}
+      <circle
+        cx={CX}
+        cy={CY}
+        r={R_OUTER}
+        stroke="var(--accent)"
+        strokeWidth={STROKE}
+        fill="none"
+        strokeDasharray={`${dash} ${gap}`}
+        strokeLinecap="round"
+        transform={`rotate(${startRot} ${CX} ${CY})`}
+        style={{ transition: "stroke-dasharray 0.6s cubic-bezier(0.4,0,0.2,1)" }}
+      />
+
+      {/* Cercle central plein */}
+      <circle
+        cx={CX}
+        cy={CY}
+        r={R_INNER}
+        fill="var(--accent)"
+      />
+
+      {/* Pourcentage centré */}
+      <text
+        x={CX}
+        y={CY}
+        textAnchor="middle"
+        dominantBaseline="central"
+        fill="#FFFFFF"
+        fontSize={22}
+        fontWeight={500}
+        fontFamily="var(--font)"
+        letterSpacing="-0.01em"
+      >
+        {clipped}%
+      </text>
+    </svg>
+  );
+}
+
 /* Compact stat widget — replaces colored EarningWidget */
 function StatWidget({ label, value, sub, dark }: { label: string; value: string; sub?: string; dark?: boolean }) {
   return (
@@ -182,6 +259,13 @@ export default function AnalyticsPage() {
   const totalBookings = analytics?.totalBookings ?? 107;
   const revenueMad    = analytics?.estimatedRevenueCents ? Math.round(analytics.estimatedRevenueCents / 100) : 32_400;
   const fillRate      = analytics?.fillRate ?? 73;
+
+  // Taux de remplissage du jour (bookings aujourd'hui / capacité journalière)
+  const DAILY_CAPACITY = 12;
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const todayEntry = (analytics?.bookingsByDay ?? []).find((d: any) => d.date?.slice(0, 10) === todayStr);
+  const todayBookings = todayEntry?.count ?? Math.round(DAILY_CAPACITY * 0.58);
+  const dailyFillRate = Math.min(Math.round((todayBookings / DAILY_CAPACITY) * 100), 100);
 
   const apiDays   = analytics?.bookingsByDay ?? [];
   const monthData = apiDays.length >= 10
@@ -280,7 +364,7 @@ export default function AnalyticsPage() {
       {/* ── Bottom row: donut + weekly bar + stat widgets ── */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
 
-        {/* Donut — ink fill */}
+        {/* Gauge circulaire — taux de remplissage du jour */}
         <motion.div
           className="ds-card"
           initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
@@ -290,24 +374,12 @@ export default function AnalyticsPage() {
           <h2 style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.01em", margin: "0 0 3px" }}>
             Taux de remplissage
           </h2>
-          <p style={{ fontSize: 12, color: "var(--ink-tertiary)", margin: "0 0 12px" }}>Ce mois</p>
-          <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", position: "relative", minHeight: 160 }}>
-            <ResponsiveContainer width="100%" height={160}>
-              <PieChart>
-                <Pie
-                  data={[{ value: fillRate }, { value: 100 - fillRate }]}
-                  cx="50%" cy="50%" innerRadius={50} outerRadius={66}
-                  startAngle={90} endAngle={-270} dataKey="value" strokeWidth={0}
-                >
-                  <Cell fill="#0C0C0E" />
-                  <Cell fill="var(--surface-3)" />
-                </Pie>
-              </PieChart>
-            </ResponsiveContainer>
-            <div style={{ position: "absolute", textAlign: "center" }}>
-              <p style={{ fontSize: 24, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.025em", margin: 0 }}>{fillRate}%</p>
-              <p style={{ fontSize: 10, color: "var(--ink-tertiary)", margin: 0 }}>occupé</p>
-            </div>
+          <p style={{ fontSize: 12, color: "var(--ink-tertiary)", margin: "0 0 12px" }}>Aujourd'hui</p>
+          <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12 }}>
+            <CircularFillRate rate={dailyFillRate} />
+            <p style={{ fontSize: 12, color: "var(--ink-tertiary)", margin: 0 }}>
+              {todayBookings} RDV sur {DAILY_CAPACITY} créneaux
+            </p>
           </div>
         </motion.div>
 
