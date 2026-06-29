@@ -36,13 +36,15 @@ const STATUS_CONFIG = {
 
 type BookingStatus = keyof typeof STATUS_CONFIG;
 
-const MOCK_BOOKINGS = [
-  { id: "m1", clientName: "Yasmine Alaoui",  service: "Coupe + Brushing",   time: "09:00 – 10:30", duration: 90, amount: 250, status: "confirmed"  as BookingStatus },
-  { id: "m2", clientName: "Sara Benali",     service: "Soin kératine",      time: "11:00 – 12:30", duration: 90, amount: 480, status: "confirmed"  as BookingStatus },
-  { id: "m3", clientName: "Nadia Fassi",     service: "Coloration racines", time: "14:00 – 15:00", duration: 60, amount: 320, status: "pending"    as BookingStatus },
-  { id: "m4", clientName: "Kenza Moussaoui", service: "Manucure gel",       time: "15:30 – 16:30", duration: 60, amount: 180, status: "cancelled"  as BookingStatus },
-  { id: "m5", clientName: "Leila Bouzid",    service: "Massage détente",    time: "17:00 – 18:00", duration: 60, amount: 350, status: "completed"  as BookingStatus },
-];
+interface BookingEntry {
+  id: string;
+  clientName: string;
+  service: string;
+  time: string;
+  duration: number;
+  amount: number;
+  status: BookingStatus;
+}
 
 function avatarInitials(name: string) {
   return name.split(" ").map((p) => p[0]).join("").slice(0, 2).toUpperCase();
@@ -182,7 +184,7 @@ function MonthCalendar({
 }
 
 /* ── Timeline event block ── */
-function TimelineEvent({ b, index }: { b: typeof MOCK_BOOKINGS[0]; index: number }) {
+function TimelineEvent({ b, index }: { b: BookingEntry; index: number }) {
   const st = STATUS_CONFIG[b.status as BookingStatus] ?? STATUS_CONFIG.pending;
 
   return (
@@ -250,7 +252,7 @@ function TimelineEvent({ b, index }: { b: typeof MOCK_BOOKINGS[0]; index: number
 }
 
 /* ── Booking card (left panel) ── */
-function BookingCard({ b, index }: { b: typeof MOCK_BOOKINGS[0]; index: number }) {
+function BookingCard({ b, index }: { b: BookingEntry; index: number }) {
   const st = STATUS_CONFIG[b.status as BookingStatus] ?? STATUS_CONFIG.pending;
 
   return (
@@ -259,7 +261,7 @@ function BookingCard({ b, index }: { b: typeof MOCK_BOOKINGS[0]; index: number }
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.08 + index * 0.07, duration: 0.38, ease: [0, 0, 0.2, 1] }}
       className="ds-card"
-      style={{ padding: "14px 16px", cursor: "pointer", borderLeft: `3px solid ${st.color}` }}
+      style={{ padding: "14px 16px", cursor: "pointer" }}
     >
       {/* Service name + status */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
@@ -369,29 +371,24 @@ export default function AgendaPage() {
   const todayBookings = bookings.length;
   const fillRate      = analytics?.fillRate ?? 0;
 
-  const adaptedBookings = bookings.length > 0
-    ? bookings.map((b: any, i: number): typeof MOCK_BOOKINGS[0] => {
-        const start = new Date(b.startDatetime);
-        const end   = new Date(b.endDatetime ?? b.startDatetime);
-        const color = MOCK_BOOKINGS[i % MOCK_BOOKINGS.length].color;
-        return {
-          id: b.id,
-          clientName: b.client?.name ?? "Client",
-          service: b.service?.name ?? "Prestation",
-          time: `${format(start, "HH:mm")} – ${format(end, "HH:mm")}`,
-          duration: b.service?.durationMinutes ?? 60,
-          amount: Math.round((b.amountCents ?? 0) / 100),
-          status: (
-            b.status === "CONFIRMED" ? "confirmed" :
-            b.status === "COMPLETED" ? "completed" :
-            b.status === "CANCELLED" ? "cancelled" :
-            "pending"
-          ) as BookingStatus,
-          tags: [b.service?.category ?? "Prestation"],
-          color,
-        } as any;
-      })
-    : MOCK_BOOKINGS;
+  const adaptedBookings: BookingEntry[] = bookings.map((b: any) => {
+    const start = new Date(b.startDatetime);
+    const end   = new Date(b.endDatetime ?? b.startDatetime);
+    return {
+      id: b.id,
+      clientName: b.client?.name ?? "Client",
+      service: b.service?.name ?? "Prestation",
+      time: `${format(start, "HH:mm")} – ${format(end, "HH:mm")}`,
+      duration: b.service?.durationMinutes ?? 60,
+      amount: Math.round((b.amountCents ?? 0) / 100),
+      status: (
+        b.status === "CONFIRMED" ? "confirmed" :
+        b.status === "COMPLETED" ? "completed" :
+        b.status === "CANCELLED" ? "cancelled" :
+        "pending"
+      ) as BookingStatus,
+    };
+  });
 
   const bookingDates = [dateStr];
 
@@ -488,7 +485,7 @@ export default function AgendaPage() {
             </h3>
             <button
               type="button"
-              onClick={() => navigate("/dashboard/reservations")}
+              onClick={() => navigate("/dashboard/agenda/bookings")}
               style={{ fontSize: 12, color: "var(--accent)", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 3, background: "none", border: "none", padding: 0 }}
             >
               Tout voir <ArrowUpRight size={12} />
@@ -496,9 +493,21 @@ export default function AgendaPage() {
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(2, 1fr)", gap: 12 }}>
-            {adaptedBookings.map((b, i) => (
-              <BookingCard key={b.id} b={b as any} index={i} />
-            ))}
+            {adaptedBookings.length > 0 ? (
+              adaptedBookings.map((b, i) => (
+                <BookingCard key={b.id} b={b} index={i} />
+              ))
+            ) : (
+              <div style={{ gridColumn: "1/-1", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "48px 24px", gap: 12 }}>
+                <div style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: "var(--surface-3)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <Scissors size={20} color="var(--ink-tertiary)" strokeWidth={1.5} />
+                </div>
+                <div style={{ textAlign: "center" }}>
+                  <p style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)", margin: "0 0 4px", letterSpacing: "-0.01em" }}>Aucune réservation</p>
+                  <p style={{ fontSize: 13, color: "var(--ink-tertiary)", margin: 0 }}>Aucun rendez-vous prévu ce jour</p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -519,9 +528,15 @@ export default function AgendaPage() {
               Chronologie
             </h3>
             <div>
-              {adaptedBookings.map((b, i) => (
-                <TimelineEvent key={b.id} b={b as any} index={i} />
-              ))}
+              {adaptedBookings.length > 0 ? (
+                adaptedBookings.map((b, i) => (
+                  <TimelineEvent key={b.id} b={b} index={i} />
+                ))
+              ) : (
+                <div style={{ textAlign: "center", padding: "24px 0" }}>
+                  <p style={{ fontSize: 12, color: "var(--ink-tertiary)", margin: 0 }}>Aucun événement ce jour</p>
+                </div>
+              )}
             </div>
           </div>
         </div>

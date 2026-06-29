@@ -1,10 +1,8 @@
 import { useState } from "react";
-import { useLocation } from "wouter";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import {
   ChevronLeft,
   ChevronRight,
-  ArrowLeft,
   Clock,
   User,
 } from "lucide-react";
@@ -160,7 +158,6 @@ function BookingBlock({
 
 /* ── Main page ── */
 export default function ReservationsPage() {
-  const [, navigate] = useLocation();
   const [weekOffset, setWeekOffset] = useState(0);
 
   const baseMonday = startOfWeek(new Date(), { weekStartsOn: 1 });
@@ -174,43 +171,21 @@ export default function ReservationsPage() {
   })();
 
   return (
-    <DashboardLayout>
+    <DashboardLayout title="Réservations" breadcrumb="Agenda" noPadding>
       <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
 
-        {/* ── Header ── */}
+        {/* ── Week navigator bar ── */}
         <div style={{
           flexShrink: 0,
-          padding: "14px 28px",
+          padding: "12px 28px",
           borderBottom: "1px solid var(--hairline)",
           backgroundColor: "var(--canvas-pure)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "flex-end",
         }}>
-          {/* Back + week navigator row */}
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <button
-              type="button"
-              onClick={() => navigate("/dashboard/agenda")}
-              style={{
-                height: 32,
-                padding: "0 12px 0 8px",
-                borderRadius: 9,
-                border: "1px solid var(--hairline)",
-                background: "none",
-                cursor: "pointer",
-                display: "flex", alignItems: "center", gap: 6,
-                color: "var(--ink-secondary)",
-                fontSize: 13,
-                fontWeight: 500,
-                transition: "background 120ms",
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-2)")}
-              onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
-            >
-              <ArrowLeft size={14} />
-              Retour
-            </button>
-
-            {/* Week navigator */}
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          {/* Week navigator */}
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <button
                 type="button"
                 onClick={() => setWeekOffset((w) => w - 1)}
@@ -243,9 +218,7 @@ export default function ReservationsPage() {
                   Aujourd'hui
                 </button>
               )}
-            </div>
           </div>
-
         </div>
 
         {/* ── Week grid (scrollable) ── */}

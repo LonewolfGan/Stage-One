@@ -477,14 +477,14 @@
 
 /* Content area below header */
 .ds-dash-content {
-  padding: var(--space-4);
+  padding: 0 var(--space-4) var(--space-4);
   flex: 1;
 }
 @media (min-width: 640px) {
-  .ds-dash-content { padding: var(--space-6); }
+  .ds-dash-content { padding: 0 var(--space-6) var(--space-6); }
 }
 @media (min-width: 1024px) {
-  .ds-dash-content { padding: var(--space-8); }
+  .ds-dash-content { padding: 0 var(--space-8) var(--space-8); }
 }
 
 .ds-dash-page-title {

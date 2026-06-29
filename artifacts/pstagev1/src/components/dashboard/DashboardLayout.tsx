@@ -139,7 +139,7 @@ function Rail({ onClose }: { onClose?: () => void }) {
       {/* Nav */}
       <nav style={{ flex: 1, width: "100%", padding: "0 8px", display: "flex", flexDirection: "column", gap: 2, overflow: "visible" }}>
         {NAV_ITEMS.map((item) => {
-          const isActive = location === item.href || location.startsWith(item.href + "/");
+          const isActive = location.startsWith(item.href);
           return (
             <Link key={item.name} href={item.href} style={{ textDecoration: "none", display: "block", width: "100%" }} onClick={onClose}>
               <div className={`drl-item${isActive ? " drl-item--active" : ""}`} data-tip={item.name}>

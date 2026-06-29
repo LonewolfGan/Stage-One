@@ -43,6 +43,7 @@ function Router() {
       <Route path="/verify-email" component={VerifyEmailPage} />
       <Route path="/dashboard" component={() => <Redirect to="/dashboard/agenda" />} />
       <Route path="/dashboard/agenda" component={AgendaPage} />
+      <Route path="/dashboard/agenda/bookings" component={ReservationsPage} />
       <Route path="/dashboard/services" component={ServicesPage} />
       <Route path="/dashboard/staff" component={StaffPage} />
       <Route path="/dashboard/analytics" component={AnalyticsPage} />
