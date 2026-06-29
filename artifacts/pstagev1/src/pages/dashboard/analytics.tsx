@@ -49,6 +49,20 @@ const MOCK_STAFF_PERF = [
   { name: "Nadia R.",    role: "Esthétique", bookings: 12, revenueCents:   288_000 },
 ];
 
+/** Largest-remainder method — guarantees sum == 100 */
+function distributePercent(counts: number[]): number[] {
+  const total = counts.reduce((a, b) => a + b, 0);
+  if (total === 0) return counts.map(() => 0);
+  const exact   = counts.map(c => (c / total) * 100);
+  const floored = exact.map(Math.floor);
+  let remainder = 100 - floored.reduce((a, b) => a + b, 0);
+  const order   = exact
+    .map((v, i) => ({ i, dec: v - Math.floor(v) }))
+    .sort((a, b) => b.dec - a.dec);
+  for (let k = 0; k < remainder; k++) floored[order[k].i]++;
+  return floored;
+}
+
 const tooltipStyle = {
   borderRadius: 8,
   border: "1px solid var(--hairline)",
@@ -132,26 +146,19 @@ function ServiceRankRow({
   pct: number; percent: number; delay: number;
 }) {
   const barColor = BAR_COLORS[rank - 1] ?? "#8A8D93";
-  const isFirst  = rank === 1;
 
   return (
     <motion.div
       initial={{ opacity: 0, x: -12 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay, duration: 0.38, ease: [0, 0, 0.2, 1] }}
-      style={{
-        paddingBlock: 11,
-        borderBottom: "1px solid var(--hairline)",
-        backgroundColor: isFirst ? "rgba(212,70,110,0.035)" : "transparent",
-        marginInline: isFirst ? -20 : 0,
-        paddingInline: isFirst ? 20 : 0,
-      }}
+      style={{ paddingBlock: 11, borderBottom: "1px solid var(--hairline)" }}
     >
       {/* Top line: rank · name · count · percent */}
       <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 7 }}>
         <span style={{
           fontSize: 10, fontWeight: 600, letterSpacing: "0.05em",
-          color: isFirst ? "var(--accent)" : "var(--ink-disabled)",
+          color: "var(--ink-disabled)",
           fontVariantNumeric: "tabular-nums",
           minWidth: 18, flexShrink: 0,
         }}>
@@ -426,21 +433,21 @@ export default function AnalyticsPage() {
 
           {/* Ranked rows */}
           <div style={{ marginTop: 8 }}>
-            {serviceData.map((s, i) => {
-              const maxCount = serviceData[0]?.count ?? 1;
+            {(() => {
               const total    = serviceData.reduce((acc, x) => acc + x.count, 0);
-              return (
+              const percents = distributePercent(serviceData.map(x => x.count));
+              return serviceData.map((s, i) => (
                 <ServiceRankRow
                   key={s.name}
                   rank={i + 1}
                   name={s.name}
                   count={s.count}
-                  pct={s.count / maxCount}
-                  percent={Math.round((s.count / total) * 100)}
+                  pct={total > 0 ? s.count / total : 0}
+                  percent={percents[i]}
                   delay={0.18 + i * 0.07}
                 />
-              );
-            })}
+              ));
+            })()}
           </div>
 
           {/* Footer — total context */}
@@ -530,10 +537,10 @@ export default function AnalyticsPage() {
 
           {/* Ranked rows */}
           <div style={{ marginTop: 8 }}>
-            {MOCK_STAFF_PERF.map((member, i) => {
-              const maxBookings = MOCK_STAFF_PERF[0].bookings;
-              const total       = MOCK_STAFF_PERF.reduce((s, x) => s + x.bookings, 0);
-              return (
+            {(() => {
+              const total    = MOCK_STAFF_PERF.reduce((s, x) => s + x.bookings, 0);
+              const percents = distributePercent(MOCK_STAFF_PERF.map(x => x.bookings));
+              return MOCK_STAFF_PERF.map((member, i) => (
                 <motion.div
                   key={member.name}
                   initial={{ opacity: 0, x: -12 }}
@@ -542,16 +549,13 @@ export default function AnalyticsPage() {
                   style={{
                     paddingBlock: 10,
                     borderBottom: i < MOCK_STAFF_PERF.length - 1 ? "1px solid var(--hairline)" : "none",
-                    backgroundColor: i === 0 ? "rgba(212,70,110,0.035)" : "transparent",
-                    marginInline: i === 0 ? -20 : 0,
-                    paddingInline: i === 0 ? 20 : 0,
                   }}
                 >
                   {/* Top line */}
                   <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 6 }}>
                     <span style={{
                       fontSize: 10, fontWeight: 600, letterSpacing: "0.05em",
-                      color: i === 0 ? "var(--accent)" : "var(--ink-disabled)",
+                      color: "var(--ink-disabled)",
                       fontVariantNumeric: "tabular-nums",
                       minWidth: 18, flexShrink: 0,
                     }}>
@@ -573,7 +577,7 @@ export default function AnalyticsPage() {
                       fontSize: 10, color: "var(--ink-tertiary)",
                       fontVariantNumeric: "tabular-nums", minWidth: 26, textAlign: "right",
                     }}>
-                      {Math.round((member.bookings / total) * 100)}%
+                      {percents[i]}%
                     </span>
                   </div>
                   {/* Role + bar */}
@@ -584,7 +588,7 @@ export default function AnalyticsPage() {
                     <div style={{ flex: 1, height: 3, backgroundColor: "var(--surface-3)", borderRadius: 2, overflow: "hidden" }}>
                       <motion.div
                         initial={{ width: 0 }}
-                        animate={{ width: `${(member.bookings / maxBookings) * 100}%` }}
+                        animate={{ width: `${total > 0 ? (member.bookings / total) * 100 : 0}%` }}
                         transition={{ delay: 0.56 + i * 0.07, duration: 0.72, ease: [0.4, 0, 0.2, 1] }}
                         style={{
                           height: "100%", borderRadius: 2,
@@ -600,8 +604,8 @@ export default function AnalyticsPage() {
                     </span>
                   </div>
                 </motion.div>
-              );
-            })}
+              ));
+            })()}
           </div>
 
           {/* Footer */}
