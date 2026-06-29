@@ -38,7 +38,7 @@ function toCalendarBooking(b: ApiBooking, dayIndex: number): WeekCalendarBooking
     end:     end > start ? end : start + durationH,
     title:   b.service?.name ?? "—",
     client:  b.client?.name  ?? "—",
-    type:    b.service?.type ?? "default",
+    type:    b.service?.name ?? "default",
   };
 }
 

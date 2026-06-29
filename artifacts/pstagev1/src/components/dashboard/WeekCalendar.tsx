@@ -44,16 +44,21 @@ const PILL_H     = 22;   // fixed pill height in px
 const PILL_GAP   = 3;    // gap between stacked pills
 const DAY_SHORT  = ["LUN", "MAR", "MER", "JEU", "VEN", "SAM", "DIM"];
 
-const SERVICE_COLORS: Record<string, string> = {
-  "coupe-homme": "#3B82F6",
-  "coupe-femme": "#A855F7",
-  coloration:    "#D4466E",
-  soin:          "#10B981",
-  default:       "#6B7280",
-};
-
-function getServiceColor(type: string): string {
-  return SERVICE_COLORS[type] ?? SERVICE_COLORS.default;
+// Keyword-based color matching against the service name (lowercased)
+function getServiceColor(name: string): string {
+  const n = name.toLowerCase();
+  if (n.includes("coupe") && n.includes("homme"))  return "#3B82F6"; // blue
+  if (n.includes("coupe") && n.includes("femme"))  return "#A855F7"; // purple
+  if (n.includes("coupe"))                          return "#6366F1"; // indigo (coupe générique)
+  if (n.includes("coloration"))                     return "#D4466E"; // rose
+  if (n.includes("brushing"))                       return "#F97316"; // orange
+  if (n.includes("soin") && n.includes("visage"))   return "#06B6D4"; // cyan
+  if (n.includes("soin") || n.includes("kératine")) return "#10B981"; // emerald
+  if (n.includes("hammam"))                         return "#B45309"; // amber-dark
+  if (n.includes("massage") || n.includes("enveloppement") || n.includes("rhassoul")) return "#8B5CF6"; // violet
+  if (n.includes("manucure") || n.includes("épilation")) return "#EC4899"; // pink
+  if (n.includes("pack"))                           return "#0EA5E9"; // sky
+  return "#6B7280"; // grey fallback
 }
 
 // ────────────────────────────────────────────────
