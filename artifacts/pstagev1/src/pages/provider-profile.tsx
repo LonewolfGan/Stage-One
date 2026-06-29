@@ -278,7 +278,7 @@ function StaffCard({ member, providerSlug }: { member: any; providerSlug: string
         borderRadius: 14, cursor: "pointer",
         textAlign: "left", padding: 12, fontFamily: "var(--font)",
         display: "flex", flexDirection: "column", gap: 10,
-        width: "100%", transition: "border-color 140ms",
+        width: "100%", height: "100%", transition: "border-color 140ms",
       }}
       onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--hairline-strong)"; }}
       onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--hairline)"; }}
@@ -398,6 +398,18 @@ export default function ProviderProfilePage() {
 
   const [favorited, setFavorited] = useState(false);
   const [reviewsOpen, setReviewsOpen] = useState(true);
+  const [copied, setCopied] = useState(false);
+
+  const handleShare = () => {
+    const url = window.location.href;
+    if (navigator.share) {
+      navigator.share({ title: provider?.name ?? "", url }).catch(() => {
+        navigator.clipboard.writeText(url).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); });
+      });
+    } else {
+      navigator.clipboard.writeText(url).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); });
+    }
+  };
 
   /* ── loading ── */
   if (isLoading) {
@@ -554,6 +566,7 @@ export default function ProviderProfilePage() {
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
                         transition={{ delay: i * 0.06, duration: 0.3 }}
+                        style={{ height: "100%" }}
                       >
                         <StaffCard member={member} providerSlug={provider.slug} />
                       </motion.div>
@@ -703,26 +716,22 @@ export default function ProviderProfilePage() {
                     Y aller
                   </a>
                   <button
-                    onClick={() => {
-                      if (navigator.share) {
-                        navigator.share({ title: provider.name, url: window.location.href });
-                      } else {
-                        navigator.clipboard.writeText(window.location.href);
-                      }
-                    }}
+                    onClick={handleShare}
                     style={{
                       flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 5,
                       height: 34, borderRadius: 8,
-                      border: "1px solid var(--hairline)", background: "#fff",
-                      fontSize: 12, fontWeight: 500, color: "var(--ink-secondary)",
+                      border: `1px solid ${copied ? "var(--ink)" : "var(--hairline)"}`,
+                      background: copied ? "var(--ink)" : "#fff",
+                      fontSize: 12, fontWeight: 500,
+                      color: copied ? "#fff" : "var(--ink-secondary)",
                       cursor: "pointer", fontFamily: "var(--font)",
-                      transition: "border-color 120ms, color 120ms",
+                      transition: "all 140ms",
                     }}
-                    onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--ink)"; e.currentTarget.style.color = "var(--ink)"; }}
-                    onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--hairline)"; e.currentTarget.style.color = "var(--ink-secondary)"; }}
+                    onMouseEnter={e => { if (!copied) { e.currentTarget.style.borderColor = "var(--ink)"; e.currentTarget.style.color = "var(--ink)"; } }}
+                    onMouseLeave={e => { if (!copied) { e.currentTarget.style.borderColor = "var(--hairline)"; e.currentTarget.style.color = "var(--ink-secondary)"; } }}
                   >
                     <Share2 size={11} />
-                    Partager
+                    {copied ? "Lien copié !" : "Partager"}
                   </button>
                 </div>
 
