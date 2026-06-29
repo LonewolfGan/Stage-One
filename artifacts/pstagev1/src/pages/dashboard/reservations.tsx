@@ -60,6 +60,7 @@ function toCalendarBooking(b: ApiBooking, dayIndex: number): WeekCalendarBooking
     status:         b.status,
     amountCents:    b.amountCents,
     staffName,
+    staffId:        b.staff?.id,
     durationMinutes,
     startIso:       b.startDatetime,
     endIso:         b.endDatetime,
@@ -68,7 +69,8 @@ function toCalendarBooking(b: ApiBooking, dayIndex: number): WeekCalendarBooking
 
 /* ── Main page ── */
 export default function ReservationsPage() {
-  const [weekOffset, setWeekOffset] = useState(0);
+  const [weekOffset,      setWeekOffset]      = useState(0);
+  const [selectedStaffId, setSelectedStaffId] = useState<string | null>(null);
   const [, navigate] = useLocation();
 
   const baseMonday = startOfWeek(new Date(), { weekStartsOn: 1 });
@@ -77,8 +79,16 @@ export default function ReservationsPage() {
 
   const weekLabel = `${format(monday, "d MMM", { locale: fr })} – ${format(addDays(monday, 6), "d MMM yyyy", { locale: fr })}`;
 
+  /* ── Staff list ── */
+  const { data: providerData } = useQuery({
+    queryKey: ["dashboard", "provider"],
+    queryFn:  () => api.getDashboardProvider(),
+    staleTime: 300_000,
+  });
+  const staffList: Array<{ id: string; name: string }> = providerData?.staff ?? [];
+
   /* ── Fetch all 7 days in parallel ── */
-  const { data: bookings = [], isLoading } = useQuery<WeekCalendarBooking[]>({
+  const { data: allBookings = [], isLoading } = useQuery<WeekCalendarBooking[]>({
     queryKey: ["dashboard-week-bookings", weekOffset],
     queryFn: async () => {
       const results = await Promise.all(
@@ -94,6 +104,11 @@ export default function ReservationsPage() {
     staleTime: 30_000,
   });
 
+  /* ── Client-side staff filter ── */
+  const bookings = selectedStaffId
+    ? allBookings.filter((b) => b.staffId === selectedStaffId)
+    : allBookings;
+
   return (
     <DashboardLayout title="Réservations" breadcrumb="Agenda" noPadding>
       <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
@@ -102,7 +117,6 @@ export default function ReservationsPage() {
         <div style={{
           flexShrink: 0,
           padding: "12px 28px",
-          borderBottom: "1px solid var(--hairline)",
           backgroundColor: "var(--canvas-pure)",
           display: "flex",
           alignItems: "center",
@@ -168,6 +182,54 @@ export default function ReservationsPage() {
             )}
           </div>
         </div>
+
+        {/* ── Staff filter chips ── */}
+        {staffList.length > 0 && (
+          <div style={{
+            flexShrink: 0,
+            padding: "8px 28px",
+            backgroundColor: "var(--canvas-pure)",
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
+            overflowX: "auto",
+          }}>
+            {[{ id: null, name: "Tous" }, ...staffList].map((s) => {
+              const active = selectedStaffId === s.id;
+              return (
+                <button
+                  key={s.id ?? "all"}
+                  type="button"
+                  onClick={() => setSelectedStaffId(s.id)}
+                  style={{
+                    flexShrink: 0,
+                    height: 28,
+                    padding: "0 12px",
+                    borderRadius: 14,
+                    border: `1px solid ${active ? "var(--ink)" : "var(--hairline)"}`,
+                    backgroundColor: active ? "var(--ink)" : "transparent",
+                    color: active ? "#fff" : "var(--ink-secondary)",
+                    fontSize: 12,
+                    fontWeight: active ? 600 : 400,
+                    cursor: "pointer",
+                    letterSpacing: "-0.01em",
+                    transition: "background 120ms, color 120ms, border-color 120ms",
+                    fontFamily: "var(--font)",
+                    whiteSpace: "nowrap",
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!active) e.currentTarget.style.background = "var(--surface-2)";
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!active) e.currentTarget.style.background = "transparent";
+                  }}
+                >
+                  {s.name}
+                </button>
+              );
+            })}
+          </div>
+        )}
 
         {/* ── Week calendar grid ── */}
         <div style={{ flex: 1, minHeight: 0 }}>

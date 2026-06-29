@@ -15,10 +15,11 @@ export interface WeekCalendarBooking {
   client: string;
   clientInitials: string;
   type: string;
-  // Extra fields for modal
+  // Extra fields for modal + filter
   status?: string;
   amountCents?: number;
   staffName?: string;
+  staffId?: string;
   durationMinutes?: number;
   startIso?: string;
   endIso?: string;
@@ -627,6 +628,7 @@ export default function WeekCalendar({ days, bookings, isLoading }: WeekCalendar
                     padding:         "10px 0 9px",
                     textAlign:       "center",
                     borderRight:     i < 6 ? "1px solid var(--hairline)" : "none",
+                    borderTop:       "1px solid var(--hairline)",
                     borderBottom:    "1px solid var(--hairline)",
                     backgroundColor: active ? "var(--accent-tint)" : "transparent",
                   }}>
