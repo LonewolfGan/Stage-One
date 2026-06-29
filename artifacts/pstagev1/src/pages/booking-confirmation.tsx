@@ -27,8 +27,8 @@ export default function BookingConfirmationPage() {
           <p style={{ fontSize: 15, color: "var(--ink-tertiary)" }}>Réservation introuvable.</p>
           <Link href="/" style={{
             display: "inline-flex", alignItems: "center", gap: 6,
-            fontSize: 13, color: "#fff", textDecoration: "none",
-            background: "var(--ink)", borderRadius: 8, padding: "8px 14px",
+            fontSize: 13, color: "var(--ink)", textDecoration: "none",
+            background: "transparent", border: "1px solid rgba(10,10,15,0.18)", borderRadius: 8, padding: "7px 13px",
             fontWeight: 500, letterSpacing: "-0.01em",
           }}>Retour à l&apos;accueil</Link>
         </div>
@@ -55,8 +55,8 @@ export default function BookingConfirmationPage() {
           <p style={{ fontSize: 15, color: "var(--ink-tertiary)" }}>Impossible de charger les détails de la réservation.</p>
           <Link href="/" style={{
             display: "inline-flex", alignItems: "center", gap: 6,
-            fontSize: 13, color: "#fff", textDecoration: "none",
-            background: "var(--ink)", borderRadius: 8, padding: "8px 14px",
+            fontSize: 13, color: "var(--ink)", textDecoration: "none",
+            background: "transparent", border: "1px solid rgba(10,10,15,0.18)", borderRadius: 8, padding: "7px 13px",
             fontWeight: 500, letterSpacing: "-0.01em",
           }}>Retour à l&apos;accueil</Link>
         </div>

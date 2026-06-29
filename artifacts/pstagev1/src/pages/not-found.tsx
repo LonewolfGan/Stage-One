@@ -117,20 +117,20 @@ export default function NotFoundPage() {
               style={{
                 height: 40,
                 paddingInline: 20,
-                background: "var(--ink)",
-                color: "#fff",
+                background: "transparent",
+                color: "var(--ink)",
                 fontSize: 13,
                 fontWeight: 500,
                 letterSpacing: "-0.01em",
-                border: "none",
+                border: "1px solid rgba(10,10,15,0.18)",
                 borderRadius: 8,
                 cursor: "pointer",
                 fontFamily: "var(--font)",
-                transition: "opacity 140ms ease",
+                transition: "border-color 140ms ease",
                 display: "inline-flex", alignItems: "center", gap: 6,
               }}
-              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.opacity = "0.82"; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.opacity = "1"; }}
+              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(10,10,15,0.45)"; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(10,10,15,0.18)"; }}
             >
               Retour à l&apos;accueil
             </motion.button>

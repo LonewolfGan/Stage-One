@@ -79,11 +79,12 @@ export default function VerifyEmailPage() {
               href="/"
               style={{
                 display: "inline-flex", alignItems: "center", gap: 6,
-                background: "var(--ink)",
-                color: "#fff",
+                background: "transparent",
+                color: "var(--ink)",
+                border: "1px solid rgba(10,10,15,0.18)",
                 fontSize: 13,
                 fontWeight: 500,
-                padding: "8px 14px",
+                padding: "7px 13px",
                 borderRadius: 8,
                 textDecoration: "none",
                 letterSpacing: "-0.01em",
@@ -112,11 +113,12 @@ export default function VerifyEmailPage() {
               href="/auth/login"
               style={{
                 display: "inline-flex", alignItems: "center", gap: 6,
-                background: "var(--ink)",
-                color: "#fff",
+                background: "transparent",
+                color: "var(--ink)",
+                border: "1px solid rgba(10,10,15,0.18)",
                 fontSize: 13,
                 fontWeight: 500,
-                padding: "8px 14px",
+                padding: "7px 13px",
                 borderRadius: 8,
                 textDecoration: "none",
                 letterSpacing: "-0.01em",

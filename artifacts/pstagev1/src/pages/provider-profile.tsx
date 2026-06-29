@@ -480,12 +480,12 @@ export default function ProviderProfilePage() {
       <main style={{ flex: 1 }}>
 
         {/* ── Hero ── */}
-        <div style={{ maxWidth: 1280, margin: "0 auto", padding: "20px 48px 0" }}>
+        <div style={{ padding: "20px 48px 0" }}>
           <HeroGallery photos={provider.photos} providerName={provider.name} />
         </div>
 
         {/* ── Content wrapper ── */}
-        <div style={{ maxWidth: 1280, margin: "0 auto", padding: "0 48px" }}>
+        <div style={{ padding: "0 48px" }}>
 
           {/* ── Breadcrumb + title ── */}
           <div style={{ paddingTop: 28, paddingBottom: 32, borderBottom: "1px solid var(--hairline)" }}>
@@ -495,14 +495,14 @@ export default function ProviderProfilePage() {
               onClick={() => setLocation("/search")}
               style={{
                 display: "inline-flex", alignItems: "center", gap: 6,
-                fontSize: 13, color: "#fff",
-                background: "var(--ink)", border: "none", cursor: "pointer",
-                padding: "8px 14px", marginBottom: 20, fontFamily: "var(--font)",
+                fontSize: 13, color: "var(--ink)",
+                background: "transparent", border: "1px solid rgba(10,10,15,0.18)", cursor: "pointer",
+                padding: "7px 13px", marginBottom: 20, fontFamily: "var(--font)",
                 borderRadius: 8, fontWeight: 500, letterSpacing: "-0.01em",
-                transition: "opacity 140ms",
+                transition: "border-color 140ms, color 140ms",
               }}
-              onMouseEnter={e => { e.currentTarget.style.opacity = "0.82"; }}
-              onMouseLeave={e => { e.currentTarget.style.opacity = "1"; }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(10,10,15,0.45)"; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(10,10,15,0.18)"; }}
             >
               <ChevronLeft size={14} />
               Retour aux résultats

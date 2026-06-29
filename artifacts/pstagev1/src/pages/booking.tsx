@@ -372,14 +372,14 @@ export default function BookingPage() {
               href={`/${provider.slug}`}
               style={{
                 display: "inline-flex", alignItems: "center", gap: 6,
-                fontSize: 13, color: "#fff", textDecoration: "none",
-                background: "var(--ink)", borderRadius: 8,
-                padding: "8px 14px", marginBottom: 8,
+                fontSize: 13, color: "var(--ink)", textDecoration: "none",
+                background: "transparent", border: "1px solid rgba(10,10,15,0.18)", borderRadius: 8,
+                padding: "7px 13px", marginBottom: 8,
                 fontWeight: 500, letterSpacing: "-0.01em",
-                transition: "opacity 140ms",
+                transition: "border-color 140ms",
               }}
-              onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.opacity = "0.82"; }}
-              onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.opacity = "1"; }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.borderColor = "rgba(10,10,15,0.45)"; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.borderColor = "rgba(10,10,15,0.18)"; }}
             >
               <ChevronLeft size={14} /> Retour
             </Link>
