@@ -1,4 +1,4 @@
-modules = ["nodejs-20", "python-3.12", "web", "postgresql-16"]
+modules = ["nodejs-20", "python-3.12", "web"]
 
 [deployment]
 router = "application"
@@ -45,7 +45,7 @@ outputType = "console"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "PORT=3000 node --enable-source-maps ./artifacts/api-server/dist/index.mjs"
+args = "pnpm --filter @workspace/api-server run build && PORT=3000 node --enable-source-maps ./artifacts/api-server/dist/index.mjs"
 waitForPort = 3000
 
 [agent]
@@ -62,10 +62,6 @@ channel = "stable-25_05"
 [[ports]]
 localPort = 3000
 externalPort = 3000
-
-[[ports]]
-localPort = 5000
-externalPort = 80
 
 [userenv]
 
