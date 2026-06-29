@@ -13,6 +13,7 @@ import {
   Navigation, Share2,
 } from "lucide-react";
 import { ReviewCard } from "@/components/public/ReviewCard";
+import { ServiceCard } from "@/components/public/ServiceCard";
 import { useBreakpoint } from "@/hooks/use-mobile";
 
 /* ─── constants ─────────────────────────────────────── */
@@ -210,56 +211,7 @@ function MiniCalendar({ onSelect }: { onSelect?: (date: Date) => void }) {
   );
 }
 
-/* ─── ServiceRow ────────────────────────────────────── */
-function ServiceRow({ service, providerSlug, isLast }: { service: any; providerSlug: string; isLast: boolean }) {
-  const [, setLocation] = useLocation();
-  return (
-    <div style={{
-      display: "flex", alignItems: "center", gap: 16, paddingBlock: 16,
-      borderBottom: isLast ? "none" : "1px solid var(--hairline)",
-    }}>
-      {/* Left */}
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <p style={{ fontSize: 14, fontWeight: 500, color: "var(--ink)", letterSpacing: "-0.01em", margin: "0 0 3px" }}>
-          {service.name}
-        </p>
-        {service.description && (
-          <p style={{ fontSize: 12, color: "var(--ink-tertiary)", margin: 0, lineHeight: 1.45 }}>
-            {service.description}
-          </p>
-        )}
-        {service.staffIds?.length > 0 && (
-          <p style={{ fontSize: 11, color: "var(--ink-tertiary)", margin: "4px 0 0" }}>
-            {service.staffIds.length} professionnel{service.staffIds.length > 1 ? "s" : ""} disponible{service.staffIds.length > 1 ? "s" : ""}
-          </p>
-        )}
-      </div>
-      {/* Right */}
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 3, flexShrink: 0 }}>
-        <span style={{ fontSize: 15, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.02em" }}>
-          {(service.priceCents / 100).toFixed(0)} MAD
-        </span>
-        <span style={{ fontSize: 11, color: "var(--ink-tertiary)" }}>{service.durationMinutes} min</span>
-      </div>
-      {/* CTA */}
-      <button
-        onClick={() => setLocation(`/booking/${providerSlug}?serviceId=${service.id}`)}
-        style={{
-          flexShrink: 0, height: 34, paddingInline: 16,
-          background: "var(--accent)", color: "#fff",
-          border: "none", borderRadius: 8,
-          fontSize: 13, fontWeight: 500, cursor: "pointer",
-          fontFamily: "var(--font)", letterSpacing: "-0.01em",
-          transition: "background 140ms ease",
-        }}
-        onMouseEnter={e => { e.currentTarget.style.background = "var(--accent-hover)"; }}
-        onMouseLeave={e => { e.currentTarget.style.background = "var(--accent)"; }}
-      >
-        Choisir
-      </button>
-    </div>
-  );
-}
+/* ServiceRow removed — using ServiceCard grid below */
 
 /* ─── StaffCard ─────────────────────────────────────── */
 function StaffCard({ member, providerSlug }: { member: any; providerSlug: string }) {
@@ -448,25 +400,21 @@ export default function ProviderProfilePage() {
               <section style={{ marginBottom: 56 }}>
                 <h2 style={{
                   fontSize: 20, fontWeight: 600, color: "var(--ink)",
-                  letterSpacing: "-0.02em", margin: "0 0 20px",
+                  letterSpacing: "-0.02em", margin: "0 0 24px",
                 }}>
                   Nos prestations
                 </h2>
-                <div style={{ borderTop: "1px solid var(--hairline)" }}>
-                  {provider.services.map((service, i) => (
-                    <motion.div
+                <div style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
+                  gap: 16,
+                }}>
+                  {provider.services.map((service) => (
+                    <ServiceCard
                       key={service.id}
-                      initial={{ opacity: 0, y: 8 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true, margin: "-20px" }}
-                      transition={{ delay: i * 0.04, duration: 0.3, ease: [0, 0, 0.2, 1] }}
-                    >
-                      <ServiceRow
-                        service={service}
-                        providerSlug={provider.slug}
-                        isLast={i === provider.services.length - 1}
-                      />
-                    </motion.div>
+                      service={service}
+                      providerSlug={provider.slug}
+                    />
                   ))}
                 </div>
               </section>
