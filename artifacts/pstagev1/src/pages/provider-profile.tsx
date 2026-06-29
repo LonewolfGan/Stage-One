@@ -10,8 +10,9 @@ import { adaptProvider } from "@/lib/provider-adapter";
 import {
   Star, Heart, MapPin, Phone,
   ChevronLeft, ChevronRight, ChevronDown,
-  Navigation, ThumbsUp, Share2,
+  Navigation, Share2,
 } from "lucide-react";
+import { ReviewCard } from "@/components/public/ReviewCard";
 import { useBreakpoint } from "@/hooks/use-mobile";
 
 /* ─── constants ─────────────────────────────────────── */
@@ -312,58 +313,6 @@ function StaffCard({ member, providerSlug }: { member: any; providerSlug: string
   );
 }
 
-/* ─── ReviewItem ────────────────────────────────────── */
-function ReviewItem({ review }: { review: any }) {
-  return (
-    <div style={{
-      background: "#fff", border: "1px solid var(--hairline)",
-      borderRadius: 14, padding: "20px 20px 18px",
-    }}>
-      {/* Header */}
-      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 12 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div style={{
-            width: 38, height: 38, borderRadius: "50%",
-            background: "var(--surface-2)", color: "var(--ink-secondary)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: 12, fontWeight: 600, flexShrink: 0,
-            letterSpacing: "-0.01em",
-          }}>
-            {review.avatarInitials}
-          </div>
-          <div>
-            <p style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)", margin: 0, letterSpacing: "-0.01em" }}>
-              {review.author}
-            </p>
-            <p style={{ fontSize: 11, color: "var(--ink-tertiary)", margin: "2px 0 0" }}>
-              {review.date}
-            </p>
-          </div>
-        </div>
-        {/* Stars + score */}
-        <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
-          <Stars rating={review.rating} size={12} />
-          <span style={{
-            fontSize: 12, fontWeight: 600, color: "#fff",
-            background: "var(--rating)", borderRadius: 6,
-            padding: "2px 7px", letterSpacing: "-0.01em",
-          }}>
-            {review.rating}
-          </span>
-        </div>
-      </div>
-      {/* Comment */}
-      <p style={{ fontSize: 14, color: "var(--ink-secondary)", lineHeight: 1.7, margin: "0 0 14px" }}>
-        {review.comment}
-      </p>
-      {/* Footer */}
-      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-        <ThumbsUp size={12} color="var(--ink-tertiary)" />
-        <span style={{ fontSize: 11, color: "var(--ink-tertiary)" }}>Avis vérifié</span>
-      </div>
-    </div>
-  );
-}
 
 /* ─── Main page ──────────────────────────────────────── */
 export default function ProviderProfilePage() {
@@ -594,9 +543,20 @@ export default function ProviderProfilePage() {
                         transition={{ duration: 0.24, ease: [0.4, 0, 0.2, 1] }}
                         style={{ overflow: "hidden" }}
                       >
-                        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                          {reviews.map((review) => (
-                            <ReviewItem key={review.id} review={review} />
+                        <div style={{
+                          display: "grid",
+                          gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+                          gap: 16,
+                        }}>
+                          {reviews.map((review, i) => (
+                            <motion.div
+                              key={review.id}
+                              initial={{ opacity: 0, y: 8 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: i * 0.05, duration: 0.28, ease: [0, 0, 0.2, 1] }}
+                            >
+                              <ReviewCard review={review} />
+                            </motion.div>
                           ))}
                         </div>
                       </motion.div>
