@@ -13,7 +13,7 @@ import {
 import bcrypt from "bcryptjs";
 import { v4 as uuidv4 } from "uuid";
 
-async function seed() {
+export async function runSeed() {
   console.log("🌱 Seeding database...");
 
   await db.delete(reviewsTable);
@@ -293,18 +293,52 @@ async function seed() {
     { id: uuidv4(), providerId: p4Id, bookingId: bookingRows[8]?.id ?? uuidv4(), clientId: clientId1, rating: 4, comment: "Très belle découverte. Leila est professionnelle et douce. Le soin ghassoul est incroyable." },
   ]).onConflictDoNothing();
 
+  // ── BOOKINGS FIXES pour Salon Atlas (tous statuts, aujourd'hui) ──────────
+  // Ces réservations garantissent que le dashboard Agenda affiche les 4 statuts
+  // dès la première connexion, peu importe le jour du seed.
+  const fixedAtlasBookings = [
+    { hour: 9,  service: p1Svc1, staff: s1_f, client: clientId1, status: "CONFIRMED"  as const, price: 18000 },
+    { hour: 11, service: p1Svc4, staff: s1_c, client: clientId2, status: "CONFIRMED"  as const, price: 35000 },
+    { hour: 14, service: p1Svc3, staff: s1_c, client: clientId1, status: "PENDING"    as const, price: 45000 },
+    { hour: 15, service: p1Svc2, staff: s1_h, client: clientId2, status: "CANCELLED"  as const, price: 8000  },
+    { hour: 17, service: p1Svc1, staff: s1_f, client: clientId1, status: "COMPLETED"  as const, price: 18000 },
+  ].map(({ hour, service, staff, client, status, price }) => {
+    const start = new Date(today);
+    start.setUTCHours(hour, 0, 0, 0);
+    const end = new Date(start.getTime() + 60 * 60_000);
+    return {
+      id: uuidv4(),
+      providerId: p1Id,
+      serviceId: service,
+      staffId: staff,
+      clientId: client,
+      startDatetime: start,
+      endDatetime: end,
+      status,
+      amountCents: price,
+      paymentStatus: status === "CONFIRMED" || status === "COMPLETED" ? "paid" : "unpaid",
+      paymentIntentId: `pi_seed_${uuidv4()}`,
+      lockedUntil: null,
+    };
+  });
+
+  await db.insert(bookingsTable).values(fixedAtlasBookings).onConflictDoNothing();
+
   console.log(`✅ Seed complete!`);
   console.log(`   Providers: 4`);
   console.log(`   Staff: 11`);
   console.log(`   Services: 14`);
-  console.log(`   Bookings: ${bookingRows.length}`);
+  console.log(`   Bookings: ${bookingRows.length + fixedAtlasBookings.length} (${fixedAtlasBookings.length} fixes + ${bookingRows.length} aléatoires)`);
   console.log(`\n📧 Test accounts:`);
   console.log(`   Client:     yasmine@client.ma   / password123`);
   console.log(`   Owner 1:    atlas@salon.ma       / password123 (Salon Atlas)`);
   console.log(`   Owner 2:    elegance@salon.ma    / password123 (Institut Elegance)`);
   console.log(`   Owner 3:    sara@domicile.ma     / password123 (Sara a domicile)`);
   console.log(`   Owner 4:    zitoun@hammam.ma     / password123 (Hammam Zitoun)`);
+}
 
+async function seed() {
+  await runSeed();
   await pool.end();
 }
 

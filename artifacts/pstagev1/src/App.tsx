@@ -84,7 +84,7 @@ function DevAutoLogin() {
     fetch("/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: "owner@salonatlas.ma", password: "atlas2026" }),
+      body: JSON.stringify({ email: "atlas@salon.ma", password: "password123" }),
     })
       .then((r) => r.json())
       .then((d) => {
