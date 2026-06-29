@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/DSButton";
 import { api } from "@/lib/api";
@@ -277,9 +278,9 @@ function BookingCard({ b, index }: { b: typeof MOCK_BOOKINGS[0]; index: number }
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <div style={{
             width: 26, height: 26, borderRadius: "50%",
-            backgroundColor: "var(--ink)",
+            backgroundColor: "rgba(12,12,14,0.07)",
             display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: 9, fontWeight: 700, color: "#fff", flexShrink: 0,
+            fontSize: 9, fontWeight: 700, color: "var(--ink)", flexShrink: 0,
           }}>
             {avatarInitials(b.clientName)}
           </div>
@@ -299,6 +300,7 @@ function toDateStr(d: Date) { return d.toISOString().slice(0, 10); }
 export default function AgendaPage() {
   const { isMobile, isLg } = useBreakpoint();
   const queryClient = useQueryClient();
+  const [, navigate] = useLocation();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [blockModal, setBlockModal] = useState<BlockModal | null>(null);
   const [blockDuration, setBlockDuration] = useState(60);
@@ -465,9 +467,13 @@ export default function AgendaPage() {
             <h3 style={{ fontSize: 15, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.01em", margin: 0 }}>
               Réservations du jour
             </h3>
-            <span style={{ fontSize: 12, color: "var(--accent)", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 3 }}>
+            <button
+              type="button"
+              onClick={() => navigate("/dashboard/reservations")}
+              style={{ fontSize: 12, color: "var(--accent)", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 3, background: "none", border: "none", padding: 0 }}
+            >
               Tout voir <ArrowUpRight size={12} />
-            </span>
+            </button>
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(2, 1fr)", gap: 12 }}>
