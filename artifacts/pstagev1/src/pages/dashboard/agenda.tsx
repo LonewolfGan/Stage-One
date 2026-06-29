@@ -60,10 +60,10 @@ function MonthCalendar({
     return d;
   });
 
-  const DAY_LABELS = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
+  const DAY_LABELS = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
 
-  const gridStart = startOfWeek(startOfMonth(viewMonth), { weekStartsOn: 0 });
-  const gridEnd   = endOfWeek(endOfMonth(viewMonth),     { weekStartsOn: 0 });
+  const gridStart = startOfWeek(startOfMonth(viewMonth), { weekStartsOn: 1 });
+  const gridEnd   = endOfWeek(endOfMonth(viewMonth),     { weekStartsOn: 1 });
   const days      = eachDayOfInterval({ start: gridStart, end: gridEnd });
 
   function hasBooking(d: Date) {
@@ -73,35 +73,44 @@ function MonthCalendar({
 
   return (
     <div>
-      {/* Month nav */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-        <span style={{ fontSize: 15, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.01em" }}>
-          {format(viewMonth, "MMMM yyyy", { locale: fr })}
+      {/* Month nav — Figma style: arrow · month name · arrow */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
+        <button
+          type="button"
+          aria-label="Mois précédent"
+          onClick={() => setViewMonth((m) => subMonths(m, 1))}
+          style={{ width: 34, height: 34, border: "1px solid var(--hairline)", borderRadius: 10, background: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--ink-secondary)", transition: "background 120ms" }}
+          onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-2)")}
+          onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
+        >
+          <ChevronLeft size={16} />
+        </button>
+        <span style={{ fontSize: 17, fontWeight: 700, color: "var(--ink)", letterSpacing: "-0.02em" }}>
+          {format(viewMonth, "MMMM", { locale: fr }).replace(/^\w/, (c) => c.toUpperCase())}
         </span>
-        <div style={{ display: "flex", gap: 4 }}>
-          <button
-            onClick={() => setViewMonth((m) => subMonths(m, 1))}
-            style={{ width: 28, height: 28, border: "1px solid var(--hairline)", borderRadius: 8, background: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--ink-secondary)" }}
-          >
-            <ChevronLeft size={14} />
-          </button>
-          <button
-            onClick={() => setViewMonth((m) => addMonths(m, 1))}
-            style={{ width: 28, height: 28, border: "1px solid var(--hairline)", borderRadius: 8, background: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--ink-secondary)" }}
-          >
-            <ChevronRight size={14} />
-          </button>
-        </div>
+        <button
+          type="button"
+          aria-label="Mois suivant"
+          onClick={() => setViewMonth((m) => addMonths(m, 1))}
+          style={{ width: 34, height: 34, border: "1px solid var(--hairline)", borderRadius: 10, background: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--ink-secondary)", transition: "background 120ms" }}
+          onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-2)")}
+          onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
+        >
+          <ChevronRight size={16} />
+        </button>
       </div>
 
       {/* Day labels */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", marginBottom: 6 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", marginBottom: 8 }}>
         {DAY_LABELS.map((d) => (
-          <div key={d} style={{ textAlign: "center", fontSize: 10, fontWeight: 600, color: "var(--ink-tertiary)", letterSpacing: "0.04em", textTransform: "uppercase", paddingBottom: 6 }}>
+          <div key={d} style={{ textAlign: "center", fontSize: 10, fontWeight: 700, color: "var(--ink-tertiary)", letterSpacing: "0.05em", textTransform: "uppercase", paddingBottom: 8 }}>
             {d}
           </div>
         ))}
       </div>
+
+      {/* Separator */}
+      <div style={{ height: 1, backgroundColor: "var(--hairline)", marginBottom: 8 }} />
 
       {/* Day grid */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 2 }}>
@@ -114,7 +123,7 @@ function MonthCalendar({
           return (
             <button
               key={i}
-              onClick={() => { onSelect(day); }}
+              onClick={() => { if (inMonth) onSelect(day); }}
               style={{
                 position: "relative",
                 width: "100%",
@@ -123,23 +132,23 @@ function MonthCalendar({
                 flexDirection: "column",
                 alignItems: "center",
                 justifyContent: "center",
-                borderRadius: 8,
+                borderRadius: 10,
                 border: "none",
                 cursor: inMonth ? "pointer" : "default",
                 backgroundColor: isSel
-                  ? "#0E7B6C"
+                  ? "#D4466E"
                   : today && !isSel
-                  ? "#0E7B6C18"
+                  ? "#D4466E14"
                   : "transparent",
                 color: isSel
                   ? "#fff"
                   : !inMonth
                   ? "var(--ink-disabled)"
                   : today
-                  ? "#0E7B6C"
+                  ? "#D4466E"
                   : "var(--ink)",
-                fontSize: 12,
-                fontWeight: isSel || today ? 600 : 400,
+                fontSize: 13,
+                fontWeight: isSel || today ? 700 : 400,
                 transition: "background-color 120ms",
                 gap: 2,
               }}
@@ -147,10 +156,10 @@ function MonthCalendar({
               {day.getDate()}
               {hasBk && inMonth && (
                 <div style={{
-                  width: 4, height: 4, borderRadius: "50%",
-                  backgroundColor: isSel ? "rgba(255,255,255,0.7)" : "#D4466E",
+                  width: 5, height: 5, borderRadius: "50%",
+                  backgroundColor: isSel ? "rgba(255,255,255,0.75)" : "#D4466E",
                   position: "absolute",
-                  bottom: 3,
+                  bottom: 4,
                 }} />
               )}
             </button>
@@ -257,10 +266,12 @@ function TimelineEvent({ b, index }: { b: typeof MOCK_BOOKINGS[0]; index: number
   );
 }
 
-/* ── Booking card (left panel) ── */
+/* ── Booking card (left panel) — Figma-inspired ── */
 function BookingCard({ b, index }: { b: typeof MOCK_BOOKINGS[0]; index: number }) {
   const isConfirmed = b.status === "confirmed";
   const color       = (b as any).color ?? "#D4466E";
+  // progress bar: percentage of daily max (assume 8h day = 480 min total)
+  const progress = Math.min(100, Math.round((b.amount / 600) * 100));
 
   return (
     <motion.div
@@ -268,81 +279,69 @@ function BookingCard({ b, index }: { b: typeof MOCK_BOOKINGS[0]; index: number }
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.08 + index * 0.07, duration: 0.38, ease: [0, 0, 0.2, 1] }}
       className="ds-card"
-      style={{ padding: 16, cursor: "pointer" }}
+      style={{ padding: 18, cursor: "pointer", position: "relative", overflow: "hidden" }}
     >
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
-        <div style={{ minWidth: 0 }}>
-          <p style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)", margin: "0 0 2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-            {b.service}
-          </p>
-          <p style={{ fontSize: 12, color: "var(--ink-tertiary)", margin: 0 }}>{b.time}</p>
-        </div>
-        <div style={{ display: "flex", gap: 6, alignItems: "center", flexShrink: 0, marginLeft: 8 }}>
-          {/* Toggle-style status */}
-          <div style={{
-            width: 36, height: 20, borderRadius: 10,
-            backgroundColor: isConfirmed ? "#0E7B6C20" : "var(--surface-2)",
-            position: "relative", cursor: "pointer",
-            border: `1px solid ${isConfirmed ? "#0E7B6C30" : "var(--hairline)"}`,
-          }}>
-            <div style={{
-              position: "absolute",
-              top: 3,
-              [isConfirmed ? "right" : "left"]: 3,
-              width: 12, height: 12,
-              borderRadius: "50%",
-              backgroundColor: isConfirmed ? "#0E7B6C" : "var(--ink-tertiary)",
-              transition: "all 150ms",
-            }} />
-          </div>
-          <button style={{
-            width: 28, height: 28, borderRadius: 8,
-            border: "1px solid var(--hairline)",
-            background: "var(--surface-1)",
-            cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
-            color: "var(--ink-tertiary)",
-          }}>
-            <ArrowUpRight size={13} />
-          </button>
-        </div>
+      {/* Three-dot menu */}
+      <button
+        type="button"
+        aria-label="Options"
+        style={{ position: "absolute", top: 14, right: 14, background: "none", border: "none", cursor: "pointer", color: "var(--ink-tertiary)", padding: 4, borderRadius: 6, display: "flex", alignItems: "center", justifyContent: "center" }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor">
+          <circle cx="2" cy="7" r="1.4"/><circle cx="7" cy="7" r="1.4"/><circle cx="12" cy="7" r="1.4"/>
+        </svg>
+      </button>
+
+      {/* Header */}
+      <div style={{ marginBottom: 6, paddingRight: 24 }}>
+        <p style={{ fontSize: 14, fontWeight: 700, color: "var(--ink)", margin: "0 0 3px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", letterSpacing: "-0.01em" }}>
+          {b.service}
+        </p>
+        <p style={{ fontSize: 12, color: "var(--ink-tertiary)", margin: 0 }}>{b.time} · {b.duration} min</p>
       </div>
 
-      {/* Tags */}
-      <div style={{ display: "flex", gap: 6, marginBottom: 10 }}>
-        {b.tags.map((tag) => (
-          <span key={tag} style={{
-            fontSize: 11, fontWeight: 600,
-            color: color, backgroundColor: color + "15",
-            padding: "3px 10px", borderRadius: 20,
-          }}>
-            {tag}
+      {/* Progress bar — Figma key feature */}
+      <div style={{ marginBottom: 14 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+          <span style={{ fontSize: 11, color: "var(--ink-tertiary)", fontWeight: 500 }}>Montant</span>
+          <span style={{ fontSize: 13, fontWeight: 700, color: color, letterSpacing: "-0.01em" }}>
+            {b.amount.toLocaleString("fr-MA")} MAD
           </span>
-        ))}
-        <span style={{
-          fontSize: 11, fontWeight: 600,
-          color: "var(--ink-tertiary)", backgroundColor: "var(--surface-2)",
-          padding: "3px 10px", borderRadius: 20,
-        }}>
-          {b.duration} min
-        </span>
+        </div>
+        <div style={{ height: 6, borderRadius: 99, backgroundColor: color + "18", overflow: "hidden" }}>
+          <motion.div
+            initial={{ width: 0 }}
+            animate={{ width: `${progress}%` }}
+            transition={{ delay: 0.15 + index * 0.07, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+            style={{ height: "100%", borderRadius: 99, backgroundColor: color }}
+          />
+        </div>
       </div>
 
-      {/* Footer: avatars + amount */}
+      {/* Footer: avatar stack + status badge */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <div style={{ display: "flex", alignItems: "center" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 0 }}>
+          {/* Overlapping avatar — Figma pattern */}
           <div style={{
-            width: 26, height: 26, borderRadius: "50%",
+            width: 28, height: 28, borderRadius: "50%",
             backgroundColor: avatarColor(b.clientName),
             display: "flex", alignItems: "center", justifyContent: "center",
             fontSize: 9, fontWeight: 700, color: "#fff",
             border: "2px solid var(--surface-1)",
+            flexShrink: 0,
           }}>
             {avatarInitials(b.clientName)}
           </div>
-          <span style={{ fontSize: 11, color: "var(--ink-secondary)", marginLeft: 6 }}>{b.clientName}</span>
+          <span style={{ fontSize: 11, color: "var(--ink-secondary)", marginLeft: 8, fontWeight: 500 }}>{b.clientName}</span>
         </div>
-        <span style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.01em" }}>
-          {b.amount} MAD
+        <span style={{
+          fontSize: 10, fontWeight: 600,
+          color: isConfirmed ? "#10B981" : "#E8A33D",
+          backgroundColor: isConfirmed ? "#10B98114" : "#E8A33D14",
+          padding: "3px 9px", borderRadius: 20,
+        }}>
+          {isConfirmed ? "Confirmé" : "En attente"}
         </span>
       </div>
     </motion.div>
@@ -487,19 +486,40 @@ export default function AgendaPage() {
             </div>
           </div>
 
-          {/* Quick stats row */}
+          {/* Quick stats row — Figma-inspired with progress bars */}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginBottom: 20 }}>
             {[
-              { label: "RDV aujourd'hui", value: `${todayBookings || adaptedBookings.length}`, color: "#D4466E" },
-              { label: "CA estimé",       value: `${adaptedBookings.reduce((s, b) => s + b.amount, 0).toLocaleString("fr-MA")} MAD`, color: "#0E7B6C" },
-              { label: "Remplissage",     value: `${fillRate || 73}%`, color: "#8B5CF6" },
+              { label: "RDV aujourd'hui", value: todayBookings ?? adaptedBookings.length, display: `${todayBookings ?? adaptedBookings.length}`, sub: "réservations", color: "#D4466E", progress: Math.min(100, ((todayBookings ?? adaptedBookings.length) / 10) * 100) },
+              { label: "CA estimé", value: adaptedBookings.reduce((s, b) => s + b.amount, 0), display: `${adaptedBookings.reduce((s, b) => s + b.amount, 0).toLocaleString("fr-MA")}`, sub: "MAD", color: "#0E7B6C", progress: Math.min(100, (adaptedBookings.reduce((s, b) => s + b.amount, 0) / 3000) * 100) },
+              { label: "Remplissage", value: fillRate ?? 73, display: `${fillRate ?? 73}`, sub: "%", color: "#8B5CF6", progress: fillRate ?? 73 },
             ].map((s, i) => (
-              <div key={i} className="ds-card" style={{ padding: "14px 16px" }}>
-                <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "var(--ink-tertiary)", margin: "0 0 6px" }}>
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.06, duration: 0.35, ease: [0, 0, 0.2, 1] }}
+                className="ds-card"
+                style={{ padding: "16px 18px", position: "relative", overflow: "hidden" }}
+              >
+                {/* Left accent stripe */}
+                <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 3, backgroundColor: s.color, borderRadius: "12px 0 0 12px" }} />
+                <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "var(--ink-tertiary)", margin: "0 0 8px" }}>
                   {s.label}
                 </p>
-                <p style={{ fontSize: 20, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.02em", margin: 0 }}>{s.value}</p>
-              </div>
+                <div style={{ display: "flex", alignItems: "baseline", gap: 4, marginBottom: 10 }}>
+                  <span style={{ fontSize: 26, fontWeight: 700, color: "var(--ink)", letterSpacing: "-0.03em", lineHeight: 1 }}>{s.display}</span>
+                  <span style={{ fontSize: 12, color: "var(--ink-tertiary)", fontWeight: 500 }}>{s.sub}</span>
+                </div>
+                {/* Progress bar */}
+                <div style={{ height: 4, borderRadius: 99, backgroundColor: s.color + "18" }}>
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${s.progress}%` }}
+                    transition={{ delay: 0.2 + i * 0.06, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+                    style={{ height: "100%", borderRadius: 99, backgroundColor: s.color }}
+                  />
+                </div>
+              </motion.div>
             ))}
           </div>
 
