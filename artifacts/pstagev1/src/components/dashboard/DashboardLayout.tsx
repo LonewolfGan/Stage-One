@@ -24,7 +24,7 @@ const RAIL_GAP = 8;
 const RAIL_TOTAL = RAIL_W + RAIL_GAP + 8; // 88px content offset
 
 /* Colors */
-const RAIL_BG     = "#181A1F";
+const RAIL_BG     = "#D4466E";
 const ROSE        = "#D4466E";
 const ROSE_ACTIVE = "rgba(212,70,110,0.13)";
 
