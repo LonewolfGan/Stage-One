@@ -34,6 +34,11 @@ interface WeekBooking {
   status: "confirmed" | "pending" | "cancelled";
 }
 
+interface PlacedBooking extends WeekBooking {
+  col: number;
+  numCols: number;
+}
+
 /* ── Constants ── */
 const HOUR_START = 8;
 const HOUR_END   = 20;
@@ -42,16 +47,16 @@ const SLOT_PX    = 72;
 const GRID_H     = TOTAL_H * SLOT_PX;
 const LABEL_W    = 52;
 
-const DAY_SHORT  = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
-const HOURS      = Array.from({ length: TOTAL_H + 1 }, (_, i) => HOUR_START + i);
+const DAY_SHORT = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
+const HOURS     = Array.from({ length: TOTAL_H + 1 }, (_, i) => HOUR_START + i);
 
-/* Height of sticky elements stacked above the day-header row */
-const PAGE_HEADER_H = 61;
-const WEEK_NAV_H    = 57;
+/* Heights of sticky elements above the day-header row */
+const PAGE_HEADER_H  = 61;
+const WEEK_NAV_H     = 57;
 const DAY_HEADER_TOP = PAGE_HEADER_H + WEEK_NAV_H;
 
-/* ── Color palette: deterministic per staff/client name ── */
-const PALETTE = ["#D4466E", "#06B6D4", "#8B5CF6", "#10B981", "#F97316", "#E8A33D", "#EC8932"];
+/* ── Color palette — deterministic per staff/client name ── */
+const PALETTE = ["#D4466E", "#06B6D4", "#8B5CF6", "#10B981", "#F97316", "#E8A33D"];
 
 function hashColor(s: string) {
   let h = 0;
@@ -59,7 +64,6 @@ function hashColor(s: string) {
   return PALETTE[Math.abs(h) % PALETTE.length];
 }
 
-/* ── Color helper ── */
 function hexAlpha(hex: string, a: number) {
   const r = parseInt(hex.slice(1, 3), 16);
   const g = parseInt(hex.slice(3, 5), 16);
@@ -69,29 +73,53 @@ function hexAlpha(hex: string, a: number) {
 
 /* ── Adapt raw API booking → WeekBooking ── */
 function adaptBooking(b: any, dayIndex: number): WeekBooking {
-  const start    = new Date(b.startDatetime);
-  const end      = b.endDatetime ? new Date(b.endDatetime) : new Date(start.getTime() + 60 * 60_000);
+  const start     = new Date(b.startDatetime);
+  const end       = b.endDatetime ? new Date(b.endDatetime) : new Date(start.getTime() + 60 * 60_000);
   const startHour = start.getHours() + start.getMinutes() / 60;
   const durationH = Math.max((end.getTime() - start.getTime()) / 3_600_000, 0.25);
-  const colorKey  = b.staff?.name ?? b.client?.name ?? b.id;
   return {
-    id:          b.id,
-    clientName:  b.client?.name ?? "Client",
-    service:     b.service?.name ?? "Prestation",
+    id:         b.id,
+    clientName: b.client?.name ?? "Client",
+    service:    b.service?.name ?? "Prestation",
     startHour,
     durationH,
     dayIndex,
-    color:       hashColor(colorKey),
-    staff:       b.staff?.name ?? "",
-    amount:      Math.round((b.amountCents ?? 0) / 100),
-    status:      b.status === "CONFIRMED" ? "confirmed"
-               : b.status === "CANCELLED" ? "cancelled"
-               : "pending",
+    color:      hashColor(b.staff?.name ?? b.client?.name ?? b.id),
+    staff:      b.staff?.name ?? "",
+    amount:     Math.round((b.amountCents ?? 0) / 100),
+    status:     b.status === "CONFIRMED" ? "confirmed"
+              : b.status === "CANCELLED" ? "cancelled"
+              : "pending",
   };
 }
 
+/* ── Sub-column layout for concurrent bookings in a single day column ── */
+function layoutDayBookings(bookings: WeekBooking[]): PlacedBooking[] {
+  if (bookings.length === 0) return [];
+
+  const sorted = [...bookings].sort((a, b) => a.startHour - b.startHour);
+  const occupied: Array<{ col: number; endHour: number }> = [];
+
+  const withCols = sorted.map((b) => {
+    const endHour     = b.startHour + b.durationH;
+    const busyCols    = occupied.filter(o => o.endHour > b.startHour).map(o => o.col);
+    let col = 0;
+    while (busyCols.includes(col)) col++;
+    occupied.push({ col, endHour });
+    return { ...b, col };
+  });
+
+  return withCols.map((b) => {
+    const concurrent = withCols.filter(
+      o => o.startHour < b.startHour + b.durationH && o.startHour + o.durationH > b.startHour,
+    );
+    const numCols = concurrent.reduce((m, c) => Math.max(m, c.col + 1), 1);
+    return { ...b, numCols };
+  });
+}
+
 /* ── Booking block ── */
-function BookingBlock({ booking }: { booking: WeekBooking }) {
+function BookingBlock({ booking }: { booking: PlacedBooking }) {
   const [hovered, setHovered] = useState(false);
   const top    = (booking.startHour - HOUR_START) * SLOT_PX;
   const height = Math.max(booking.durationH * SLOT_PX - 4, 28);
@@ -99,10 +127,13 @@ function BookingBlock({ booking }: { booking: WeekBooking }) {
 
   const startH = Math.floor(booking.startHour);
   const startM = String(Math.round((booking.startHour % 1) * 60)).padStart(2, "0");
-  const endDecimal = booking.startHour + booking.durationH;
-  const endH   = Math.floor(endDecimal);
-  const endM   = String(Math.round((endDecimal % 1) * 60)).padStart(2, "0");
-  const timeStr = `${startH}:${startM} – ${endH}:${endM}`;
+  const endDec = booking.startHour + booking.durationH;
+  const endH   = Math.floor(endDec);
+  const endM   = String(Math.round((endDec % 1) * 60)).padStart(2, "0");
+
+  /* Sub-column geometry */
+  const pct     = 100 / booking.numCols;
+  const leftPct = booking.col * pct;
 
   return (
     <motion.div
@@ -114,12 +145,12 @@ function BookingBlock({ booking }: { booking: WeekBooking }) {
       style={{
         position: "absolute",
         top: top + 2,
-        left: 3,
-        right: 3,
+        left:   `calc(${leftPct}% + 3px)`,
+        width:  `calc(${pct}% - 6px)`,
         height,
         borderRadius: 8,
         backgroundColor: hovered ? hexAlpha(booking.color, 0.22) : hexAlpha(booking.color, 0.13),
-        borderLeft: `3px solid ${booking.color}`,
+        border: `1px solid ${hexAlpha(booking.color, 0.30)}`,
         padding: isShort ? "4px 8px" : "8px 10px",
         cursor: "pointer",
         overflow: "hidden",
@@ -131,7 +162,7 @@ function BookingBlock({ booking }: { booking: WeekBooking }) {
         <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 3 }}>
           <Clock size={10} color={booking.color} strokeWidth={2.5} />
           <span style={{ fontSize: 11, fontWeight: 600, color: booking.color, letterSpacing: "0.01em" }}>
-            {timeStr}
+            {startH}:{startM} – {endH}:{endM}
           </span>
         </div>
       )}
@@ -171,11 +202,10 @@ export default function ReservationsPage() {
 
   const weekLabel = `${format(monday, "d MMM", { locale: fr })} – ${format(addDays(monday, 6), "d MMM yyyy", { locale: fr })}`;
 
-  /* Fetch real bookings for each day of the week in parallel */
   const dayQueries = useQueries({
     queries: days.map((day) => ({
       queryKey: ["dashboard", "bookings", format(day, "yyyy-MM-dd")],
-      queryFn: () => api.getDashboardBookings({ date: format(day, "yyyy-MM-dd") }),
+      queryFn:  () => api.getDashboardBookings({ date: format(day, "yyyy-MM-dd") }),
       staleTime: 30_000,
     })),
   });
@@ -187,8 +217,15 @@ export default function ReservationsPage() {
 
   return (
     <DashboardLayout title="Réservations" breadcrumb="Agenda" noPadding>
+      {/* Hide scrollbars globally for this page while keeping scroll functionality */}
+      <style>{`
+        .ds-dash-main { scrollbar-width: none; }
+        .ds-dash-main::-webkit-scrollbar { display: none; }
+        .rz-grid-x { scrollbar-width: none; }
+        .rz-grid-x::-webkit-scrollbar { display: none; }
+      `}</style>
 
-      {/* ── Week navigator bar — sticky below page header ── */}
+      {/* ── Week navigator — sticky below page header ── */}
       <div style={{
         position: "sticky",
         top: PAGE_HEADER_H,
@@ -202,7 +239,7 @@ export default function ReservationsPage() {
         justifyContent: "space-between",
         gap: 12,
       }}>
-        {/* Back button */}
+        {/* Back */}
         <button
           type="button"
           onClick={() => navigate("/dashboard/agenda")}
@@ -221,7 +258,7 @@ export default function ReservationsPage() {
           Retour
         </button>
 
-        {/* Week navigator */}
+        {/* Week nav */}
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <button
             type="button"
@@ -258,8 +295,8 @@ export default function ReservationsPage() {
         </div>
       </div>
 
-      {/* ── Week grid — natural flow, single scroll via ds-dash-main ── */}
-      <div style={{ backgroundColor: "var(--canvas)", overflowX: "auto" }}>
+      {/* ── Week grid — single scroll via ds-dash-main ── */}
+      <div className="rz-grid-x" style={{ backgroundColor: "var(--canvas)", overflowX: "auto" }}>
         <div style={{ minWidth: 640 }}>
 
           {/* Day headers — sticky below week nav */}
@@ -272,7 +309,6 @@ export default function ReservationsPage() {
             backgroundColor: "var(--surface-1)",
             borderBottom: "1px solid var(--hairline)",
           }}>
-            {/* empty corner */}
             <div style={{ borderRight: "1px solid var(--hairline)" }} />
             {days.map((day, i) => {
               const active = isToday(day);
@@ -298,13 +334,9 @@ export default function ReservationsPage() {
           </div>
 
           {/* Time grid */}
-          <div style={{
-            display: "grid",
-            gridTemplateColumns: `${LABEL_W}px repeat(7, 1fr)`,
-            position: "relative",
-          }}>
+          <div style={{ display: "grid", gridTemplateColumns: `${LABEL_W}px repeat(7, 1fr)`, position: "relative" }}>
 
-            {/* Hour labels column */}
+            {/* Hour labels */}
             <div style={{ borderRight: "1px solid var(--hairline)", position: "relative", height: GRID_H, overflow: "hidden" }}>
               {HOURS.map((h) => (
                 <div
@@ -320,8 +352,7 @@ export default function ReservationsPage() {
                     lineHeight: 1,
                     userSelect: "none",
                     textAlign: "right",
-                    transform: "translateY(-50%)",
-                    paddingTop: h === HOUR_START ? "50%" : 0,
+                    transform: h === HOUR_START ? "none" : "translateY(-50%)",
                   }}
                 >
                   {h < 10 ? `0${h}:00` : `${h}:00`}
@@ -331,7 +362,8 @@ export default function ReservationsPage() {
 
             {/* Day columns */}
             {days.map((day, colIdx) => {
-              const colBookings = allBookings.filter((b) => b.dayIndex === colIdx);
+              const dayRaw      = allBookings.filter((b) => b.dayIndex === colIdx);
+              const colBookings = layoutDayBookings(dayRaw);
               const active      = isToday(day);
               return (
                 <div
@@ -343,37 +375,14 @@ export default function ReservationsPage() {
                     backgroundColor: active ? hexAlpha("#D4466E", 0.02) : "transparent",
                   }}
                 >
-                  {/* Hour guide lines */}
+                  {/* Hour lines */}
                   {HOURS.map((h) => (
-                    <div
-                      key={h}
-                      style={{
-                        position: "absolute",
-                        top: (h - HOUR_START) * SLOT_PX,
-                        left: 0,
-                        right: 0,
-                        height: 1,
-                        backgroundColor: h === HOUR_START ? "transparent" : "var(--hairline)",
-                      }}
-                    />
+                    <div key={h} style={{ position: "absolute", top: (h - HOUR_START) * SLOT_PX, left: 0, right: 0, height: 1, backgroundColor: h === HOUR_START ? "transparent" : "var(--hairline)" }} />
                   ))}
-
                   {/* Half-hour lines */}
                   {HOURS.slice(0, -1).map((h) => (
-                    <div
-                      key={`${h}-half`}
-                      style={{
-                        position: "absolute",
-                        top: (h - HOUR_START) * SLOT_PX + SLOT_PX / 2,
-                        left: 8,
-                        right: 8,
-                        height: 1,
-                        backgroundColor: "var(--hairline)",
-                        opacity: 0.4,
-                      }}
-                    />
+                    <div key={`${h}-h`} style={{ position: "absolute", top: (h - HOUR_START) * SLOT_PX + SLOT_PX / 2, left: 8, right: 8, height: 1, backgroundColor: "var(--hairline)", opacity: 0.4 }} />
                   ))}
-
                   {/* Booking blocks */}
                   {colBookings.map((b) => (
                     <BookingBlock key={b.id} booking={b} />
@@ -384,7 +393,6 @@ export default function ReservationsPage() {
           </div>
         </div>
       </div>
-
     </DashboardLayout>
   );
 }
