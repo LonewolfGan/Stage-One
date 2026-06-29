@@ -442,7 +442,7 @@ export default function ProviderProfilePage() {
           }}>
 
             {/* ─────────── LEFT ─────────── */}
-            <div style={{ minWidth: 0 }}>
+            <div style={{ minWidth: 0, maxWidth: 900 }}>
 
               {/* Services */}
               <section style={{ marginBottom: 56 }}>
@@ -547,6 +547,7 @@ export default function ProviderProfilePage() {
                           display: "grid",
                           gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
                           gap: 16,
+                          alignItems: "stretch",
                         }}>
                           {reviews.map((review, i) => (
                             <motion.div
@@ -554,6 +555,7 @@ export default function ProviderProfilePage() {
                               initial={{ opacity: 0, y: 8 }}
                               animate={{ opacity: 1, y: 0 }}
                               transition={{ delay: i * 0.05, duration: 0.28, ease: [0, 0, 0.2, 1] }}
+                              style={{ height: "100%" }}
                             >
                               <ReviewCard review={review} />
                             </motion.div>

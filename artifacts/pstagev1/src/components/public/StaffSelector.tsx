@@ -1,3 +1,4 @@
+import { User } from "lucide-react";
 import { StaffMember } from "@/lib/types";
 
 interface StaffSelectorProps {
@@ -48,12 +49,10 @@ export function StaffSelector({ staff, selectedStaffId, onSelectStaff }: StaffSe
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            fontSize: 11,
-            fontWeight: 600,
             color: selectedStaffId === null ? "#FFFFFF" : "var(--ink-tertiary)",
           }}
         >
-          --
+          <User size={14} strokeWidth={2} />
         </div>
         <span style={{ fontSize: 14, fontWeight: 500 }}>Pas de préférence</span>
       </button>
@@ -92,17 +91,38 @@ export function StaffSelector({ staff, selectedStaffId, onSelectStaff }: StaffSe
               }
             }}
           >
-            <img
-              src={member.photoUrl}
-              alt={member.name}
-              style={{
-                width: 28,
-                height: 28,
-                borderRadius: "50%",
-                objectFit: "cover",
-                opacity: isSelected ? 0.9 : 1,
-              }}
-            />
+            {member.photoUrl ? (
+              <img
+                src={member.photoUrl}
+                alt={member.name}
+                style={{
+                  width: 28,
+                  height: 28,
+                  borderRadius: "50%",
+                  objectFit: "cover",
+                  opacity: isSelected ? 0.9 : 1,
+                }}
+              />
+            ) : (
+              <div
+                style={{
+                  width: 28,
+                  height: 28,
+                  borderRadius: "50%",
+                  backgroundColor: isSelected ? "rgba(255,255,255,0.20)" : "rgba(12,12,14,0.06)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: 11,
+                  fontWeight: 600,
+                  color: isSelected ? "#FFFFFF" : "var(--ink-tertiary)",
+                  letterSpacing: "-0.01em",
+                  flexShrink: 0,
+                }}
+              >
+                {member.initials}
+              </div>
+            )}
             <span style={{ fontSize: 14, fontWeight: 500 }}>{member.firstName}</span>
           </button>
         );

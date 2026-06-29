@@ -15,6 +15,8 @@ export function ReviewCard({ review }: ReviewCardProps) {
         display: "flex",
         flexDirection: "column",
         gap: 14,
+        height: "100%",
+        boxSizing: "border-box",
         transition: "border-color 140ms ease",
       }}
       onMouseEnter={(e) => {
