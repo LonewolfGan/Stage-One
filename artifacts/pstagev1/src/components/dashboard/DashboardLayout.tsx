@@ -26,7 +26,7 @@ const RAIL_TOTAL = RAIL_W + RAIL_GAP + 8; // 88px content offset
 /* Colors */
 const RAIL_BG     = "#D4466E";
 const ROSE        = "#D4466E";
-const ROSE_ACTIVE = "rgba(212,70,110,0.13)";
+const ROSE_ACTIVE = "rgba(255,255,255,0.22)";
 
 /* Topbar avatar stack — Figma pattern */
 const TEAM_AVATARS = [
@@ -145,8 +145,8 @@ function Rail({ onClose }: { onClose?: () => void }) {
                 {isActive && <span className="drl-pip" />}
                 <item.icon
                   size={18}
-                  strokeWidth={isActive ? 2.1 : 1.6}
-                  color={isActive ? "#FFFFFF" : "rgba(255,255,255,0.38)"}
+                  strokeWidth={isActive ? 2.2 : 1.6}
+                  color={isActive ? "#FFFFFF" : "rgba(255,255,255,0.70)"}
                 />
               </div>
             </Link>
@@ -160,7 +160,7 @@ function Rail({ onClose }: { onClose?: () => void }) {
 
         <Link href="/" style={{ textDecoration: "none", display: "block", width: "100%", marginBottom: 10 }}>
           <div className="drl-item" data-tip="Voir le site">
-            <Home size={16} strokeWidth={1.6} color="rgba(255,255,255,0.28)" />
+            <Home size={16} strokeWidth={1.6} color="rgba(255,255,255,0.70)" />
           </div>
         </Link>
 
@@ -172,23 +172,23 @@ function Rail({ onClose }: { onClose?: () => void }) {
       <style>{`
         .drl-brand {
           width: 36px; height: 36px;
-          background: rgba(255,255,255,0.07);
-          border: 1px solid rgba(255,255,255,0.10);
+          background: rgba(255,255,255,0.18);
+          border: 1px solid rgba(255,255,255,0.30);
           border-radius: 10px;
           display: flex; align-items: center; justify-content: center;
           cursor: pointer;
           transition: background 140ms ease;
           flex-shrink: 0;
         }
-        .drl-brand:hover { background: rgba(255,255,255,0.12); }
+        .drl-brand:hover { background: rgba(255,255,255,0.28); }
         .drl-brand span {
-          font-size: 14px; font-weight: 600; color: #FFFFFF;
+          font-size: 14px; font-weight: 700; color: #FFFFFF;
           letter-spacing: -0.02em; line-height: 1; font-family: var(--font);
         }
 
         .drl-sep {
           width: 28px; height: 1px;
-          background: rgba(255,255,255,0.08);
+          background: rgba(255,255,255,0.22);
           flex-shrink: 0;
         }
 
@@ -200,10 +200,10 @@ function Rail({ onClose }: { onClose?: () => void }) {
           transition: background-color 120ms ease;
           background: transparent;
         }
-        .drl-item:hover { background: rgba(255,255,255,0.06); }
+        .drl-item:hover { background: rgba(255,255,255,0.14); }
         .drl-item:hover svg { opacity: 1; }
         .drl-item--active { background: ${ROSE_ACTIVE}; }
-        .drl-item--active:hover { background: rgba(212,70,110,0.18); }
+        .drl-item--active:hover { background: rgba(255,255,255,0.28); }
 
         /* Tooltip */
         .drl-item[data-tip]::after {
@@ -219,26 +219,26 @@ function Rail({ onClose }: { onClose?: () => void }) {
         }
         .drl-item[data-tip]:hover::after { opacity: 1; transform: translateY(-50%) translateX(0); }
 
-        /* Rose active pip */
+        /* White active pip (visible on rose bg) */
         .drl-pip {
           position: absolute; left: 0; top: 50%; transform: translateY(-50%);
           width: 2.5px; height: 16px;
-          background: ${ROSE};
+          background: #FFFFFF;
           border-radius: 0 3px 3px 0;
         }
 
         .drl-avatar {
           width: 30px; height: 30px; border-radius: 50%;
-          background: rgba(255,255,255,0.07);
-          border: 1.5px solid rgba(255,255,255,0.12);
+          background: rgba(255,255,255,0.18);
+          border: 1.5px solid rgba(255,255,255,0.35);
           display: flex; align-items: center; justify-content: center;
-          font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.50);
+          font-size: 10px; font-weight: 700; color: #FFFFFF;
           cursor: pointer; letter-spacing: 0.04em; font-family: var(--font);
           transition: background 140ms ease, border-color 140ms ease;
         }
         .drl-avatar:hover {
-          background: rgba(255,255,255,0.13);
-          border-color: rgba(255,255,255,0.22);
+          background: rgba(255,255,255,0.28);
+          border-color: rgba(255,255,255,0.50);
         }
 
         @media (prefers-reduced-motion: reduce) {
