@@ -55,25 +55,35 @@ function HeroGallery({ photos, providerName }: { photos: string[]; providerName?
       display: "grid",
       gridTemplateColumns: "62% 38%",
       gridTemplateRows: "1fr 1fr",
-      gap: 3,
-      height: "clamp(380px, 48vh, 520px)",
-      overflow: "hidden",
+      gap: 6,
+      height: "clamp(460px, 58vh, 600px)",
       position: "relative",
+      borderRadius: 16,
+      overflow: "hidden",
     }}>
       {/* Main large photo */}
-      <div style={{ gridRow: "1 / 3", overflow: "hidden", position: "relative" }}>
+      <div style={{
+        gridRow: "1 / 3",
+        overflow: "hidden",
+        position: "relative",
+        borderRadius: 14,
+      }}>
         {main ? (
           <img src={main} alt={providerName ?? "Photo principale"}
             style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", transition: "transform 600ms cubic-bezier(0.25,0.46,0.45,0.94)" }}
             onMouseEnter={e => { (e.currentTarget as HTMLImageElement).style.transform = "scale(1.03)"; }}
             onMouseLeave={e => { (e.currentTarget as HTMLImageElement).style.transform = "scale(1)"; }}
           />
-        ) : <div style={{ width: "100%", height: "100%", background: "var(--surface-3)" }} />}
+        ) : <div style={{ width: "100%", height: "100%", background: "var(--surface-3)", borderRadius: 14 }} />}
       </div>
 
       {/* 2 thumbnails */}
       {[0, 1].map(i => (
-        <div key={i} style={{ overflow: "hidden", position: "relative" }}>
+        <div key={i} style={{
+          overflow: "hidden",
+          position: "relative",
+          borderRadius: 14,
+        }}>
           {thumbs[i] ? (
             <img src={thumbs[i]} alt={`Photo ${i + 2}`}
               style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", transition: "transform 600ms cubic-bezier(0.25,0.46,0.45,0.94)" }}
@@ -85,21 +95,21 @@ function HeroGallery({ photos, providerName }: { photos: string[]; providerName?
       ))}
 
       {/* "Voir toutes les photos" pill — bottom-right */}
-      {totalPhotos > 3 && (
+      {totalPhotos > 0 && (
         <div style={{
           position: "absolute", bottom: 14, right: 14,
           background: "rgba(255,255,255,0.92)",
-          backdropFilter: "blur(8px)",
+          backdropFilter: "blur(10px)",
           border: "1px solid rgba(10,10,15,0.10)",
-          borderRadius: 8,
-          padding: "6px 12px",
+          borderRadius: 9,
+          padding: "7px 13px",
           fontSize: 12, fontWeight: 500, color: "var(--ink)",
           cursor: "pointer",
           letterSpacing: "-0.01em",
-          display: "flex", alignItems: "center", gap: 5,
+          display: "flex", alignItems: "center", gap: 6,
           userSelect: "none",
         }}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
           </svg>
           Voir les {totalPhotos} photos
@@ -470,7 +480,9 @@ export default function ProviderProfilePage() {
       <main style={{ flex: 1 }}>
 
         {/* ── Hero ── */}
-        <HeroGallery photos={provider.photos} providerName={provider.name} />
+        <div style={{ padding: "20px 48px 0" }}>
+          <HeroGallery photos={provider.photos} providerName={provider.name} />
+        </div>
 
         {/* ── Content wrapper ── */}
         <div style={{ width: "100%", padding: "0 48px" }}>
