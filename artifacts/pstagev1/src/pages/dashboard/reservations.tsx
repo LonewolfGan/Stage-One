@@ -1,6 +1,8 @@
 import { useState } from "react";
+import { useLocation } from "wouter";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import {
+  ArrowLeft,
   ChevronLeft,
   ChevronRight,
   Clock,
@@ -158,6 +160,7 @@ function BookingBlock({
 /* ── Main page ── */
 export default function ReservationsPage() {
   const [weekOffset, setWeekOffset] = useState(0);
+  const [, navigate] = useLocation();
 
   const baseMonday = startOfWeek(new Date(), { weekStartsOn: 1 });
   const monday = addWeeks(baseMonday, weekOffset);
@@ -181,8 +184,35 @@ export default function ReservationsPage() {
           backgroundColor: "var(--canvas-pure)",
           display: "flex",
           alignItems: "center",
-          justifyContent: "flex-end",
+          justifyContent: "space-between",
         }}>
+          {/* Back button */}
+          <button
+            type="button"
+            onClick={() => navigate("/dashboard/agenda")}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              height: 32,
+              padding: "0 12px 0 8px",
+              borderRadius: 9,
+              border: "1px solid var(--hairline)",
+              background: "none",
+              cursor: "pointer",
+              fontSize: 13,
+              fontWeight: 500,
+              color: "var(--ink-secondary)",
+              letterSpacing: "-0.01em",
+              transition: "background 120ms",
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-2)")}
+            onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
+          >
+            <ArrowLeft size={14} strokeWidth={2} />
+            Agenda
+          </button>
+
           {/* Week navigator */}
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <button
