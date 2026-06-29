@@ -16,7 +16,7 @@ interface ApiBooking {
   status: "PENDING" | "CONFIRMED" | "CANCELLED" | "COMPLETED" | "EXPIRED";
   amountCents: number;
   service: { id: string; name: string; durationMinutes: number; type?: string } | null;
-  staff:   { id: string; name: string } | null;
+  staff:   { id: string; name: string; firstName?: string; lastName?: string } | null;
   client:  { id: string; name: string } | null;
 }
 
@@ -25,23 +25,44 @@ function toDecimalHour(iso: string | null | undefined, fallbackIso?: string): nu
   const d = new Date(iso ?? fallbackIso ?? "");
   if (isNaN(d.getTime())) return 9;
   const h = d.getUTCHours() + d.getUTCMinutes() / 60;
-  // clamp to visible grid range so pills always appear on screen
   return Math.min(Math.max(h, HOUR_START_CLAMP), 18.75);
 }
 const HOUR_START_CLAMP = 8;
 
+function getInitials(name: string): string {
+  return name
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0]?.toUpperCase() ?? "")
+    .join("");
+}
+
 function toCalendarBooking(b: ApiBooking, dayIndex: number): WeekCalendarBooking {
-  const durationH = (b.service?.durationMinutes ?? 60) / 60;
-  const start     = toDecimalHour(b.startDatetime);
-  const end       = toDecimalHour(b.endDatetime, b.startDatetime) || start + durationH;
+  const durationMinutes = b.service?.durationMinutes ?? 60;
+  const durationH       = durationMinutes / 60;
+  const start           = toDecimalHour(b.startDatetime);
+  const end             = toDecimalHour(b.endDatetime, b.startDatetime) || start + durationH;
+  const clientName      = b.client?.name ?? "—";
+  const staffName       = b.staff?.name ?? (
+    b.staff ? [b.staff.firstName, b.staff.lastName].filter(Boolean).join(" ") : undefined
+  );
   return {
-    id:      b.id,
+    id:             b.id,
     dayIndex,
     start,
-    end:     end > start ? end : start + durationH,
-    title:   b.service?.name ?? "—",
-    client:  b.client?.name  ?? "—",
-    type:    b.service?.name ?? "default",
+    end:            end > start ? end : start + durationH,
+    title:          b.service?.name ?? "—",
+    client:         clientName,
+    clientInitials: clientName !== "—" ? getInitials(clientName) : "?",
+    type:           b.service?.name ?? "default",
+    status:         b.status,
+    amountCents:    b.amountCents,
+    staffName,
+    durationMinutes,
+    startIso:       b.startDatetime,
+    endIso:         b.endDatetime,
   };
 }
 
