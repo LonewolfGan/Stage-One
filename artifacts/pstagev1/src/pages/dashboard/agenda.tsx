@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
@@ -183,69 +183,69 @@ function MonthCalendar({
   );
 }
 
-/* ── Timeline event block ── */
-function TimelineEvent({ b, index }: { b: BookingEntry; index: number }) {
-  const st = STATUS_CONFIG[b.status as BookingStatus] ?? STATUS_CONFIG.pending;
+/* ── Timeline slot (grouped by time range) ── */
+function TimelineSlot({
+  timeRange,
+  entries,
+  slotIndex,
+  isLast,
+}: {
+  timeRange: string;
+  entries: BookingEntry[];
+  slotIndex: number;
+  isLast: boolean;
+}) {
+  const startLabel = timeRange.split(" – ")[0];
 
   return (
     <motion.div
       initial={{ opacity: 0, x: 12 }}
       animate={{ opacity: 1, x: 0 }}
-      transition={{ delay: index * 0.06, duration: 0.35, ease: [0, 0, 0.2, 1] }}
-      style={{ display: "flex", gap: 10, alignItems: "stretch", marginBottom: 4 }}
+      transition={{ delay: slotIndex * 0.07, duration: 0.35, ease: [0, 0, 0.2, 1] }}
+      style={{ display: "flex", gap: 10, marginBottom: isLast ? 0 : 12 }}
     >
       {/* Time label */}
-      <div style={{ width: 38, flexShrink: 0, textAlign: "right", paddingTop: 10 }}>
+      <div style={{ width: 38, flexShrink: 0, textAlign: "right", paddingTop: 3 }}>
         <span style={{ fontSize: 11, fontWeight: 500, color: "var(--ink-tertiary)", lineHeight: 1 }}>
-          {b.time.split(" – ")[0]}
+          {startLabel}
         </span>
       </div>
 
       {/* Dot + line */}
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flexShrink: 0 }}>
-        <div style={{ width: 8, height: 8, borderRadius: "50%", backgroundColor: st.color, marginTop: 13, flexShrink: 0 }} />
-        <div style={{ flex: 1, width: 1, backgroundColor: "var(--hairline)", marginTop: 4 }} />
+        <div style={{ width: 7, height: 7, borderRadius: "50%", backgroundColor: "var(--ink)", opacity: 0.25, marginTop: 5, flexShrink: 0 }} />
+        {!isLast && <div style={{ flex: 1, width: 1, backgroundColor: "var(--hairline)", marginTop: 5 }} />}
       </div>
 
-      {/* Card */}
-      <div
-        style={{
-          flex: 1,
-          backgroundColor: "var(--surface-1)",
-          border: "1px solid var(--hairline)",
-          borderRadius: 10,
-          padding: "9px 12px",
-          marginBottom: 6,
-        }}
-      >
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div style={{ minWidth: 0 }}>
-            <p style={{ fontSize: 12, fontWeight: 600, color: "var(--ink)", margin: "0 0 2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+      {/* Booking rows for this slot */}
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 4 }}>
+        {entries.map((b) => (
+          <div
+            key={b.id}
+            style={{
+              backgroundColor: "var(--surface-1)",
+              border: "1px solid var(--hairline)",
+              borderRadius: 8,
+              padding: "8px 10px",
+            }}
+          >
+            <p style={{ fontSize: 12, fontWeight: 600, color: "var(--ink)", margin: "0 0 3px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
               {b.service}
             </p>
             <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
               <div style={{
                 width: 16, height: 16, borderRadius: "50%",
-                backgroundColor: "var(--ink)", opacity: 0.12,
+                backgroundColor: "rgba(12,12,14,0.08)",
                 display: "flex", alignItems: "center", justifyContent: "center",
                 fontSize: 7, fontWeight: 700, color: "var(--ink)",
                 flexShrink: 0,
               }}>
-                <span style={{ opacity: 1 / 0.12, color: "var(--ink)" }}>{avatarInitials(b.clientName)}</span>
+                {avatarInitials(b.clientName)}
               </div>
               <span style={{ fontSize: 11, color: "var(--ink-secondary)", fontWeight: 500 }}>{b.clientName}</span>
             </div>
           </div>
-          <span style={{
-            fontSize: 10, fontWeight: 600,
-            color: st.color,
-            backgroundColor: st.bg,
-            border: `1px solid ${st.border}`,
-            padding: "3px 8px", borderRadius: 20, flexShrink: 0, marginLeft: 8,
-          }}>
-            {st.label}
-          </span>
-        </div>
+        ))}
       </div>
     </motion.div>
   );
@@ -378,6 +378,16 @@ export default function AgendaPage() {
   });
 
   const bookingDates = [dateStr];
+
+  /* ── Group bookings by time slot, sorted chronologically ── */
+  const groupedTimeline = useMemo(() => {
+    const groups = new Map<string, BookingEntry[]>();
+    for (const b of adaptedBookings) {
+      if (!groups.has(b.time)) groups.set(b.time, []);
+      groups.get(b.time)!.push(b);
+    }
+    return Array.from(groups.entries()).sort(([a], [b]) => a.localeCompare(b));
+  }, [adaptedBookings]);
 
   return (
     <DashboardLayout
@@ -515,9 +525,15 @@ export default function AgendaPage() {
               Chronologie
             </h3>
             <div>
-              {adaptedBookings.length > 0 ? (
-                adaptedBookings.map((b, i) => (
-                  <TimelineEvent key={b.id} b={b} index={i} />
+              {groupedTimeline.length > 0 ? (
+                groupedTimeline.map(([timeRange, entries], i) => (
+                  <TimelineSlot
+                    key={timeRange}
+                    timeRange={timeRange}
+                    entries={entries}
+                    slotIndex={i}
+                    isLast={i === groupedTimeline.length - 1}
+                  />
                 ))
               ) : (
                 <div style={{ textAlign: "center", padding: "24px 0" }}>
