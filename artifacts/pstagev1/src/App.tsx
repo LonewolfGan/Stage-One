@@ -24,6 +24,7 @@ import LoginPage from "@/pages/auth/login";
 import StaticPage from "@/pages/static-page";
 import VerifyEmailPage from "@/pages/verify-email";
 import SubscriptionPage from "@/pages/dashboard/subscription";
+import ReservationsPage from "@/pages/dashboard/reservations";
 import ProfilePage from "@/pages/account/profile";
 import NotFoundPage from "@/pages/not-found";
 
@@ -48,6 +49,7 @@ function Router() {
       <Route path="/dashboard/reviews" component={ReviewsPage} />
       <Route path="/dashboard/settings" component={SettingsPage} />
       <Route path="/dashboard/subscription" component={SubscriptionPage} />
+      <Route path="/dashboard/reservations" component={ReservationsPage} />
       <Route path="/auth/register" component={RegisterPage} />
       <Route path="/auth/login" component={LoginPage} />
       <Route path="/page/:slug" component={StaticPage} />
