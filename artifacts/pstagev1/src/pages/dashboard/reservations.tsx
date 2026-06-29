@@ -173,13 +173,6 @@ export default function ReservationsPage() {
     return `${start} – ${end}`;
   })();
 
-  const todayInWeek = days.findIndex((d) => isToday(d));
-
-  /* Total RDV de la semaine */
-  const totalRdv    = WEEK_BOOKINGS.length;
-  const totalCA     = WEEK_BOOKINGS.reduce((s, b) => s + b.amount, 0);
-  const pendingCount = WEEK_BOOKINGS.filter((b) => b.status === "pending").length;
-
   return (
     <DashboardLayout>
       <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
@@ -187,40 +180,34 @@ export default function ReservationsPage() {
         {/* ── Header ── */}
         <div style={{
           flexShrink: 0,
-          padding: "20px 28px 16px",
+          padding: "14px 28px",
           borderBottom: "1px solid var(--hairline)",
           backgroundColor: "var(--canvas-pure)",
         }}>
-          {/* Back + title row */}
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <button
-                type="button"
-                onClick={() => navigate("/dashboard/agenda")}
-                style={{
-                  width: 32, height: 32,
-                  borderRadius: 9,
-                  border: "1px solid var(--hairline)",
-                  background: "none",
-                  cursor: "pointer",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  color: "var(--ink-secondary)",
-                  transition: "background 120ms",
-                }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-2)")}
-                onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
-              >
-                <ArrowLeft size={15} />
-              </button>
-              <div>
-                <h1 style={{ fontSize: 18, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.02em", margin: 0, lineHeight: 1.2 }}>
-                  Agenda semaine
-                </h1>
-                <p style={{ fontSize: 12, color: "var(--ink-tertiary)", margin: 0, marginTop: 2 }}>
-                  Toutes les réservations
-                </p>
-              </div>
-            </div>
+          {/* Back + week navigator row */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <button
+              type="button"
+              onClick={() => navigate("/dashboard/agenda")}
+              style={{
+                height: 32,
+                padding: "0 12px 0 8px",
+                borderRadius: 9,
+                border: "1px solid var(--hairline)",
+                background: "none",
+                cursor: "pointer",
+                display: "flex", alignItems: "center", gap: 6,
+                color: "var(--ink-secondary)",
+                fontSize: 13,
+                fontWeight: 500,
+                transition: "background 120ms",
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-2)")}
+              onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
+            >
+              <ArrowLeft size={14} />
+              Retour
+            </button>
 
             {/* Week navigator */}
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -259,29 +246,6 @@ export default function ReservationsPage() {
             </div>
           </div>
 
-          {/* Stats strip */}
-          <div style={{ display: "flex", gap: 24 }}>
-            {[
-              { label: "RDV cette semaine", value: totalRdv, unit: "réservations", color: "#D4466E" },
-              { label: "CA estimé",         value: totalCA.toLocaleString("fr-MA"), unit: "MAD", color: "#0E7B6C" },
-              { label: "En attente",        value: pendingCount, unit: "à confirmer", color: "#E8A33D" },
-            ].map((s, i) => (
-              <div key={i} style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <div style={{ width: 3, height: 28, borderRadius: 2, backgroundColor: s.color }} />
-                <div>
-                  <p style={{ fontSize: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.04em", color: "var(--ink-tertiary)", margin: 0 }}>
-                    {s.label}
-                  </p>
-                  <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
-                    <span style={{ fontSize: 18, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.03em", lineHeight: 1.1 }}>
-                      {s.value}
-                    </span>
-                    <span style={{ fontSize: 11, color: "var(--ink-tertiary)" }}>{s.unit}</span>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
         </div>
 
         {/* ── Week grid (scrollable) ── */}

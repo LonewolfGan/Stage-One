@@ -40,7 +40,7 @@ export function DashboardSidebar() {
 
           <nav style={{ flex: 1, width: "100%", padding: "0 8px", display: "flex", flexDirection: "column", gap: 2, overflow: "visible" }}>
             {NAV_ITEMS.map((item) => {
-              const isActive = location === item.href || location.startsWith(item.href + "/");
+              const isActive = location === item.href || location.startsWith(item.href + "/") || (item.href === "/dashboard/agenda" && location === "/dashboard/reservations");
               return (
                 <Link key={item.name} href={item.href} style={{ textDecoration: "none", display: "block", width: "100%" }}>
                   <div className={`dbs2-item${isActive ? " dbs2-item--active" : ""}`} data-tip={item.name}>
