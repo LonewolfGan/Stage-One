@@ -240,64 +240,61 @@ function TimelineEvent({ b, index }: { b: typeof MOCK_BOOKINGS[0]; index: number
 /* ── Booking card (left panel) ── */
 function BookingCard({ b, index }: { b: typeof MOCK_BOOKINGS[0]; index: number }) {
   const isConfirmed = b.status === "confirmed";
+  const cardColor   = (b as any).color ?? "#D4466E";
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.08 + index * 0.07, duration: 0.38, ease: [0, 0, 0.2, 1] }}
-      className="ds-card"
-      style={{ padding: "16px 18px", cursor: "pointer", position: "relative" }}
+      style={{
+        padding: "14px 16px",
+        cursor: "pointer",
+        position: "relative",
+        backgroundColor: cardColor + "07",
+        border: "1px solid " + cardColor + "22",
+        borderRadius: "var(--radius-card)",
+      }}
     >
-      {/* Three-dot menu */}
-      <button
-        type="button"
-        aria-label="Options"
-        style={{ position: "absolute", top: 14, right: 14, background: "none", border: "none", cursor: "pointer", color: "var(--ink-tertiary)", padding: 4, borderRadius: 6, display: "flex", alignItems: "center", justifyContent: "center" }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor">
-          <circle cx="2" cy="7" r="1.4"/><circle cx="7" cy="7" r="1.4"/><circle cx="12" cy="7" r="1.4"/>
-        </svg>
-      </button>
-
-      {/* Service + time */}
-      <div style={{ marginBottom: 14, paddingRight: 24 }}>
-        <p style={{ fontSize: 14, fontWeight: 700, color: "var(--ink)", margin: "0 0 4px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", letterSpacing: "-0.01em" }}>
-          {b.service}
-        </p>
-        <p style={{ fontSize: 12, color: "var(--ink-tertiary)", margin: 0, fontWeight: 400 }}>
-          {b.time} · {b.duration} min
-        </p>
+      {/* Service name + status */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
+        <div style={{ minWidth: 0, paddingRight: 8 }}>
+          <p style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)", margin: "0 0 3px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", letterSpacing: "-0.01em" }}>
+            {b.service}
+          </p>
+          <p style={{ fontSize: 11, color: "var(--ink-tertiary)", margin: 0, fontWeight: 400, fontFeatureSettings: '"tnum"' }}>
+            {b.time} · {b.duration} min
+          </p>
+        </div>
+        <span style={{
+          display: "inline-flex", alignItems: "center", gap: 4,
+          fontSize: 10, fontWeight: 600, flexShrink: 0,
+          color: isConfirmed ? cardColor : "var(--ink-tertiary)",
+        }}>
+          <span style={{ width: 5, height: 5, borderRadius: "50%", backgroundColor: isConfirmed ? cardColor : "var(--ink-disabled)", display: "inline-block", flexShrink: 0 }} />
+          {isConfirmed ? "Confirmé" : "En attente"}
+        </span>
       </div>
 
       {/* Separator */}
-      <div style={{ height: 1, backgroundColor: "var(--hairline)", marginBottom: 12 }} />
+      <div style={{ height: 1, backgroundColor: cardColor + "18", marginBottom: 10 }} />
 
-      {/* Footer: client + amount + status */}
+      {/* Client + amount */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <div style={{
             width: 26, height: 26, borderRadius: "50%",
-            backgroundColor: "var(--ink)",
+            backgroundColor: avatarColor(b.clientName),
             display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: 9, fontWeight: 700, color: "#fff",
-            flexShrink: 0,
+            fontSize: 9, fontWeight: 700, color: "#fff", flexShrink: 0,
           }}>
             {avatarInitials(b.clientName)}
           </div>
-          <div>
-            <p style={{ fontSize: 12, fontWeight: 600, color: "var(--ink)", margin: 0, lineHeight: 1.3 }}>{b.clientName}</p>
-            <p style={{ fontSize: 11, color: "var(--ink-tertiary)", margin: 0, fontWeight: 500 }}>{b.amount.toLocaleString("fr-MA")} MAD</p>
-          </div>
+          <p style={{ fontSize: 12, fontWeight: 600, color: "var(--ink)", margin: 0 }}>{b.clientName}</p>
         </div>
-        <span style={{
-          fontSize: 10, fontWeight: 600,
-          color: isConfirmed ? "#D4466E" : "var(--ink-secondary)",
-          backgroundColor: isConfirmed ? "rgba(212,70,110,0.08)" : "var(--surface-2)",
-          padding: "4px 10px", borderRadius: 20, flexShrink: 0,
-        }}>
-          {isConfirmed ? "Confirmé" : "En attente"}
+        <span style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.01em", fontFeatureSettings: '"tnum"', flexShrink: 0 }}>
+          {b.amount.toLocaleString("fr-MA")}{" "}
+          <span style={{ fontSize: 10, color: "var(--ink-tertiary)", fontWeight: 400 }}>MAD</span>
         </span>
       </div>
     </motion.div>
@@ -442,12 +439,12 @@ export default function AgendaPage() {
             </div>
           </div>
 
-          {/* Quick stats row — Figma-inspired with progress bars */}
+          {/* Quick stats row */}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginBottom: 20 }}>
             {[
-              { label: "RDV aujourd'hui", value: todayBookings ?? adaptedBookings.length, display: `${todayBookings ?? adaptedBookings.length}`, sub: "réservations", color: "#D4466E", progress: Math.min(100, ((todayBookings ?? adaptedBookings.length) / 10) * 100) },
-              { label: "CA estimé", value: adaptedBookings.reduce((s, b) => s + b.amount, 0), display: `${adaptedBookings.reduce((s, b) => s + b.amount, 0).toLocaleString("fr-MA")}`, sub: "MAD", color: "#0E7B6C", progress: Math.min(100, (adaptedBookings.reduce((s, b) => s + b.amount, 0) / 3000) * 100) },
-              { label: "Remplissage", value: fillRate ?? 73, display: `${fillRate ?? 73}`, sub: "%", color: "#8B5CF6", progress: fillRate ?? 73 },
+              { label: "RDV aujourd'hui", display: `${todayBookings ?? adaptedBookings.length}`, sub: "réservations", color: "#D4466E" },
+              { label: "CA estimé", display: `${adaptedBookings.reduce((s, b) => s + b.amount, 0).toLocaleString("fr-MA")}`, sub: "MAD", color: "#0E7B6C" },
+              { label: "Remplissage", display: `${fillRate ?? 73}`, sub: "%", color: "#8B5CF6" },
             ].map((s, i) => (
               <motion.div
                 key={i}
@@ -457,21 +454,15 @@ export default function AgendaPage() {
                 className="ds-card"
                 style={{ padding: "16px 18px" }}
               >
-                <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "var(--ink-tertiary)", margin: "0 0 8px" }}>
-                  {s.label}
-                </p>
-                <div style={{ display: "flex", alignItems: "baseline", gap: 4, marginBottom: 10 }}>
-                  <span style={{ fontSize: 26, fontWeight: 700, color: "var(--ink)", letterSpacing: "-0.03em", lineHeight: 1 }}>{s.display}</span>
-                  <span style={{ fontSize: 12, color: "var(--ink-tertiary)", fontWeight: 500 }}>{s.sub}</span>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                  <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.03em", textTransform: "uppercase", color: "var(--ink-tertiary)", margin: 0 }}>
+                    {s.label}
+                  </p>
+                  <span style={{ width: 7, height: 7, borderRadius: "50%", backgroundColor: s.color, display: "inline-block", flexShrink: 0 }} />
                 </div>
-                {/* Progress bar */}
-                <div style={{ height: 4, borderRadius: 99, backgroundColor: s.color + "18" }}>
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${s.progress}%` }}
-                    transition={{ delay: 0.2 + i * 0.06, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-                    style={{ height: "100%", borderRadius: 99, backgroundColor: s.color }}
-                  />
+                <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
+                  <span style={{ fontSize: 26, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.03em", lineHeight: 1 }}>{s.display}</span>
+                  <span style={{ fontSize: 12, color: "var(--ink-tertiary)", fontWeight: 400 }}>{s.sub}</span>
                 </div>
               </motion.div>
             ))}

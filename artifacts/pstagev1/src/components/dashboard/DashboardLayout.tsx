@@ -24,9 +24,9 @@ const RAIL_GAP = 8;
 const RAIL_TOTAL = RAIL_W + RAIL_GAP + 8; // 88px content offset
 
 /* Colors */
-const RAIL_BG     = "#D4466E";
+const RAIL_BG     = "#111114";
 const ROSE        = "#D4466E";
-const ROSE_ACTIVE = "rgba(255,255,255,0.22)";
+const ROSE_ACTIVE = "rgba(255,255,255,0.09)";
 
 /* Topbar avatar stack — Figma pattern */
 const TEAM_AVATARS = [
