@@ -96,11 +96,11 @@ function KpiCard({
           <AreaChart data={sparkData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
             <defs>
               <linearGradient id={`sk-${label}`} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#0C0C0E" stopOpacity={0.12} />
+                <stop offset="0%" stopColor="#0C0C0E" stopOpacity={0.18} />
                 <stop offset="100%" stopColor="#0C0C0E" stopOpacity={0} />
               </linearGradient>
             </defs>
-            <Area type="monotone" dataKey="v" stroke="rgba(12,12,14,0.25)" strokeWidth={1.5} fill={`url(#sk-${label})`} dot={false} isAnimationActive={false} />
+            <Area type="monotone" dataKey="v" stroke="#0C0C0E" strokeWidth={1.5} fill={`url(#sk-${label})`} dot={false} isAnimationActive={false} />
           </AreaChart>
         </ResponsiveContainer>
       </div>
