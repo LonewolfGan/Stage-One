@@ -23,9 +23,12 @@ interface ApiBooking {
 /* ── Adapter: ApiBooking → WeekCalendarBooking ── */
 function toDecimalHour(iso: string | null | undefined, fallbackIso?: string): number {
   const d = new Date(iso ?? fallbackIso ?? "");
-  if (isNaN(d.getTime())) return 9; // valeur par défaut visible
-  return d.getUTCHours() + d.getUTCMinutes() / 60;
+  if (isNaN(d.getTime())) return 9;
+  const h = d.getUTCHours() + d.getUTCMinutes() / 60;
+  // clamp to visible grid range so pills always appear on screen
+  return Math.min(Math.max(h, HOUR_START_CLAMP), 18.75);
 }
+const HOUR_START_CLAMP = 8;
 
 function toCalendarBooking(b: ApiBooking, dayIndex: number): WeekCalendarBooking {
   const durationH = (b.service?.durationMinutes ?? 60) / 60;

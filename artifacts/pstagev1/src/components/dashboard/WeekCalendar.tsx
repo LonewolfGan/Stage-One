@@ -15,7 +15,7 @@ export interface WeekCalendarBooking {
 }
 
 interface Stacked extends WeekCalendarBooking {
-  stackIndex: number; // vertical position within overlapping group
+  top: number; // computed pixel top within the day column (no overlap guaranteed)
 }
 
 interface PopupPosition {
@@ -40,8 +40,8 @@ const HOURS      = Array.from({ length: HOUR_END - HOUR_START + 1 }, (_, i) => H
 const SLOT_PX    = 64;
 const GRID_H     = (HOUR_END - HOUR_START) * SLOT_PX;
 const LABEL_W    = 56;
-const PILL_H     = 22;   // fixed pill height in px
-const PILL_GAP   = 3;    // gap between stacked pills
+const PILL_H     = 24;   // fixed pill height in px
+const PILL_GAP   = 6;    // vertical gap between stacked pills
 const DAY_SHORT  = ["LUN", "MAR", "MER", "JEU", "VEN", "SAM", "DIM"];
 
 // Keyword-based color matching against the service name (lowercased)
@@ -88,27 +88,41 @@ function isToday(date: Date): boolean {
 }
 
 /**
- * Assigns a vertical stack index to each booking so that overlapping
- * bookings within a day column are stacked top-to-bottom (not side-by-side).
+ * Computes the actual pixel `top` for each booking so that pills never
+ * overlap visually, even when bookings are close together in time.
+ *
+ * Each "slot" tracks both the booking end-time (to detect time overlap)
+ * and the next available visual top (to guarantee spacing).
+ * A pill is placed at max(natural time-based top, slot's next visual top).
  */
 function computeStack(bookings: WeekCalendarBooking[]): Stacked[] {
   if (bookings.length === 0) return [];
 
   const sorted = [...bookings].sort((a, b) => a.start - b.start);
 
-  // Track end time of each stack slot
-  const slots: number[] = [];
+  // slots[i] = { endTime, nextVisualTop }
+  const slots: { endTime: number; nextVisualTop: number }[] = [];
 
   return sorted.map((b) => {
-    // Find the first stack slot that's free at b.start
-    let idx = slots.findIndex((endTime) => endTime <= b.start);
+    const safeStart = isFinite(b.start) ? b.start : HOUR_START;
+    const naturalTop = (safeStart - HOUR_START) * SLOT_PX;
+
+    // Find a slot that is free time-wise (booking doesn't overlap)
+    let idx = slots.findIndex((s) => s.endTime <= b.start);
+
+    let top: number;
     if (idx === -1) {
+      // All existing slots are busy — open a new one
       idx = slots.length;
-      slots.push(b.end);
+      top = naturalTop;
+      slots.push({ endTime: b.end, nextVisualTop: top + PILL_H + PILL_GAP });
     } else {
-      slots[idx] = b.end;
+      // Place at the later of: natural time position or next available visual position
+      top = Math.max(naturalTop, slots[idx].nextVisualTop);
+      slots[idx] = { endTime: b.end, nextVisualTop: top + PILL_H + PILL_GAP };
     }
-    return { ...b, stackIndex: idx };
+
+    return { ...b, top };
   });
 }
 
@@ -191,12 +205,9 @@ function BookingPill({
   onHover: (booking: Stacked, position: PopupPosition) => void;
   onLeave: () => void;
 }) {
-  const { start, stackIndex, title, type } = booking;
+  const { top, title, type } = booking;
   const color = getServiceColor(type);
   const ref   = useRef<HTMLDivElement>(null);
-
-  // Vertical position: time-based top + stack offset
-  const top = (start - HOUR_START) * SLOT_PX + stackIndex * (PILL_H + PILL_GAP);
 
   const handleMouseEnter = useCallback(() => {
     if (!ref.current || !scrollContainerRef.current) return;
