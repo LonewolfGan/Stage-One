@@ -121,11 +121,12 @@ function BookingPopup({
   const { title, client, start, end, type } = booking;
   const color     = getServiceColor(type);
   const timeLabel = `${formatHour(start)} – ${formatHour(end)}`;
+  const duration  = Math.round((end - start) * 60);
 
   if (!position) return null;
 
-  const POPUP_W = 220;
-  const MARGIN  = 8;
+  const POPUP_W = 232;
+  const MARGIN  = 10;
 
   const left = position.wouldOverflowRight
     ? position.left - POPUP_W - MARGIN
@@ -138,35 +139,74 @@ function BookingPopup({
         top:             position.top,
         left,
         width:           POPUP_W,
-        backgroundColor: "var(--canvas-pure)",
-        border:          "1px solid var(--hairline)",
-        borderRadius:    10,
-        boxShadow:       "0 12px 32px rgba(0,0,0,0.16), 0 2px 6px rgba(0,0,0,0.08)",
-        padding:         "12px 14px",
-        zIndex:          200,
+        backgroundColor: "#ffffff",
+        borderRadius:    12,
+        boxShadow:       "0 4px 6px -1px rgba(0,0,0,0.10), 0 16px 40px -4px rgba(0,0,0,0.18)",
+        overflow:        "hidden",
+        zIndex:          300,
         pointerEvents:   "none",
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
-        <span style={{
-          width:           8,
-          height:          8,
-          borderRadius:    "50%",
-          backgroundColor: color,
-          flexShrink:      0,
-        }} />
-        <p style={{ fontSize: 13, fontWeight: 700, color: "var(--ink)", margin: 0, lineHeight: 1.3 }}>
+      {/* Color band at top */}
+      <div style={{ height: 4, backgroundColor: color }} />
+
+      {/* Content */}
+      <div style={{ padding: "12px 14px 14px" }}>
+        {/* Service name */}
+        <p style={{
+          fontSize:      13,
+          fontWeight:    600,
+          color:         "#0C0C0E",
+          margin:        "0 0 8px",
+          lineHeight:    1.3,
+          letterSpacing: "-0.01em",
+        }}>
           {title}
         </p>
+
+        {/* Divider */}
+        <div style={{ height: 1, backgroundColor: "rgba(12,12,14,0.08)", margin: "0 0 8px" }} />
+
+        {/* Time */}
+        <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 5 }}>
+          <span style={{
+            display:         "inline-block",
+            width:           6,
+            height:          6,
+            borderRadius:    "50%",
+            backgroundColor: color,
+            flexShrink:      0,
+          }} />
+          <span style={{ fontSize: 12, fontWeight: 600, color: "#0C0C0E", letterSpacing: "-0.01em" }}>
+            {timeLabel}
+          </span>
+          <span style={{
+            fontSize:        11,
+            color:           "rgba(12,12,14,0.45)",
+            fontWeight:      500,
+            marginLeft:      "auto",
+          }}>
+            {duration} min
+          </span>
+        </div>
+
+        {/* Client */}
+        {client && client !== "—" && (
+          <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+            <span style={{
+              display:         "inline-block",
+              width:           6,
+              height:          6,
+              borderRadius:    "50%",
+              backgroundColor: "rgba(12,12,14,0.20)",
+              flexShrink:      0,
+            }} />
+            <span style={{ fontSize: 12, fontWeight: 500, color: "rgba(12,12,14,0.65)" }}>
+              {client}
+            </span>
+          </div>
+        )}
       </div>
-      <p style={{ fontSize: 11.5, fontWeight: 600, color, margin: "0 0 4px" }}>
-        {timeLabel}
-      </p>
-      {client && (
-        <p style={{ fontSize: 11.5, fontWeight: 500, color: "var(--ink-secondary)", margin: 0 }}>
-          {client}
-        </p>
-      )}
     </div>
   );
 }
