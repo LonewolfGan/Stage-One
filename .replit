@@ -45,7 +45,7 @@ outputType = "console"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "pnpm --filter @workspace/api-server run build && PORT=3000 node --enable-source-maps ./artifacts/api-server/dist/index.mjs"
+args = "cd artifacts/api-server && node ./build.mjs && cd ../.. && PORT=3000 node --enable-source-maps ./artifacts/api-server/dist/index.mjs"
 waitForPort = 3000
 
 [agent]
