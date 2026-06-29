@@ -249,36 +249,19 @@ function BookingPill({
         height,
         left: `calc(${GUTTER}px + ${lane * widthPct}% + ${lane > 0 ? GAP : 0}px)`,
         width: `calc(${widthPct}% - ${GUTTER * 2}px - ${totalLanes > 1 ? GAP : 0}px)`,
-        // Pill style: fully rounded, solid color bg
-        backgroundColor: hexAlpha(color, 0.15),
-        border: `1px solid ${hexAlpha(color, 0.35)}`,
-        borderLeft: `3px solid ${color}`,
+        backgroundColor: hexAlpha(color, 0.12),
+        border: `1px solid ${hexAlpha(color, 0.28)}`,
         borderRadius: 6,
-        padding: "0 6px 0 5px",
+        padding: "0 7px",
         overflow: "hidden",
         cursor: "pointer",
         zIndex: 1,
         boxSizing: "border-box",
         display: "flex",
         alignItems: "center",
-        gap: 4,
         transition: "background-color 0.1s ease",
       }}
-      onMouseEnterCapture={(e) => {
-        e.currentTarget.style.backgroundColor = hexAlpha(color, 0.25);
-      }}
     >
-      {/* Color dot */}
-      <span
-        style={{
-          width: 6,
-          height: 6,
-          borderRadius: "50%",
-          backgroundColor: color,
-          flexShrink: 0,
-        }}
-      />
-      {/* Title */}
       <span
         style={{
           fontSize: 10.5,

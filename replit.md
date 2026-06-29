@@ -110,6 +110,8 @@ artifacts-monorepo/
 5. **L'accent rose** sur < 8% de la surface visible d'un écran
 6. **Skeleton loading** avec `bg-[#ECEDF0] animate-pulse` (jamais `bg-gray-200`)
 7. **Pas d'état vide blanc** — toujours icône + titre + sous-titre
+8. **ZÉRO `border-left` / `border-right` accent coloré** (one-side solid border) — interdit sur toute pill, card ou bloc de l'agenda et ailleurs. Interdit également les petits points colorés (color dot) à l'intérieur des pills.
+9. **Agenda — pills** : afficher uniquement le titre du service, rien de plus. Pas de dot, pas de bordure latérale colorée, pas d'icône. Toutes les infos complémentaires (client, horaire, type) apparaissent exclusivement dans un popup propre au survol (`BookingPopup`).
 
 ### Typographie
 ```
