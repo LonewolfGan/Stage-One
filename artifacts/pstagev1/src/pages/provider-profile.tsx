@@ -509,10 +509,6 @@ export default function ProviderProfilePage() {
 
             <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16 }}>
               <div>
-                {/* City · Category */}
-                <p style={{ fontSize: 13, color: "var(--ink-tertiary)", margin: "0 0 6px", letterSpacing: "-0.005em" }}>
-                  {provider.city} · {categoryLabel}
-                </p>
                 {/* Title */}
                 <h1 style={{
                   fontSize: "clamp(26px, 4vw, 40px)", fontWeight: 600,
@@ -526,19 +522,6 @@ export default function ProviderProfilePage() {
                   {provider.description}
                 </p>
               </div>
-              {/* Favori */}
-              <button
-                onClick={() => setFavorited(f => !f)}
-                style={{
-                  width: 40, height: 40, flexShrink: 0,
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  border: "1px solid var(--hairline)", borderRadius: 10,
-                  background: favorited ? "var(--accent-tint)" : "#fff",
-                  cursor: "pointer", transition: "all 140ms",
-                }}
-              >
-                <Heart size={16} color={favorited ? "var(--accent)" : "var(--ink)"} fill={favorited ? "var(--accent)" : "none"} />
-              </button>
             </div>
           </div>
 
