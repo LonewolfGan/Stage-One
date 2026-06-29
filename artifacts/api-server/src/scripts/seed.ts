@@ -156,6 +156,78 @@ async function seed() {
   await db.insert(businessHoursTable).values({ id: uuidv4(), providerId: p3Id, dayOfWeek: 0, openTime: "09:00", closeTime: "18:00", isClosed: true });
   await db.insert(businessHoursTable).values({ id: uuidv4(), providerId: p3Id, dayOfWeek: 6, openTime: "09:00", closeTime: "18:00", isClosed: true });
 
+  // ── PROVIDER 4: Hammam Zitoun (ESTABLISHMENT, Fès)
+  const owner4Id = uuidv4();
+  await db.insert(usersTable).values({
+    id: owner4Id, email: "zitoun@hammam.ma", phone: "+212535621800", name: "Omar Bennani",
+    passwordHash, role: "OWNER", phoneVerified: true, emailVerified: true,
+  });
+
+  const p4Id = uuidv4();
+  await db.insert(providersTable).values({
+    id: p4Id, type: "ESTABLISHMENT", name: "Hammam Zitoun", slug: "hammam-zitoun",
+    description: "Hammam traditionnel marocain et spa moderne en plein cœur de la Médina de Fès. Soins du corps, gommage, massage et enveloppements au ghassoul. Une parenthèse de bien-être authentique.",
+    phone: "+212535621800", email: "zitoun@hammam.ma", address: "12 Derb Zitoun, Médina",
+    city: "Fès", latitude: 34.0633, longitude: -4.9794, status: "ACTIVE", ownerId: owner4Id,
+    logoUrl: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=800&q=80",
+  });
+  await db.insert(subscriptionsTable).values({ id: uuidv4(), providerId: p4Id, plan: "PRO", status: "active" });
+
+  const s4_l = uuidv4(), s4_k = uuidv4(), s4_m = uuidv4(), s4_r = uuidv4();
+  await db.insert(staffTable).values([
+    {
+      id: s4_l, providerId: p4Id, name: "Leila Bennani",
+      bio: "Masseuse certifiée, spécialiste hammam traditionnel et soins au ghassoul. 10 ans d'expérience.",
+      photoUrl: "https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=400&h=400&auto=format&fit=crop&q=80",
+      isActive: true,
+    },
+    {
+      id: s4_k, providerId: p4Id, name: "Kenza Filali",
+      bio: "Esthéticienne spécialisée soins visage et enveloppements au khôl et argan.",
+      photoUrl: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=400&h=400&auto=format&fit=crop&q=80",
+      isActive: true,
+    },
+    {
+      id: s4_m, providerId: p4Id, name: "Mohammed Alaoui",
+      bio: "Maître kessala, gommage traditionnel et massage aux huiles essentielles du Maroc.",
+      photoUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&auto=format&fit=crop&q=80",
+      isActive: true,
+    },
+    {
+      id: s4_r, providerId: p4Id, name: "Rania Ouazzani",
+      bio: "Spécialiste modelage corps, réflexologie et soins anti-stress. Formation en Thaïlande.",
+      photoUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&h=400&auto=format&fit=crop&q=80",
+      isActive: true,
+    },
+  ]);
+
+  const p4Svc1 = uuidv4(), p4Svc2 = uuidv4(), p4Svc3 = uuidv4(), p4Svc4 = uuidv4(), p4Svc5 = uuidv4();
+  await db.insert(servicesTable).values([
+    { id: p4Svc1, providerId: p4Id, name: "Hammam traditionnel", description: "Bain de vapeur + gommage kessa + savon beldi", durationMinutes: 60, priceCents: 22000, bufferMinutes: 15 },
+    { id: p4Svc2, providerId: p4Id, name: "Massage aux huiles d'argan", description: "Massage corps complet aux huiles essentielles d'argan du Maroc", durationMinutes: 60, priceCents: 35000, bufferMinutes: 10 },
+    { id: p4Svc3, providerId: p4Id, name: "Soin visage au ghassoul", description: "Nettoyage + masque ghassoul + soin hydratant à la rose", durationMinutes: 45, priceCents: 28000, bufferMinutes: 10 },
+    { id: p4Svc4, providerId: p4Id, name: "Pack Hammam + Massage", description: "Hammam traditionnel complet suivi d'un massage relaxant 30min", durationMinutes: 90, priceCents: 50000, bufferMinutes: 15 },
+    { id: p4Svc5, providerId: p4Id, name: "Enveloppement au rhassoul", description: "Masque corps complet au ghassoul de l'Atlas, rinçage inclus", durationMinutes: 45, priceCents: 25000, bufferMinutes: 10 },
+  ]);
+  await db.insert(serviceStaffTable).values([
+    { serviceId: p4Svc1, staffId: s4_l },
+    { serviceId: p4Svc1, staffId: s4_m },
+    { serviceId: p4Svc2, staffId: s4_m },
+    { serviceId: p4Svc2, staffId: s4_r },
+    { serviceId: p4Svc3, staffId: s4_k },
+    { serviceId: p4Svc3, staffId: s4_l },
+    { serviceId: p4Svc4, staffId: s4_l },
+    { serviceId: p4Svc4, staffId: s4_m },
+    { serviceId: p4Svc4, staffId: s4_r },
+    { serviceId: p4Svc5, staffId: s4_k },
+    { serviceId: p4Svc5, staffId: s4_l },
+  ]);
+
+  // Tous les jours 9h-21h
+  for (let day = 0; day <= 6; day++) {
+    await db.insert(businessHoursTable).values({ id: uuidv4(), providerId: p4Id, dayOfWeek: day, openTime: "09:00", closeTime: "21:00", isClosed: false });
+  }
+
   // ── BOOKINGS (~60% fill on the next 7 days)
   const staffWithServices = [
     { providerId: p1Id, staffId: s1_f, serviceId: p1Svc1, priceCents: 18000 },
@@ -164,6 +236,9 @@ async function seed() {
     { providerId: p2Id, staffId: s2_n, serviceId: p2Svc1, priceCents: 28000 },
     { providerId: p2Id, staffId: s2_k, serviceId: p2Svc2, priceCents: 15000 },
     { providerId: p3Id, staffId: s3_self, serviceId: p3Svc1, priceCents: 20000 },
+    { providerId: p4Id, staffId: s4_l, serviceId: p4Svc1, priceCents: 22000 },
+    { providerId: p4Id, staffId: s4_m, serviceId: p4Svc2, priceCents: 35000 },
+    { providerId: p4Id, staffId: s4_r, serviceId: p4Svc4, priceCents: 50000 },
   ];
 
   const bookingRows = [];
@@ -210,19 +285,25 @@ async function seed() {
   // ── REVIEWS
   await db.insert(reviewsTable).values([
     { id: uuidv4(), providerId: p1Id, bookingId: bookingRows[0]?.id ?? uuidv4(), clientId: clientId1, rating: 5, comment: "Excellente prestation, Fatima est vraiment professionnelle !" },
+    { id: uuidv4(), providerId: p1Id, bookingId: bookingRows[1]?.id ?? uuidv4(), clientId: clientId2, rating: 5, comment: "Youssef est top, coupe parfaite. Je recommande vivement." },
     { id: uuidv4(), providerId: p2Id, bookingId: bookingRows[3]?.id ?? uuidv4(), clientId: clientId2, rating: 4, comment: "Très bon soin, je reviendrai." },
+    { id: uuidv4(), providerId: p2Id, bookingId: bookingRows[4]?.id ?? uuidv4(), clientId: clientId1, rating: 5, comment: "Karima est une artiste du nail art, résultat magnifique !" },
+    { id: uuidv4(), providerId: p4Id, bookingId: bookingRows[6]?.id ?? uuidv4(), clientId: clientId1, rating: 5, comment: "Une expérience hors du temps. Le hammam Zitoun est authentique et le personnel aux petits soins. On repart ressourcé." },
+    { id: uuidv4(), providerId: p4Id, bookingId: bookingRows[7]?.id ?? uuidv4(), clientId: clientId2, rating: 5, comment: "Le massage aux huiles d'argan de Mohammed est exceptionnel. L'endroit est magnifique, au cœur de la médina." },
+    { id: uuidv4(), providerId: p4Id, bookingId: bookingRows[8]?.id ?? uuidv4(), clientId: clientId1, rating: 4, comment: "Très belle découverte. Leila est professionnelle et douce. Le soin ghassoul est incroyable." },
   ]).onConflictDoNothing();
 
   console.log(`✅ Seed complete!`);
-  console.log(`   Providers: 3`);
-  console.log(`   Staff: 7`);
-  console.log(`   Services: 9`);
+  console.log(`   Providers: 4`);
+  console.log(`   Staff: 11`);
+  console.log(`   Services: 14`);
   console.log(`   Bookings: ${bookingRows.length}`);
   console.log(`\n📧 Test accounts:`);
   console.log(`   Client:     yasmine@client.ma   / password123`);
   console.log(`   Owner 1:    atlas@salon.ma       / password123 (Salon Atlas)`);
   console.log(`   Owner 2:    elegance@salon.ma    / password123 (Institut Elegance)`);
   console.log(`   Owner 3:    sara@domicile.ma     / password123 (Sara a domicile)`);
+  console.log(`   Owner 4:    zitoun@hammam.ma     / password123 (Hammam Zitoun)`);
 
   await pool.end();
 }
