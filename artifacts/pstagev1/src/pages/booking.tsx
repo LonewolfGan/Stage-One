@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback, type FormEvent } from "react";
 import { useParams, useSearch, Link, useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { TopBar } from "@/components/layout/TopBar";
+import { Footer } from "@/components/layout/Footer";
 import { StaffSelector } from "@/components/public/StaffSelector";
 import { TimeSlotGrid } from "@/components/public/TimeSlotGrid";
 import { Button } from "@/components/ui/DSButton";
@@ -275,9 +276,15 @@ export default function BookingPage() {
 
       <button
         onClick={() => { setBookingStep("select"); setBookingError(null); }}
-        style={{ marginTop: 12, display: "block", width: "100%", background: "none", border: "none", cursor: "pointer", fontSize: 13, color: "var(--ink-tertiary)", textAlign: "center" }}
+        style={{
+          marginTop: 12, display: "inline-flex", alignItems: "center", gap: 5,
+          background: "none", border: "1px solid rgba(10,10,15,0.14)", cursor: "pointer",
+          fontSize: 13, color: "var(--ink-secondary)", borderRadius: 9999,
+          padding: "6px 14px", fontFamily: "var(--font)", letterSpacing: "-0.01em",
+          transition: "border-color 140ms",
+        }}
       >
-        ← Modifier la sélection
+        <ChevronLeft size={13} /> Modifier la sélection
       </button>
     </motion.div>
   );
@@ -352,7 +359,7 @@ export default function BookingPage() {
   );
 
   return (
-    <div style={{ minHeight: "100vh", backgroundColor: "var(--canvas)", paddingTop: 96 }}>
+    <div style={{ minHeight: "100vh", backgroundColor: "var(--canvas)" }}>
       <TopBar />
 
       <main>
@@ -372,9 +379,10 @@ export default function BookingPage() {
               href={`/${provider.slug}`}
               style={{
                 display: "inline-flex", alignItems: "center", gap: 6,
+                alignSelf: "flex-start",
                 fontSize: 13, color: "var(--ink)", textDecoration: "none",
-                background: "transparent", border: "1px solid rgba(10,10,15,0.18)", borderRadius: 8,
-                padding: "7px 13px", marginBottom: 8,
+                background: "transparent", border: "1px solid rgba(10,10,15,0.18)", borderRadius: 9999,
+                padding: "7px 14px", marginBottom: 8,
                 fontWeight: 500, letterSpacing: "-0.01em",
                 transition: "border-color 140ms",
               }}
@@ -484,6 +492,7 @@ export default function BookingPage() {
           )}
         </div>
       </main>
+      <Footer />
     </div>
   );
 }
