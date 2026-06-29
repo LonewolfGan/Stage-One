@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, type ReactNode } from "react";
 import { Link, useLocation } from "wouter";
 import {
   Calendar, Scissors, Users, BarChart2,
-  Settings, Home, Menu, Bell, Plus,
+  Settings, Home, Menu, Bell,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useBreakpoint } from "@/hooks/use-mobile";
@@ -28,12 +28,6 @@ const RAIL_BG     = "#D4466E";
 const ROSE        = "#D4466E";
 const ROSE_ACTIVE = "rgba(12,12,14,0.78)";
 
-/* Topbar avatar stack — Figma pattern */
-const TEAM_AVATARS = [
-  { initials: "YA", name: "Yasmine A.", color: "#D4466E" },
-  { initials: "SB", name: "Sara B.",    color: "#06B6D4" },
-  { initials: "NF", name: "Nadia F.",   color: "#8B5CF6" },
-];
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -343,56 +337,6 @@ export function DashboardLayout({ children, title, actions, breadcrumb, noPaddin
               <NotificationPanel open={notifOpen} onClose={() => setNotifOpen(false)} />
             </div>
 
-            {/* Avatar stack — Figma pattern */}
-            {isLg && (
-              <div style={{ display: "flex", alignItems: "center", marginLeft: 4 }} role="group" aria-label="Équipe en ligne">
-                {TEAM_AVATARS.map((av, i) => (
-                  <button
-                    key={av.initials}
-                    type="button"
-                    aria-label={av.name}
-                    title={av.name}
-                    style={{
-                      width: 30, height: 30, borderRadius: "50%",
-                      backgroundColor: av.color,
-                      border: "2px solid var(--surface-1)",
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                      fontSize: 9, fontWeight: 700, color: "#fff",
-                      marginLeft: i === 0 ? 0 : -8,
-                      cursor: "pointer",
-                      zIndex: TEAM_AVATARS.length - i,
-                      position: "relative",
-                      transition: "transform 120ms",
-                      padding: 0,
-                    }}
-                    onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.15)")}
-                    onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
-                    onFocus={(e) => (e.currentTarget.style.transform = "scale(1.15)")}
-                    onBlur={(e) => (e.currentTarget.style.transform = "scale(1)")}
-                  >
-                    {av.initials}
-                  </button>
-                ))}
-                <button
-                  type="button"
-                  aria-label="Ajouter un membre"
-                  style={{
-                    width: 30, height: 30, borderRadius: "50%",
-                    backgroundColor: ROSE,
-                    border: "2px solid var(--surface-1)",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    marginLeft: -8, cursor: "pointer", zIndex: 0, position: "relative",
-                    transition: "background 120ms", padding: 0,
-                  }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = "#c23a5e")}
-                  onMouseLeave={(e) => (e.currentTarget.style.background = ROSE)}
-                  onFocus={(e) => (e.currentTarget.style.background = "#c23a5e")}
-                  onBlur={(e) => (e.currentTarget.style.background = ROSE)}
-                >
-                  <Plus size={12} color="#fff" strokeWidth={2.5} />
-                </button>
-              </div>
-            )}
           </div>
         </motion.div>
 
