@@ -575,62 +575,67 @@ export default function ProviderProfilePage() {
                 </section>
               )}
 
-              {/* Reviews — collapsible */}
+              {/* Reviews */}
               <section style={{ borderTop: "1px solid var(--hairline)", paddingTop: 32, marginBottom: 56 }}>
-                <button
-                  onClick={() => setReviewsOpen(o => !o)}
-                  style={{
-                    display: "flex", alignItems: "center", gap: 16, width: "100%",
-                    background: "none", border: "none", cursor: "pointer",
-                    padding: 0, marginBottom: reviewsOpen ? 20 : 0, fontFamily: "var(--font)",
-                  }}
-                >
-                  <div style={{ display: "flex", alignItems: "center", gap: 12, flex: 1 }}>
-                    <h2 style={{
-                      fontSize: 20, fontWeight: 600, color: "var(--ink)",
-                      letterSpacing: "-0.02em", margin: 0,
-                    }}>
+                {reviews.length > 0 ? (
+                  <>
+                    <button
+                      onClick={() => setReviewsOpen(o => !o)}
+                      style={{
+                        display: "flex", alignItems: "center", gap: 16, width: "100%",
+                        background: "none", border: "none", cursor: "pointer",
+                        padding: 0, marginBottom: reviewsOpen ? 20 : 0, fontFamily: "var(--font)",
+                      }}
+                    >
+                      <div style={{ display: "flex", alignItems: "center", gap: 12, flex: 1 }}>
+                        <h2 style={{ fontSize: 20, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.02em", margin: 0 }}>
+                          Avis clients
+                        </h2>
+                        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                          <Stars rating={provider.rating} size={14} />
+                          <span style={{ fontSize: 16, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.02em" }}>
+                            {provider.rating.toFixed(1)}
+                          </span>
+                        </div>
+                      </div>
+                      <motion.span animate={{ rotate: reviewsOpen ? 180 : 0 }} transition={{ duration: 0.2 }} style={{ display: "flex", flexShrink: 0 }}>
+                        <ChevronDown size={18} color="var(--ink-tertiary)" />
+                      </motion.span>
+                    </button>
+                    <AnimatePresence initial={false}>
+                      {reviewsOpen && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.24, ease: [0.4, 0, 0.2, 1] }}
+                          style={{ overflow: "hidden" }}
+                        >
+                          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                            {reviews.map((review) => (
+                              <ReviewItem key={review.id} review={review} />
+                            ))}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </>
+                ) : (
+                  /* ── Empty state ── */
+                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", paddingBlock: 16 }}>
+                    <img
+                      src="/empty-reviews.svg"
+                      alt="Pas encore d'avis"
+                      style={{ width: 220, height: 220, objectFit: "contain", marginBottom: 16 }}
+                    />
+                    <h2 style={{ fontSize: 18, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.015em", margin: "0 0 8px" }}>
                       Avis clients
                     </h2>
-                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                      <Stars rating={provider.rating} size={14} />
-                      <span style={{ fontSize: 16, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.02em" }}>
-                        {provider.rating.toFixed(1)}
-                      </span>
-                    </div>
+                    <p style={{ fontSize: 14, color: "var(--ink-tertiary)", margin: 0, maxWidth: 320, lineHeight: 1.6 }}>
+                      Pas encore d'avis pour cet établissement. Réservez et soyez le premier à partager votre expérience !
+                    </p>
                   </div>
-                  <motion.span
-                    animate={{ rotate: reviewsOpen ? 180 : 0 }}
-                    transition={{ duration: 0.2 }}
-                    style={{ display: "flex", flexShrink: 0 }}
-                  >
-                    <ChevronDown size={18} color="var(--ink-tertiary)" />
-                  </motion.span>
-                </button>
-
-                <AnimatePresence initial={false}>
-                  {reviewsOpen && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.24, ease: [0.4, 0, 0.2, 1] }}
-                      style={{ overflow: "hidden" }}
-                    >
-                      {reviews.length > 0 ? (
-                        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                          {reviews.map((review) => (
-                            <ReviewItem key={review.id} review={review} />
-                          ))}
-                        </div>
-                      ) : (
-                        <p style={{ fontSize: 14, color: "var(--ink-tertiary)", paddingBlock: 20 }}>
-                          Aucun avis pour le moment. Soyez le premier à laisser votre avis après votre visite.
-                        </p>
-                      )}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                )}
               </section>
 
             </div>
@@ -735,12 +740,14 @@ export default function ProviderProfilePage() {
                   </button>
                 </div>
 
-                {/* Rating */}
-                <div style={{ borderTop: "1px solid var(--hairline)", padding: "12px 20px", display: "flex", alignItems: "center", gap: 8 }}>
-                  <Stars rating={provider.rating} size={13} />
-                  <span style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)" }}>{provider.rating.toFixed(1)}</span>
-                  <span style={{ fontSize: 12, color: "var(--ink-tertiary)" }}>({provider.reviewCount} avis)</span>
-                </div>
+                {/* Rating — only if reviews exist */}
+                {provider.reviewCount > 0 && (
+                  <div style={{ borderTop: "1px solid var(--hairline)", padding: "12px 20px", display: "flex", alignItems: "center", gap: 8 }}>
+                    <Stars rating={provider.rating} size={13} />
+                    <span style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)" }}>{provider.rating.toFixed(1)}</span>
+                    <span style={{ fontSize: 12, color: "var(--ink-tertiary)" }}>({provider.reviewCount} avis)</span>
+                  </div>
+                )}
               </div>
             )}
           </div>

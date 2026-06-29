@@ -71,7 +71,7 @@ export function adaptProvider(api: ApiProvider): Provider {
     category: CATEGORY_BY_SLUG[api.slug] ?? CATEGORY_FALLBACK_BY_TYPE[api.type] ?? "coiffeur",
     city: api.city,
     address: api.address ?? api.city,
-    rating: api.avgRating ?? 4.5,
+    rating: api.avgRating ?? 0,
     reviewCount: api.reviewCount ?? 0,
     priceLevel: api.minPriceCents != null ? (api.minPriceCents < 15000 ? 1 : api.minPriceCents < 40000 ? 2 : 3) : 2,
     minPriceCents: api.minPriceCents ?? null,
