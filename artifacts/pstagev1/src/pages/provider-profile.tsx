@@ -212,95 +212,50 @@ function MiniCalendar({ onSelect }: { onSelect?: (date: Date) => void }) {
 /* ─── ServiceRow ────────────────────────────────────── */
 function ServiceRow({ service, providerSlug, isLast }: { service: any; providerSlug: string; isLast: boolean }) {
   const [, setLocation] = useLocation();
-  const [open, setOpen] = useState(false);
   return (
-    <div style={{ borderBottom: isLast ? "none" : "1px solid var(--hairline)" }}>
-      <div style={{
-        display: "flex", alignItems: "center", gap: 16, paddingBlock: 16,
-      }}>
-        {/* Left */}
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <p style={{ fontSize: 14, fontWeight: 500, color: "var(--ink)", letterSpacing: "-0.01em", margin: "0 0 3px" }}>
-            {service.name}
+    <div style={{
+      display: "flex", alignItems: "center", gap: 16, paddingBlock: 16,
+      borderBottom: isLast ? "none" : "1px solid var(--hairline)",
+    }}>
+      {/* Left */}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <p style={{ fontSize: 14, fontWeight: 500, color: "var(--ink)", letterSpacing: "-0.01em", margin: "0 0 3px" }}>
+          {service.name}
+        </p>
+        {service.description && (
+          <p style={{ fontSize: 12, color: "var(--ink-tertiary)", margin: 0, lineHeight: 1.45 }}>
+            {service.description}
           </p>
-          {service.description && (
-            <p style={{ fontSize: 12, color: "var(--ink-tertiary)", margin: 0, lineHeight: 1.45 }}>
-              {service.description}
-            </p>
-          )}
-        </div>
-        {/* Right */}
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 3, flexShrink: 0 }}>
-          <span style={{ fontSize: 15, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.02em" }}>
-            {(service.priceCents / 100).toFixed(0)} MAD
-          </span>
-          <span style={{ fontSize: 11, color: "var(--ink-tertiary)" }}>{service.durationMinutes} min</span>
-        </div>
-        {/* CTA */}
-        <button
-          onClick={() => setLocation(`/booking/${providerSlug}?serviceId=${service.id}`)}
-          style={{
-            flexShrink: 0, height: 34, paddingInline: 16,
-            background: "var(--accent)", color: "#fff",
-            border: "none", borderRadius: 8,
-            fontSize: 13, fontWeight: 500, cursor: "pointer",
-            fontFamily: "var(--font)", letterSpacing: "-0.01em",
-            transition: "background 140ms ease",
-          }}
-          onMouseEnter={e => { e.currentTarget.style.background = "var(--accent-hover)"; }}
-          onMouseLeave={e => { e.currentTarget.style.background = "var(--accent)"; }}
-        >
-          Choisir
-        </button>
-        <button
-          onClick={() => setOpen(o => !o)}
-          style={{
-            flexShrink: 0, width: 28, height: 28,
-            background: "none", border: "1px solid var(--hairline)",
-            borderRadius: 6, cursor: "pointer",
-            display: "flex", alignItems: "center", justifyContent: "center",
-          }}
-        >
-          <motion.span
-            animate={{ rotate: open ? 180 : 0 }}
-            transition={{ duration: 0.18 }}
-            style={{ display: "flex" }}
-          >
-            <ChevronDown size={13} color="var(--ink-tertiary)" />
-          </motion.span>
-        </button>
-      </div>
-      <AnimatePresence initial={false}>
-        {open && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
-            style={{ overflow: "hidden" }}
-          >
-            <div style={{ paddingBottom: 16, display: "flex", flexDirection: "column", gap: 8 }}>
-              {service.staffIds?.length > 0 && (
-                <p style={{ fontSize: 12, color: "var(--ink-tertiary)", margin: 0 }}>
-                  Disponible avec {service.staffIds.length} professionnel{service.staffIds.length > 1 ? "s" : ""}
-                </p>
-              )}
-              <button
-                onClick={() => setLocation(`/booking/${providerSlug}?serviceId=${service.id}`)}
-                style={{
-                  alignSelf: "flex-start", height: 32, paddingInline: 14,
-                  background: "var(--ink)", color: "#fff",
-                  border: "none", borderRadius: 8,
-                  fontSize: 12, fontWeight: 500, cursor: "pointer",
-                  fontFamily: "var(--font)",
-                }}
-              >
-                Réserver cette prestation
-              </button>
-            </div>
-          </motion.div>
         )}
-      </AnimatePresence>
+        {service.staffIds?.length > 0 && (
+          <p style={{ fontSize: 11, color: "var(--ink-tertiary)", margin: "4px 0 0" }}>
+            {service.staffIds.length} professionnel{service.staffIds.length > 1 ? "s" : ""} disponible{service.staffIds.length > 1 ? "s" : ""}
+          </p>
+        )}
+      </div>
+      {/* Right */}
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 3, flexShrink: 0 }}>
+        <span style={{ fontSize: 15, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.02em" }}>
+          {(service.priceCents / 100).toFixed(0)} MAD
+        </span>
+        <span style={{ fontSize: 11, color: "var(--ink-tertiary)" }}>{service.durationMinutes} min</span>
+      </div>
+      {/* CTA */}
+      <button
+        onClick={() => setLocation(`/booking/${providerSlug}?serviceId=${service.id}`)}
+        style={{
+          flexShrink: 0, height: 34, paddingInline: 16,
+          background: "var(--accent)", color: "#fff",
+          border: "none", borderRadius: 8,
+          fontSize: 13, fontWeight: 500, cursor: "pointer",
+          fontFamily: "var(--font)", letterSpacing: "-0.01em",
+          transition: "background 140ms ease",
+        }}
+        onMouseEnter={e => { e.currentTarget.style.background = "var(--accent-hover)"; }}
+        onMouseLeave={e => { e.currentTarget.style.background = "var(--accent)"; }}
+      >
+        Choisir
+      </button>
     </div>
   );
 }
