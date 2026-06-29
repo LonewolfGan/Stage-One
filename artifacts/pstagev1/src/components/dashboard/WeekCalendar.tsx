@@ -88,40 +88,22 @@ function isToday(date: Date): boolean {
 }
 
 /**
- * Computes the actual pixel `top` for each booking so that pills never
- * overlap visually, even when bookings are close together in time.
- *
- * Each "slot" tracks both the booking end-time (to detect time overlap)
- * and the next available visual top (to guarantee spacing).
- * A pill is placed at max(natural time-based top, slot's next visual top).
+ * Single-cursor vertical stacking.
+ * Pills are sorted by start time and placed at max(natural time position, cursor).
+ * The cursor advances after each pill so the next one can never overlap.
  */
 function computeStack(bookings: WeekCalendarBooking[]): Stacked[] {
   if (bookings.length === 0) return [];
 
   const sorted = [...bookings].sort((a, b) => a.start - b.start);
 
-  // slots[i] = { endTime, nextVisualTop }
-  const slots: { endTime: number; nextVisualTop: number }[] = [];
+  let cursor = 0; // tracks the visual bottom of the last placed pill
 
   return sorted.map((b) => {
     const safeStart = isFinite(b.start) ? b.start : HOUR_START;
     const naturalTop = (safeStart - HOUR_START) * SLOT_PX;
-
-    // Find a slot that is free time-wise (booking doesn't overlap)
-    let idx = slots.findIndex((s) => s.endTime <= b.start);
-
-    let top: number;
-    if (idx === -1) {
-      // All existing slots are busy — open a new one
-      idx = slots.length;
-      top = naturalTop;
-      slots.push({ endTime: b.end, nextVisualTop: top + PILL_H + PILL_GAP });
-    } else {
-      // Place at the later of: natural time position or next available visual position
-      top = Math.max(naturalTop, slots[idx].nextVisualTop);
-      slots[idx] = { endTime: b.end, nextVisualTop: top + PILL_H + PILL_GAP };
-    }
-
+    const top = Math.max(naturalTop, cursor);
+    cursor = top + PILL_H + PILL_GAP;
     return { ...b, top };
   });
 }
