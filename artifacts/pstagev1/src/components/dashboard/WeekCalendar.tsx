@@ -255,10 +255,21 @@ export default function WeekCalendar({ days, bookings, isLoading }: WeekCalendar
   const [hovered, setHovered] = useState<{ booking: Stacked; position: PopupPosition } | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const bookingsByDay = useMemo(() => {
+  const { bookingsByDay, effectiveHeight } = useMemo(() => {
     const map: WeekCalendarBooking[][] = Array.from({ length: 7 }, () => []);
     bookings.forEach((b) => map[b.dayIndex]?.push(b));
-    return map.map((dayBookings) => computeStack(dayBookings));
+    const byDay = map.map((dayBookings) => computeStack(dayBookings));
+
+    // Expand grid height if pills overflow the natural GRID_H
+    let maxH = GRID_H;
+    byDay.forEach((col) => {
+      if (col.length > 0) {
+        const bottom = Math.max(...col.map((b) => b.top + PILL_H));
+        maxH = Math.max(maxH, bottom + PILL_GAP * 4);
+      }
+    });
+
+    return { bookingsByDay: byDay, effectiveHeight: maxH };
   }, [bookings]);
 
   const handleHover   = useCallback((booking: Stacked, position: PopupPosition) => {
@@ -333,7 +344,7 @@ export default function WeekCalendar({ days, bookings, isLoading }: WeekCalendar
             position:            "relative",
           }}>
             {/* Hour labels */}
-            <div style={{ borderRight: "1px solid var(--hairline)", position: "relative", height: GRID_H }}>
+            <div style={{ borderRight: "1px solid var(--hairline)", position: "relative", height: effectiveHeight }}>
               {HOURS.map((h) => (
                 <div key={h} style={{
                   position:  "absolute",
@@ -357,7 +368,7 @@ export default function WeekCalendar({ days, bookings, isLoading }: WeekCalendar
               return (
                 <div key={colIdx} style={{
                   position:        "relative",
-                  height:          GRID_H,
+                  height:          effectiveHeight,
                   borderRight:     colIdx < 6 ? "1px solid var(--hairline)" : "none",
                   backgroundColor: active ? hexAlpha("#D4466E", 0.02) : "transparent",
                 }}>
