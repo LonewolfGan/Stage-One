@@ -2,37 +2,6 @@ import { useMemo, useState, useRef, useCallback } from "react";
 import { format } from "date-fns";
 
 // ────────────────────────────────────────────────
-// TYPES
-// ────────────────────────────────────────────────
-export interface WeekCalendarBooking {
-  id: string;
-  dayIndex: number;
-  start: number;
-  end: number;
-  title: string;
-  client: string;
-  type: string;
-}
-
-interface LaidOut extends WeekCalendarBooking {
-  lane: number;
-  totalLanes: number;
-}
-
-interface PopupPosition {
-  top: number;
-  left: number;
-  elementWidth: number;
-  wouldOverflowRight: boolean;
-}
-
-interface WeekCalendarProps {
-  days: Date[];
-  bookings: WeekCalendarBooking[];
-  isLoading?: boolean;
-}
-
-// ────────────────────────────────────────────────
 // CONFIG
 // ────────────────────────────────────────────────
 const HOUR_START = 8;
@@ -42,7 +11,7 @@ const SLOT_PX = 64;
 const GRID_H = (HOUR_END - HOUR_START) * SLOT_PX;
 const LABEL_W = 56;
 const DAY_SHORT = ["LUN", "MAR", "MER", "JEU", "VEN", "SAM", "DIM"];
-const SERVICE_COLORS: Record<string, string> = {
+const SERVICE_COLORS = {
   "coupe-homme": "#3B82F6",
   "coupe-femme": "#A855F7",
   coloration: "#D4466E",
@@ -50,14 +19,14 @@ const SERVICE_COLORS: Record<string, string> = {
   default: "#6B7280",
 };
 
-function getServiceColor(type: string): string {
+function getServiceColor(type) {
   return SERVICE_COLORS[type] || SERVICE_COLORS.default;
 }
 
 // ────────────────────────────────────────────────
 // UTILS
 // ────────────────────────────────────────────────
-function hexAlpha(hex: string, alpha: number): string {
+function hexAlpha(hex, alpha) {
   const h = hex.replace("#", "");
   const r = parseInt(h.substring(0, 2), 16);
   const g = parseInt(h.substring(2, 4), 16);
@@ -65,13 +34,13 @@ function hexAlpha(hex: string, alpha: number): string {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
-function formatHour(decimalHour: number): string {
+function formatHour(decimalHour) {
   const h = Math.floor(decimalHour);
   const m = Math.round((decimalHour - h) * 60);
   return `${h < 10 ? "0" + h : h}:${m === 0 ? "00" : m < 10 ? "0" + m : m}`;
 }
 
-function isToday(date: Date): boolean {
+function isToday(date) {
   const today = new Date();
   return (
     date.getDate() === today.getDate() &&
@@ -80,14 +49,14 @@ function isToday(date: Date): boolean {
   );
 }
 
-function computeLanes(bookings: WeekCalendarBooking[]): LaidOut[] {
+function computeLanes(bookings) {
   if (bookings.length === 0) return [];
   const sorted = [...bookings].sort((a, b) => {
     if (a.start !== b.start) return a.start - b.start;
     return (b.end - b.start) - (a.end - a.start);
   });
-  const clusters: WeekCalendarBooking[][] = [];
-  let current: WeekCalendarBooking[] = [];
+  const clusters = [];
+  let current = [];
   let clusterEnd = -Infinity;
   for (const b of sorted) {
     if (current.length === 0 || b.start < clusterEnd) {
@@ -100,9 +69,9 @@ function computeLanes(bookings: WeekCalendarBooking[]): LaidOut[] {
     }
   }
   if (current.length) clusters.push(current);
-  const result: LaidOut[] = [];
+  const result = [];
   for (const cluster of clusters) {
-    const lanes: number[] = [];
+    const lanes = [];
     const positioned = cluster.map((b) => {
       let laneIndex = lanes.findIndex((endTime) => endTime <= b.start);
       if (laneIndex === -1) {
@@ -125,7 +94,7 @@ function computeLanes(bookings: WeekCalendarBooking[]): LaidOut[] {
 // element offsets instead of getBoundingClientRect,
 // so it stays correct regardless of scroll position.
 // ────────────────────────────────────────────────
-function BookingPopup({ booking, position }: { booking: LaidOut; position: PopupPosition | null }) {
+function BookingPopup({ booking, position }) {
   const { title, client, start, end, type } = booking;
   const color = getServiceColor(type);
   const timeLabel = `${formatHour(start)} – ${formatHour(end)}`;
@@ -189,20 +158,10 @@ function BookingPopup({ booking, position }: { booking: LaidOut; position: Popup
 // Compact pill: dot + truncated title, no height
 // constraint needed — just the pill height.
 // ────────────────────────────────────────────────
-function BookingPill({
-  booking,
-  scrollContainerRef,
-  onHover,
-  onLeave,
-}: {
-  booking: LaidOut;
-  scrollContainerRef: React.RefObject<HTMLDivElement>;
-  onHover: (booking: LaidOut, position: PopupPosition) => void;
-  onLeave: () => void;
-}) {
+function BookingPill({ booking, scrollContainerRef, onHover, onLeave }) {
   const { start, end, lane, totalLanes, title, type } = booking;
   const color = getServiceColor(type);
-  const ref = useRef<HTMLDivElement>(null);
+  const ref = useRef(null);
 
   const top = (start - HOUR_START) * SLOT_PX;
   // Min height = 20px (very short slots), normal = full slot minus gap
@@ -300,17 +259,17 @@ function BookingPill({
 // ────────────────────────────────────────────────
 // WEEK CALENDAR
 // ────────────────────────────────────────────────
-export default function WeekCalendar({ days, bookings, isLoading }: WeekCalendarProps) {
-  const [hovered, setHovered] = useState<{ booking: LaidOut; position: PopupPosition } | null>(null);
-  const scrollRef = useRef<HTMLDivElement>(null);
+export default function WeekCalendar({ days, bookings, isLoading }) {
+  const [hovered, setHovered] = useState(null); // { booking, position }
+  const scrollRef = useRef(null);
 
   const bookingsByDay = useMemo(() => {
-    const map: WeekCalendarBooking[][] = Array.from({ length: 7 }, () => []);
+    const map = Array.from({ length: 7 }, () => []);
     bookings.forEach((b) => map[b.dayIndex]?.push(b));
     return map.map((dayBookings) => computeLanes(dayBookings));
   }, [bookings]);
 
-  const handleHover = useCallback((booking: LaidOut, position: PopupPosition) => {
+  const handleHover = useCallback((booking, position) => {
     setHovered({ booking, position });
   }, []);
 
