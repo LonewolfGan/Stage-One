@@ -15,7 +15,7 @@ import {
 import { useBreakpoint } from "@/hooks/use-mobile";
 
 /* ─── constants ─────────────────────────────────────── */
-const TOPBAR_H = 84;
+const SIDEBAR_TOP = 24;
 const DAY_NAMES_SHORT = ["Di", "Lu", "Ma", "Me", "Je", "Ve", "Sa"];
 const MONTH_NAMES = [
   "Jan.", "Fév.", "Mar.", "Avr.", "Mai", "Juin",
@@ -45,38 +45,66 @@ function Stars({ rating, size = 13 }: { rating: number; size?: number }) {
 }
 
 /* ─── HeroGallery ───────────────────────────────────── */
-function HeroGallery({ photos }: { photos: string[] }) {
+function HeroGallery({ photos, providerName }: { photos: string[]; providerName?: string }) {
   const main = photos[0];
   const thumbs = photos.slice(1, 3);
+  const totalPhotos = photos.length;
+
   return (
     <div style={{
       display: "grid",
-      gridTemplateColumns: "1fr 1fr",
-      gridTemplateRows: "240px 240px",
-      gap: 4,
-      height: 484,
+      gridTemplateColumns: "62% 38%",
+      gridTemplateRows: "1fr 1fr",
+      gap: 3,
+      height: "clamp(380px, 48vh, 520px)",
       overflow: "hidden",
+      position: "relative",
     }}>
-      <div style={{ gridRow: "1 / 3", overflow: "hidden", borderRadius: "0 0 0 0" }}>
+      {/* Main large photo */}
+      <div style={{ gridRow: "1 / 3", overflow: "hidden", position: "relative" }}>
         {main ? (
-          <img src={main} alt="Photo principale"
-            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", transition: "transform 500ms ease" }}
+          <img src={main} alt={providerName ?? "Photo principale"}
+            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", transition: "transform 600ms cubic-bezier(0.25,0.46,0.45,0.94)" }}
             onMouseEnter={e => { (e.currentTarget as HTMLImageElement).style.transform = "scale(1.03)"; }}
             onMouseLeave={e => { (e.currentTarget as HTMLImageElement).style.transform = "scale(1)"; }}
           />
         ) : <div style={{ width: "100%", height: "100%", background: "var(--surface-3)" }} />}
       </div>
+
+      {/* 2 thumbnails */}
       {[0, 1].map(i => (
-        <div key={i} style={{ overflow: "hidden" }}>
+        <div key={i} style={{ overflow: "hidden", position: "relative" }}>
           {thumbs[i] ? (
             <img src={thumbs[i]} alt={`Photo ${i + 2}`}
-              style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", transition: "transform 500ms ease" }}
+              style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", transition: "transform 600ms cubic-bezier(0.25,0.46,0.45,0.94)" }}
               onMouseEnter={e => { (e.currentTarget as HTMLImageElement).style.transform = "scale(1.05)"; }}
               onMouseLeave={e => { (e.currentTarget as HTMLImageElement).style.transform = "scale(1)"; }}
             />
           ) : <div style={{ width: "100%", height: "100%", background: "var(--surface-3)" }} />}
         </div>
       ))}
+
+      {/* "Voir toutes les photos" pill — bottom-right */}
+      {totalPhotos > 3 && (
+        <div style={{
+          position: "absolute", bottom: 14, right: 14,
+          background: "rgba(255,255,255,0.92)",
+          backdropFilter: "blur(8px)",
+          border: "1px solid rgba(10,10,15,0.10)",
+          borderRadius: 8,
+          padding: "6px 12px",
+          fontSize: 12, fontWeight: 500, color: "var(--ink)",
+          cursor: "pointer",
+          letterSpacing: "-0.01em",
+          display: "flex", alignItems: "center", gap: 5,
+          userSelect: "none",
+        }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
+          </svg>
+          Voir les {totalPhotos} photos
+        </div>
+      )}
     </div>
   );
 }
@@ -416,12 +444,10 @@ export default function ProviderProfilePage() {
     return (
       <div style={{ minHeight: "100vh", background: "var(--canvas)" }}>
         <TopBar />
-        <div style={{ paddingTop: TOPBAR_H }}>
-          <div style={{ height: 484, background: "rgba(12,12,14,0.06)" }} className="animate-pulse" />
-          <div style={{ maxWidth: 1080, margin: "0 auto", padding: "40px 24px" }}>
-            <div style={{ height: 32, width: 260, borderRadius: 8, background: "rgba(12,12,14,0.06)", marginBottom: 12 }} className="animate-pulse" />
-            <div style={{ height: 16, width: 180, borderRadius: 6, background: "rgba(12,12,14,0.04)" }} className="animate-pulse" />
-          </div>
+        <div style={{ height: "clamp(380px, 48vh, 520px)", background: "rgba(12,12,14,0.06)" }} className="animate-pulse" />
+        <div style={{ padding: "32px 48px" }}>
+          <div style={{ height: 32, width: 260, borderRadius: 8, background: "rgba(12,12,14,0.06)", marginBottom: 12 }} className="animate-pulse" />
+          <div style={{ height: 16, width: 180, borderRadius: 6, background: "rgba(12,12,14,0.04)" }} className="animate-pulse" />
         </div>
       </div>
     );
@@ -441,10 +467,10 @@ export default function ProviderProfilePage() {
     <div style={{ minHeight: "100vh", background: "var(--canvas)", display: "flex", flexDirection: "column" }}>
       <TopBar />
 
-      <main style={{ flex: 1, paddingTop: TOPBAR_H }}>
+      <main style={{ flex: 1 }}>
 
         {/* ── Hero ── */}
-        <HeroGallery photos={provider.photos} />
+        <HeroGallery photos={provider.photos} providerName={provider.name} />
 
         {/* ── Content wrapper ── */}
         <div style={{ width: "100%", padding: "0 48px" }}>
@@ -646,7 +672,7 @@ export default function ProviderProfilePage() {
             {isLg && (
               <div style={{
                 position: "sticky",
-                top: TOPBAR_H + 24,
+                top: SIDEBAR_TOP,
                 background: "#fff",
                 border: "1px solid var(--hairline)",
                 borderRadius: 14,
