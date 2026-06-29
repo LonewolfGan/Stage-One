@@ -274,10 +274,28 @@ function StaffForm({ slug, member, onClose }: StaffFormProps) {
   const isEdit = !!member;
   const qc = useQueryClient();
 
-  const [name, setName]   = useState(member?.name ?? "");
-  const [bio, setBio]     = useState(member?.bio ?? "");
-  const [photo, setPhoto] = useState(member?.photoUrl ?? "");
-  const [error, setError] = useState("");
+  const [name, setName]       = useState(member?.name ?? "");
+  const [bio, setBio]         = useState(member?.bio ?? "");
+  const [photo, setPhoto]     = useState(member?.photoUrl ?? "");
+  const [preview, setPreview] = useState(member?.photoUrl ?? "");
+  const [error, setError]     = useState("");
+
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      setError("L'image ne doit pas dépasser 2 Mo.");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const result = ev.target?.result as string;
+      setPhoto(result);
+      setPreview(result);
+      setError("");
+    };
+    reader.readAsDataURL(file);
+  }
 
   const save = useMutation({
     mutationFn: () => {
@@ -405,17 +423,102 @@ function StaffForm({ slug, member, onClose }: StaffFormProps) {
                 onBlur={(e) => { e.currentTarget.style.borderColor = "var(--hairline-strong)"; }}
               />
             </div>
+            {/* Photo upload */}
             <div>
-              <label style={labelStyle}>URL photo <span style={{ color: "var(--ink-disabled)", fontWeight: 400 }}>(optionnel)</span></label>
-              <input
-                style={fieldStyle}
-                value={photo}
-                onChange={(e) => setPhoto(e.target.value)}
-                placeholder="https://…"
-                type="url"
-                onFocus={(e) => { e.currentTarget.style.borderColor = "var(--ink)"; }}
-                onBlur={(e) => { e.currentTarget.style.borderColor = "var(--hairline-strong)"; }}
-              />
+              <label style={labelStyle}>Photo <span style={{ color: "var(--ink-disabled)", fontWeight: 400 }}>(optionnel)</span></label>
+              <label
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 14,
+                  padding: "10px 14px",
+                  border: "1px dashed var(--hairline-strong)",
+                  borderRadius: 10,
+                  cursor: "pointer",
+                  transition: "border-color 140ms ease, background-color 140ms ease",
+                  backgroundColor: "transparent",
+                }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLLabelElement).style.borderColor = "var(--ink)";
+                  (e.currentTarget as HTMLLabelElement).style.backgroundColor = "rgba(12,12,14,0.02)";
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLLabelElement).style.borderColor = "var(--hairline-strong)";
+                  (e.currentTarget as HTMLLabelElement).style.backgroundColor = "transparent";
+                }}
+              >
+                {/* Preview or placeholder */}
+                {preview ? (
+                  <img
+                    src={preview}
+                    alt="Aperçu"
+                    style={{
+                      width: 44,
+                      height: 44,
+                      borderRadius: "50%",
+                      objectFit: "cover",
+                      flexShrink: 0,
+                      border: "1px solid var(--hairline)",
+                    }}
+                  />
+                ) : (
+                  <div
+                    style={{
+                      width: 44,
+                      height: 44,
+                      borderRadius: "50%",
+                      backgroundColor: "rgba(12,12,14,0.06)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0,
+                      fontSize: 18,
+                      color: "var(--ink-disabled)",
+                    }}
+                  >
+                    {name ? initials(name) : "?"}
+                  </div>
+                )}
+
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{ margin: "0 0 2px", fontSize: 13, fontWeight: 500, color: "var(--ink)", letterSpacing: "-0.01em" }}>
+                    {preview ? "Changer la photo" : "Choisir une photo"}
+                  </p>
+                  <p style={{ margin: 0, fontSize: 11, color: "var(--ink-tertiary)" }}>
+                    JPG, PNG ou WebP · max 2 Mo
+                  </p>
+                </div>
+
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  style={{ display: "none" }}
+                  onChange={handleFileChange}
+                />
+              </label>
+
+              {/* Clear button */}
+              {preview && (
+                <button
+                  type="button"
+                  onClick={() => { setPhoto(""); setPreview(""); }}
+                  style={{
+                    marginTop: 6,
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    fontSize: 11,
+                    color: "var(--ink-tertiary)",
+                    padding: 0,
+                    fontFamily: "var(--font)",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 4,
+                  }}
+                >
+                  <X size={10} /> Supprimer la photo
+                </button>
+              )}
             </div>
             {error && (
               <p style={{ margin: 0, fontSize: 12, color: "var(--error)", fontWeight: 500 }}>{error}</p>

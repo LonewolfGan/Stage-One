@@ -16,7 +16,7 @@ async function getProviderForOwner(slug: string, ownerId: string) {
 const staffSchema = z.object({
   name: z.string().min(1),
   bio: z.string().optional(),
-  photoUrl: z.string().url().optional(),
+  photoUrl: z.string().optional(),
   isActive: z.boolean().default(true),
 });
 
