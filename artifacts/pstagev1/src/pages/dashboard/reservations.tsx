@@ -98,12 +98,50 @@ function toWeekBooking(b: ApiBooking, dayIndex: number): WeekBooking {
   };
 }
 
+/* ── Lane assignment — places overlapping bookings side-by-side ── */
+interface LaidOut extends WeekBooking {
+  lane: number;
+  laneCount: number;
+}
+
+function computeLanes(bookings: WeekBooking[]): LaidOut[] {
+  if (bookings.length === 0) return [];
+
+  const sorted = [...bookings].sort((a, b) => a.startHour - b.startHour);
+
+  // Assign each booking a lane (the first lane whose last endHour <= this startHour)
+  const laneEnds: number[] = [];
+  const lanes: number[] = sorted.map((b) => {
+    const end = b.startHour + b.durationH;
+    const free = laneEnds.findIndex((e) => e <= b.startHour);
+    if (free !== -1) { laneEnds[free] = end; return free; }
+    laneEnds.push(end);
+    return laneEnds.length - 1;
+  });
+
+  const withLane = sorted.map((b, i) => ({ ...b, lane: lanes[i] }));
+
+  // For each booking compute laneCount = max lane of all overlapping bookings + 1
+  return withLane.map((b) => {
+    const bEnd = b.startHour + b.durationH;
+    const overlap = withLane.filter(
+      (o) => o.startHour < bEnd && o.startHour + o.durationH > b.startHour,
+    );
+    const laneCount = Math.max(...overlap.map((o) => o.lane)) + 1;
+    return { ...b, laneCount };
+  });
+}
+
 /* ── Booking block component ── */
-function BookingBlock({ booking, colW }: { booking: WeekBooking; colW: number }) {
+function BookingBlock({ booking }: { booking: LaidOut }) {
   const [hovered, setHovered] = useState(false);
   const top    = (booking.startHour - HOUR_START) * SLOT_PX;
   const height = Math.max(booking.durationH * SLOT_PX - 4, 28);
   const isShort = height < 52;
+
+  const pct   = 100 / booking.laneCount;
+  const left  = `calc(${booking.lane * pct}% + 2px)`;
+  const right = `calc(${(booking.laneCount - booking.lane - 1) * pct}% + 2px)`;
 
   return (
     <motion.div
@@ -115,8 +153,8 @@ function BookingBlock({ booking, colW }: { booking: WeekBooking; colW: number })
       style={{
         position: "absolute",
         top: top + 2,
-        left: 3,
-        right: 3,
+        left,
+        right,
         height,
         borderRadius: 8,
         backgroundColor: hovered
@@ -361,7 +399,7 @@ export default function ReservationsPage() {
 
               {/* Day columns */}
               {days.map((day, colIdx) => {
-                const colBookings = weekBookings.filter((b) => b.dayIndex === colIdx);
+                const colBookings = computeLanes(weekBookings.filter((b) => b.dayIndex === colIdx));
                 const active = isToday(day);
                 return (
                   <div
@@ -421,7 +459,7 @@ export default function ReservationsPage() {
 
                     {/* Booking blocks */}
                     {!isLoading && colBookings.map((b) => (
-                      <BookingBlock key={b.id} booking={b} colW={120} />
+                      <BookingBlock key={b.id} booking={b} />
                     ))}
                   </div>
                 );
