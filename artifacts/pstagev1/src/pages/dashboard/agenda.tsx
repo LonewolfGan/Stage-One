@@ -263,27 +263,14 @@ function BookingCard({ b, index }: { b: BookingEntry; index: number }) {
       className="ds-card"
       style={{ padding: "14px 16px", cursor: "pointer" }}
     >
-      {/* Service name + status */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
-        <div style={{ minWidth: 0, paddingRight: 8 }}>
-          <p style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)", margin: "0 0 3px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", letterSpacing: "-0.01em" }}>
-            {b.service}
-          </p>
-          <p style={{ fontSize: 11, color: "var(--ink-tertiary)", margin: 0, fontWeight: 400, fontFeatureSettings: '"tnum"' }}>
-            {b.time} · {b.duration} min
-          </p>
-        </div>
-        <span style={{
-          display: "inline-flex", alignItems: "center", gap: 4,
-          fontSize: 10, fontWeight: 600, flexShrink: 0,
-          color: st.color,
-          backgroundColor: st.bg,
-          border: `1px solid ${st.border}`,
-          padding: "3px 8px", borderRadius: 20,
-        }}>
-          <span style={{ width: 5, height: 5, borderRadius: "50%", backgroundColor: st.color, display: "inline-block", flexShrink: 0 }} />
-          {st.label}
-        </span>
+      {/* Service name */}
+      <div style={{ marginBottom: 10 }}>
+        <p style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)", margin: "0 0 3px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", letterSpacing: "-0.01em" }}>
+          {b.service}
+        </p>
+        <p style={{ fontSize: 11, color: "var(--ink-tertiary)", margin: 0, fontWeight: 400, fontFeatureSettings: '"tnum"' }}>
+          {b.time} · {b.duration} min
+        </p>
       </div>
 
       {/* Separator */}
