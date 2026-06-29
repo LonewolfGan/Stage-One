@@ -187,9 +187,9 @@ export default function ServicesPage() {
                     </td>
                     <td>
                       {service.isActive !== false ? (
-                        <Badge variant="success" dot>Active</Badge>
+                        <Badge variant="success">Active</Badge>
                       ) : (
-                        <Badge variant="neutral" dot>Inactive</Badge>
+                        <Badge variant="neutral">Inactive</Badge>
                       )}
                     </td>
                     <td style={{ textAlign: "right" }}>

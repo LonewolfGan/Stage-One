@@ -162,7 +162,7 @@ export default function StaffPage() {
                 </p>
 
                 <div style={{ display: "flex", gap: 6, alignItems: "center", justifyContent: "center", marginBottom: 14 }}>
-                  <Badge variant="success" dot>Actif</Badge>
+                  <Badge variant="success">Actif</Badge>
                   {member.speciality && (
                     <span style={{ fontSize: 11, color: "var(--ink-tertiary)", padding: "3px 8px", border: "1px solid var(--hairline)", borderRadius: 6, display: "flex", alignItems: "center", gap: 4 }}>
                       {IconComp && <IconComp size={11} />}

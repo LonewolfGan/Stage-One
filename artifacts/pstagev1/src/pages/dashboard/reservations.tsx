@@ -104,7 +104,6 @@ function BookingBlock({
         backgroundColor: hovered
           ? hexAlpha(booking.color, 0.22)
           : hexAlpha(booking.color, 0.13),
-        borderLeft: `3px solid ${booking.color}`,
         padding: isShort ? "4px 8px" : "7px 9px",
         cursor: "pointer",
         overflow: "hidden",
