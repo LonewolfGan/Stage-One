@@ -40,6 +40,7 @@ interface DashboardLayoutProps {
   title: string;
   actions?: ReactNode;
   breadcrumb?: string;
+  noPadding?: boolean;
 }
 
 /* ── Notification panel ── */
@@ -249,7 +250,7 @@ function Rail({ onClose }: { onClose?: () => void }) {
   );
 }
 
-export function DashboardLayout({ children, title, actions, breadcrumb }: DashboardLayoutProps) {
+export function DashboardLayout({ children, title, actions, breadcrumb, noPadding }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const { isLg } = useBreakpoint();
@@ -400,6 +401,7 @@ export function DashboardLayout({ children, title, actions, breadcrumb }: Dashbo
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.32, ease: [0.0, 0.0, 0.2, 1], delay: 0.06 }}
+          style={noPadding ? { padding: 0 } : undefined}
         >
           {children}
         </motion.div>
