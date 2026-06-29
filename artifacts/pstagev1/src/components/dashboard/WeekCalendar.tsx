@@ -618,7 +618,6 @@ export default function WeekCalendar({ days, bookings, isLoading }: WeekCalendar
               top:                 0,
               zIndex:              10,
               backgroundColor:     "var(--canvas-pure)",
-              borderBottom:        "1px solid var(--hairline)",
             }}>
               <div style={{ borderRight: "1px solid var(--hairline)" }} />
               {days.map((day, i) => {
@@ -628,6 +627,7 @@ export default function WeekCalendar({ days, bookings, isLoading }: WeekCalendar
                     padding:         "10px 0 9px",
                     textAlign:       "center",
                     borderRight:     i < 6 ? "1px solid var(--hairline)" : "none",
+                    borderBottom:    "1px solid var(--hairline)",
                     backgroundColor: active ? "var(--accent-tint)" : "transparent",
                   }}>
                     <p style={{
