@@ -460,7 +460,6 @@
   gap: var(--space-4);
   flex-wrap: wrap;
   background-color: var(--surface-1);
-  border-bottom: 1px solid var(--hairline);
   border-bottom-left-radius: 14px;
   border-bottom-right-radius: 14px;
   padding: 14px 20px;
