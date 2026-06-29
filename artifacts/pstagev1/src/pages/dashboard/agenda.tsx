@@ -240,21 +240,14 @@ function TimelineEvent({ b, index }: { b: typeof MOCK_BOOKINGS[0]; index: number
 /* ── Booking card (left panel) ── */
 function BookingCard({ b, index }: { b: typeof MOCK_BOOKINGS[0]; index: number }) {
   const isConfirmed = b.status === "confirmed";
-  const cardColor   = (b as any).color ?? "#D4466E";
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.08 + index * 0.07, duration: 0.38, ease: [0, 0, 0.2, 1] }}
-      style={{
-        padding: "14px 16px",
-        cursor: "pointer",
-        position: "relative",
-        backgroundColor: cardColor + "07",
-        border: "1px solid " + cardColor + "22",
-        borderRadius: "var(--radius-card)",
-      }}
+      className="ds-card"
+      style={{ padding: "14px 16px", cursor: "pointer" }}
     >
       {/* Service name + status */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
@@ -269,22 +262,22 @@ function BookingCard({ b, index }: { b: typeof MOCK_BOOKINGS[0]; index: number }
         <span style={{
           display: "inline-flex", alignItems: "center", gap: 4,
           fontSize: 10, fontWeight: 600, flexShrink: 0,
-          color: isConfirmed ? cardColor : "var(--ink-tertiary)",
+          color: isConfirmed ? "var(--accent)" : "var(--ink-tertiary)",
         }}>
-          <span style={{ width: 5, height: 5, borderRadius: "50%", backgroundColor: isConfirmed ? cardColor : "var(--ink-disabled)", display: "inline-block", flexShrink: 0 }} />
+          <span style={{ width: 5, height: 5, borderRadius: "50%", backgroundColor: isConfirmed ? "var(--accent)" : "var(--ink-disabled)", display: "inline-block", flexShrink: 0 }} />
           {isConfirmed ? "Confirmé" : "En attente"}
         </span>
       </div>
 
       {/* Separator */}
-      <div style={{ height: 1, backgroundColor: cardColor + "18", marginBottom: 10 }} />
+      <div style={{ height: 1, backgroundColor: "var(--hairline)", marginBottom: 10 }} />
 
       {/* Client + amount */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <div style={{
             width: 26, height: 26, borderRadius: "50%",
-            backgroundColor: avatarColor(b.clientName),
+            backgroundColor: "var(--ink)",
             display: "flex", alignItems: "center", justifyContent: "center",
             fontSize: 9, fontWeight: 700, color: "#fff", flexShrink: 0,
           }}>
@@ -454,11 +447,10 @@ export default function AgendaPage() {
                 className="ds-card"
                 style={{ padding: "16px 18px" }}
               >
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                <div style={{ marginBottom: 8 }}>
                   <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.03em", textTransform: "uppercase", color: "var(--ink-tertiary)", margin: 0 }}>
                     {s.label}
                   </p>
-                  <span style={{ width: 7, height: 7, borderRadius: "50%", backgroundColor: s.color, display: "inline-block", flexShrink: 0 }} />
                 </div>
                 <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
                   <span style={{ fontSize: 26, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.03em", lineHeight: 1 }}>{s.display}</span>
