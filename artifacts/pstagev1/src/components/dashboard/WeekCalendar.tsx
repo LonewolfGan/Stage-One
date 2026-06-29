@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState, useRef } from "react";
 import { format } from "date-fns";
 
 // ────────────────────────────────────────────────
@@ -6,8 +6,8 @@ import { format } from "date-fns";
 // ────────────────────────────────────────────────
 export interface WeekCalendarBooking {
   id: string;
-  dayIndex: number; // 0–6
-  start: number;    // heure décimale (ex: 9.5 = 09:30)
+  dayIndex: number;
+  start: number;
   end: number;
   title: string;
   client: string;
@@ -74,11 +74,6 @@ function isToday(date: Date): boolean {
   );
 }
 
-/**
- * Regroupe les réservations qui se chevauchent en clusters,
- * puis assigne à chacune une lane (colonne horizontale) + le nombre
- * total de lanes nécessaires pour SON cluster.
- */
 function computeLanes(bookings: WeekCalendarBooking[]): LaidOut[] {
   if (bookings.length === 0) return [];
 
@@ -87,7 +82,6 @@ function computeLanes(bookings: WeekCalendarBooking[]): LaidOut[] {
     return (b.end - b.start) - (a.end - a.start);
   });
 
-  // 1. Regroupement en clusters de chevauchement
   const clusters: WeekCalendarBooking[][] = [];
   let current: WeekCalendarBooking[] = [];
   let clusterEnd = -Infinity;
@@ -104,12 +98,10 @@ function computeLanes(bookings: WeekCalendarBooking[]): LaidOut[] {
   }
   if (current.length) clusters.push(current);
 
-  // 2. Attribution des lanes par cluster (algo glouton)
   const result: LaidOut[] = [];
 
   for (const cluster of clusters) {
     const lanes: number[] = [];
-
     const positioned = cluster.map((b) => {
       let laneIndex = lanes.findIndex((endTime) => endTime <= b.start);
       if (laneIndex === -1) {
@@ -120,7 +112,6 @@ function computeLanes(bookings: WeekCalendarBooking[]): LaidOut[] {
       }
       return { ...b, lane: laneIndex };
     });
-
     const totalLanes = lanes.length;
     positioned.forEach((b) => result.push({ ...b, totalLanes }));
   }
@@ -129,106 +120,58 @@ function computeLanes(bookings: WeekCalendarBooking[]): LaidOut[] {
 }
 
 // ────────────────────────────────────────────────
-// BOOKING BLOCK
+// POPUP (détail au survol)
 // ────────────────────────────────────────────────
-function BookingBlock({ booking }: { booking: LaidOut }) {
-  const { start, end, lane, totalLanes, title, client, type } = booking;
-  const color = getServiceColor(type);
-
-  const top    = (start - HOUR_START) * SLOT_PX;
-  const height = Math.max((end - start) * SLOT_PX - 4, 22);
-
-  const GUTTER   = 3;
-  const GAP      = 3;
-  const widthPct = 100 / totalLanes;
-
-  const isNarrow     = totalLanes >= 3;
-  const isVeryNarrow = totalLanes >= 4;
-  const isShort      = height < 46;
-  const isTiny       = height < 30;
-
+function BookingPopup({
+  booking,
+  anchorRect,
+  containerRect,
+}: {
+  booking: LaidOut;
+  anchorRect: DOMRect | null;
+  containerRect: DOMRect | null;
+}) {
+  const { title, client, start, end, type } = booking;
+  const color     = getServiceColor(type);
   const timeLabel = `${formatHour(start)} – ${formatHour(end)}`;
 
+  if (!anchorRect || !containerRect) return null;
+
+  const POPUP_W = 220;
+  const MARGIN  = 8;
+
+  const wouldOverflowRight = anchorRect.right + POPUP_W + MARGIN > containerRect.right;
+  const left = wouldOverflowRight
+    ? anchorRect.left - containerRect.left - POPUP_W - MARGIN
+    : anchorRect.right - containerRect.left + MARGIN;
+
+  const top = anchorRect.top - containerRect.top;
+
   return (
-    <div
-      style={{
-        position: "absolute",
-        top: top + 2,
-        height,
-        left:  `calc(${GUTTER}px + ${lane * widthPct}% + ${lane > 0 ? GAP / 2 : 0}px)`,
-        width: `calc(${widthPct}% - ${GUTTER * 2}px - ${totalLanes > 1 ? GAP : 0}px)`,
-        backgroundColor: hexAlpha(color, 0.1),
-        border:     `1px solid ${hexAlpha(color, 0.18)}`,
-        borderLeft: `3px solid ${color}`,
-        borderRadius: 6,
-        padding:    isTiny ? "3px 6px" : "5px 7px",
-        overflow:   "hidden",
-        cursor:     "pointer",
-        boxShadow:  "0 1px 2px rgba(0,0,0,0.03)",
-        transition: "box-shadow 0.15s ease, background-color 0.15s ease",
-        zIndex: 1,
-        display:        "flex",
-        flexDirection:  "column",
-        gap: 1,
-        minWidth: 0,
-        boxSizing: "border-box",
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.boxShadow       = "0 6px 16px rgba(0,0,0,0.14)";
-        e.currentTarget.style.zIndex          = "20";
-        e.currentTarget.style.backgroundColor = hexAlpha(color, 0.16);
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.boxShadow       = "0 1px 2px rgba(0,0,0,0.03)";
-        e.currentTarget.style.zIndex          = "1";
-        e.currentTarget.style.backgroundColor = hexAlpha(color, 0.1);
-      }}
-    >
-      <p style={{
-        fontSize:      isVeryNarrow ? 10.5 : 11.5,
-        fontWeight:    600,
-        color:         "var(--ink)",
-        margin:        0,
-        whiteSpace:    "nowrap",
-        overflow:      "hidden",
-        textOverflow:  "ellipsis",
-        lineHeight:    1.2,
-        minWidth:      0,
-      }}>
-        {title}
-      </p>
-
-      {!isShort && !isNarrow && (
-        <p style={{
-          fontSize:     10,
-          fontWeight:   600,
-          color,
-          margin:       0,
-          whiteSpace:   "nowrap",
-          overflow:     "hidden",
-          textOverflow: "ellipsis",
-          lineHeight:   1.2,
-        }}>
-          {timeLabel}
+    <div style={{
+      position:        "absolute",
+      top,
+      left,
+      width:           POPUP_W,
+      backgroundColor: "var(--canvas-pure)",
+      border:          "1px solid var(--hairline)",
+      borderRadius:    10,
+      boxShadow:       "0 12px 32px rgba(0,0,0,0.16), 0 2px 6px rgba(0,0,0,0.08)",
+      padding:         "12px 14px",
+      zIndex:          100,
+      pointerEvents:   "none",
+    }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
+        <span style={{ width: 8, height: 8, borderRadius: "50%", backgroundColor: color, flexShrink: 0 }} />
+        <p style={{ fontSize: 13, fontWeight: 700, color: "var(--ink)", margin: 0, lineHeight: 1.3 }}>
+          {title}
         </p>
-      )}
-
-      {!isShort && !isVeryNarrow && client && (
-        <p style={{
-          fontSize:     10,
-          fontWeight:   500,
-          color:        "var(--ink-tertiary)",
-          margin:       0,
-          whiteSpace:   "nowrap",
-          overflow:     "hidden",
-          textOverflow: "ellipsis",
-          lineHeight:   1.2,
-          display:      "flex",
-          alignItems:   "center",
-          gap:          3,
-          minWidth:     0,
-        }}>
-          <span style={{ width: 4, height: 4, borderRadius: "50%", backgroundColor: "var(--ink-tertiary)", flexShrink: 0 }} />
+      </div>
+      <p style={{ fontSize: 11.5, fontWeight: 600, color, margin: "0 0 4px" }}>
+        {timeLabel}
+      </p>
+      {client && (
+        <p style={{ fontSize: 11.5, fontWeight: 500, color: "var(--ink-secondary)", margin: 0 }}>
           {client}
         </p>
       )}
@@ -237,30 +180,112 @@ function BookingBlock({ booking }: { booking: LaidOut }) {
 }
 
 // ────────────────────────────────────────────────
+// BOOKING MARKER
+// ────────────────────────────────────────────────
+function BookingMarker({
+  booking,
+  onHover,
+  onLeave,
+}: {
+  booking: LaidOut;
+  onHover: (booking: LaidOut, rect: DOMRect | null) => void;
+  onLeave: () => void;
+}) {
+  const { start, end, lane, totalLanes, title, type } = booking;
+  const color = getServiceColor(type);
+  const ref   = useRef<HTMLDivElement>(null);
+
+  const top    = (start - HOUR_START) * SLOT_PX;
+  const height = Math.max((end - start) * SLOT_PX - 4, 20);
+
+  const GUTTER    = 3;
+  const GAP       = 3;
+  const widthPct  = 100 / totalLanes;
+  const isCompact = totalLanes >= 2;
+
+  return (
+    <div
+      ref={ref}
+      onMouseEnter={() => onHover(booking, ref.current?.getBoundingClientRect() ?? null)}
+      onMouseLeave={onLeave}
+      style={{
+        position:        "absolute",
+        top:             top + 2,
+        height,
+        left:            `calc(${GUTTER}px + ${lane * widthPct}% + ${lane > 0 ? GAP / 2 : 0}px)`,
+        width:           `calc(${widthPct}% - ${GUTTER * 2}px - ${totalLanes > 1 ? GAP : 0}px)`,
+        backgroundColor: hexAlpha(color, 0.14),
+        borderLeft:      `3px solid ${color}`,
+        borderRadius:    5,
+        padding:         isCompact ? "2px 5px" : "4px 7px",
+        overflow:        "hidden",
+        cursor:          "pointer",
+        transition:      "background-color 0.12s ease",
+        zIndex:          1,
+        boxSizing:       "border-box",
+        display:         "flex",
+        alignItems:      "center",
+      }}
+    >
+      <p style={{
+        fontSize:     isCompact ? 10 : 11,
+        fontWeight:   600,
+        color:        "var(--ink)",
+        margin:       0,
+        whiteSpace:   "nowrap",
+        overflow:     "hidden",
+        textOverflow: "ellipsis",
+        lineHeight:   1.2,
+        minWidth:     0,
+      }}>
+        {title}
+      </p>
+    </div>
+  );
+}
+
+// ────────────────────────────────────────────────
 // WEEK CALENDAR
 // ────────────────────────────────────────────────
 export default function WeekCalendar({ days, bookings, isLoading }: WeekCalendarProps) {
+  const [hovered, setHovered] = useState<{ booking: LaidOut; anchorRect: DOMRect | null } | null>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
   const bookingsByDay = useMemo(() => {
     const map: WeekCalendarBooking[][] = Array.from({ length: 7 }, () => []);
     bookings.forEach((b) => map[b.dayIndex]?.push(b));
     return map.map((dayBookings) => computeLanes(dayBookings));
   }, [bookings]);
 
+  const handleHover = (booking: LaidOut, rect: DOMRect | null) => setHovered({ booking, anchorRect: rect });
+  const handleLeave = () => setHovered(null);
+
+  const containerRect = scrollRef.current?.getBoundingClientRect() ?? null;
+
   return (
     <div style={{ height: "100%", display: "flex", flexDirection: "column", overflow: "hidden" }}>
-      {/* Zone scrollable unique */}
-      <div style={{ flex: 1, minHeight: 0, overflowY: "auto", overflowX: "hidden", backgroundColor: "var(--canvas)" }}>
-        <div style={{ minWidth: 640 }}>
+      <div
+        ref={scrollRef}
+        style={{
+          flex:            1,
+          minHeight:       0,
+          overflowY:       "auto",
+          overflowX:       "hidden",
+          backgroundColor: "var(--canvas)",
+          position:        "relative",
+        }}
+      >
+        <div style={{ minWidth: 640, position: "relative" }}>
 
           {/* Day headers */}
           <div style={{
-            display: "grid",
-            gridTemplateColumns: `${LABEL_W}px repeat(7, 1fr)`,
-            position:  "sticky",
-            top:       0,
-            zIndex:    10,
-            backgroundColor: "var(--canvas-pure)",
-            borderBottom:    "1px solid var(--hairline)",
+            display:              "grid",
+            gridTemplateColumns:  `${LABEL_W}px repeat(7, 1fr)`,
+            position:             "sticky",
+            top:                  0,
+            zIndex:               10,
+            backgroundColor:      "var(--canvas-pure)",
+            borderBottom:         "1px solid var(--hairline)",
           }}>
             <div style={{ borderRight: "1px solid var(--hairline)" }} />
             {days.map((day, i) => {
@@ -286,7 +311,7 @@ export default function WeekCalendar({ days, bookings, isLoading }: WeekCalendar
           {/* Time grid */}
           <div style={{ display: "grid", gridTemplateColumns: `${LABEL_W}px repeat(7, 1fr)`, position: "relative" }}>
 
-            {/* Hour labels column */}
+            {/* Hour labels */}
             <div style={{ borderRight: "1px solid var(--hairline)", position: "relative", height: GRID_H }}>
               {HOURS.map((h) => (
                 <div key={h} style={{
@@ -307,7 +332,7 @@ export default function WeekCalendar({ days, bookings, isLoading }: WeekCalendar
             {/* Day columns */}
             {days.map((day, colIdx) => {
               const colBookings = bookingsByDay[colIdx];
-              const active = isToday(day);
+              const active      = isToday(day);
               return (
                 <div key={colIdx} style={{
                   position:        "relative",
@@ -315,7 +340,7 @@ export default function WeekCalendar({ days, bookings, isLoading }: WeekCalendar
                   borderRight:     colIdx < 6 ? "1px solid var(--hairline)" : "none",
                   backgroundColor: active ? hexAlpha("#D4466E", 0.02) : "transparent",
                 }}>
-                  {/* Hour guide lines */}
+                  {/* Hour lines */}
                   {HOURS.map((h) => (
                     <div key={h} style={{
                       position:        "absolute",
@@ -340,29 +365,43 @@ export default function WeekCalendar({ days, bookings, isLoading }: WeekCalendar
                     }} />
                   ))}
 
-                  {/* Skeleton while loading */}
+                  {/* Skeleton */}
                   {isLoading && colIdx === 0 && (
                     <div style={{
-                      position:        "absolute",
-                      top:             2 * SLOT_PX,
-                      left:            3,
-                      right:           3,
-                      height:          SLOT_PX - 4,
-                      borderRadius:    8,
-                      background:      "var(--surface-3)",
-                      opacity:         0.5,
-                      animation:       "pulse 1.5s ease-in-out infinite",
+                      position:     "absolute",
+                      top:          2 * SLOT_PX,
+                      left:         3,
+                      right:        3,
+                      height:       SLOT_PX - 4,
+                      borderRadius: 8,
+                      background:   "var(--surface-3)",
+                      opacity:      0.5,
+                      animation:    "pulse 1.5s ease-in-out infinite",
                     }} />
                   )}
 
-                  {/* Booking blocks */}
+                  {/* Booking markers */}
                   {!isLoading && colBookings.map((b) => (
-                    <BookingBlock key={b.id} booking={b} />
+                    <BookingMarker
+                      key={b.id}
+                      booking={b}
+                      onHover={handleHover}
+                      onLeave={handleLeave}
+                    />
                   ))}
                 </div>
               );
             })}
           </div>
+
+          {/* Hover popup — global, au-dessus de toute la grille */}
+          {hovered && (
+            <BookingPopup
+              booking={hovered.booking}
+              anchorRect={hovered.anchorRect}
+              containerRect={containerRect}
+            />
+          )}
         </div>
       </div>
     </div>
