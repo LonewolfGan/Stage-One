@@ -450,14 +450,6 @@ export default function AnalyticsPage() {
             })()}
           </div>
 
-          {/* Footer — total context */}
-          <p style={{
-            fontSize: 11, color: "var(--ink-disabled)",
-            margin: "12px 0 0", textAlign: "right",
-            letterSpacing: "0.01em",
-          }}>
-            {serviceData.length} prestations suivies
-          </p>
         </motion.div>
       </div>
 
@@ -485,12 +477,13 @@ export default function AnalyticsPage() {
           className="ds-card"
           initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.28, duration: 0.4, ease: [0, 0, 0.2, 1] }}
+          style={{ display: "flex", flexDirection: "column" }}
         >
           <h2 style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.01em", margin: "0 0 3px" }}>
             Cette semaine
           </h2>
           <p style={{ fontSize: 12, color: "var(--ink-tertiary)", margin: "0 0 12px" }}>Réservations par jour</p>
-          <div style={{ height: 150 }}>
+          <div style={{ flex: 1, minHeight: 0 }}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={MOCK_WEEK} barSize={16} margin={{ top: 0, right: 0, left: -30, bottom: 0 }}>
                 <defs>
@@ -608,14 +601,6 @@ export default function AnalyticsPage() {
             })()}
           </div>
 
-          {/* Footer */}
-          <p style={{
-            fontSize: 11, color: "var(--ink-disabled)",
-            margin: "10px 0 0", textAlign: "right",
-            letterSpacing: "0.01em",
-          }}>
-            {MOCK_STAFF_PERF.length} membres actifs
-          </p>
         </motion.div>
       </div>
     </DashboardLayout>
