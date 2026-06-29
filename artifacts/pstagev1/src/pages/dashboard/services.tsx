@@ -4,9 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/DSButton";
 import { api } from "@/lib/api";
-import { Plus, Search, X, Clock, Tag } from "lucide-react";
+import { Plus, Clock, Pencil, Tag } from "lucide-react";
 
-/* ── Types ── */
 interface Service {
   id: string;
   name: string;
@@ -15,187 +14,185 @@ interface Service {
   priceCents: number;
 }
 
-/* ── Service Card ─────────────────────────────────── */
+/* ── Service Card ──────────────────────────────────────────── */
 function ServiceCard({ service, index }: { service: Service; index: number }) {
-  const [hovered, setHovered] = useState(false);
-
   return (
     <motion.div
       layout
-      initial={{ opacity: 0, y: 14 }}
+      initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.97 }}
-      transition={{ delay: index * 0.04, duration: 0.28, ease: [0, 0, 0.2, 1] }}
-      onHoverStart={() => setHovered(true)}
-      onHoverEnd={() => setHovered(false)}
+      exit={{ opacity: 0 }}
+      transition={{ delay: index * 0.03, duration: 0.2, ease: [0, 0, 0.2, 1] }}
       style={{
-        /* Outer shell — double-bezel */
-        borderRadius: 16,
-        border: "1px solid",
-        borderColor: hovered ? "rgba(212,70,110,0.20)" : "var(--hairline)",
-        padding: 2,
-        backgroundColor: hovered ? "rgba(212,70,110,0.025)" : "var(--surface-1)",
-        boxShadow: hovered
-          ? "0 6px 24px rgba(212,70,110,0.09), 0 2px 6px rgba(12,12,14,0.05)"
-          : "0 1px 4px rgba(12,12,14,0.04)",
-        transition: "box-shadow 320ms cubic-bezier(0.32,0.72,0,1), border-color 320ms ease, background-color 320ms ease",
+        borderRadius: 12,
+        border: "1px solid var(--hairline)",
+        backgroundColor: "var(--surface-1)",
+        display: "flex",
+        flexDirection: "column",
+        padding: "18px 20px 16px",
+        gap: 10,
+        transition: "border-color 150ms ease, background-color 150ms ease",
         cursor: "default",
       }}
+      onHoverStart={(e) => {
+        (e.target as HTMLElement).closest?.("[data-card]") &&
+          ((e.target as HTMLElement).closest("[data-card]") as HTMLElement)?.style &&
+          null;
+      }}
+      whileHover={{ backgroundColor: "rgba(12,12,14,0.015)" }}
     >
-      {/* Inner core */}
-      <div
-        style={{
-          borderRadius: 14,
-          padding: "18px 18px 16px",
-          display: "flex",
-          flexDirection: "column",
-          gap: 12,
-          height: "100%",
-        }}
-      >
-        {/* Top — name + duration */}
-        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 10 }}>
-          <h3
-            style={{
-              fontSize: 15,
-              fontWeight: 600,
-              color: "var(--ink)",
-              letterSpacing: "-0.02em",
-              lineHeight: 1.3,
-              margin: 0,
-              flex: 1,
-            }}
-          >
-            {service.name}
-          </h3>
-
-          {/* Duration pill */}
-          <span
-            style={{
-              flexShrink: 0,
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 4,
-              fontSize: 11,
-              fontWeight: 600,
-              color: "var(--ink-tertiary)",
-              backgroundColor: "rgba(12,12,14,0.06)",
-              borderRadius: 9999,
-              padding: "4px 9px",
-              whiteSpace: "nowrap",
-              lineHeight: 1,
-            }}
-          >
-            <Clock size={10} strokeWidth={2} />
-            {service.durationMinutes} min
-          </span>
-        </div>
-
-        {/* Description */}
+      {/* Name + duration */}
+      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
         <p
           style={{
-            fontSize: 12,
-            color: "var(--ink-tertiary)",
-            lineHeight: 1.55,
+            fontSize: 14,
+            fontWeight: 600,
+            color: "var(--ink)",
+            letterSpacing: "-0.015em",
+            lineHeight: 1.3,
             margin: 0,
             flex: 1,
-            display: "-webkit-box",
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: "vertical",
-            overflow: "hidden",
-            minHeight: 36,
-          }}
+            textWrap: "balance",
+          } as React.CSSProperties}
         >
-          {service.description || <span style={{ fontStyle: "italic", opacity: 0.5 }}>Aucune description</span>}
+          {service.name}
         </p>
-
-        {/* Bottom — price */}
-        <div
+        <span
           style={{
-            display: "flex",
+            flexShrink: 0,
+            display: "inline-flex",
             alignItems: "center",
-            justifyContent: "space-between",
-            paddingTop: 12,
-            borderTop: "1px solid var(--hairline)",
+            gap: 4,
+            fontSize: 11,
+            fontWeight: 500,
+            color: "var(--ink-tertiary)",
+            backgroundColor: "rgba(12,12,14,0.05)",
+            borderRadius: 9999,
+            padding: "3px 8px",
+            whiteSpace: "nowrap",
+            lineHeight: 1,
+            marginTop: 1,
           }}
         >
+          <Clock size={10} strokeWidth={2} style={{ flexShrink: 0 }} />
+          {service.durationMinutes} min
+        </span>
+      </div>
+
+      {/* Description */}
+      <p
+        style={{
+          fontSize: 12,
+          color: "var(--ink-tertiary)",
+          lineHeight: 1.55,
+          margin: 0,
+          flex: 1,
+          display: "-webkit-box",
+          WebkitLineClamp: 2,
+          WebkitBoxOrient: "vertical",
+          overflow: "hidden",
+          minHeight: 37,
+        }}
+      >
+        {service.description || (
+          <span style={{ opacity: 0.5, fontStyle: "italic" }}>Pas de description</span>
+        )}
+      </p>
+
+      {/* Footer — price + action */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          paddingTop: 12,
+          borderTop: "1px solid var(--hairline)",
+          gap: 8,
+        }}
+      >
+        <span
+          style={{
+            fontSize: 17,
+            fontWeight: 700,
+            color: "var(--ink)",
+            letterSpacing: "-0.025em",
+            lineHeight: 1,
+          }}
+        >
+          {Math.round(service.priceCents / 100)}{" "}
           <span
             style={{
-              fontSize: 20,
-              fontWeight: 700,
-              color: "var(--ink)",
-              letterSpacing: "-0.03em",
-              lineHeight: 1,
+              fontSize: 11,
+              fontWeight: 400,
+              color: "var(--ink-tertiary)",
+              letterSpacing: 0,
             }}
           >
-            {Math.round(service.priceCents / 100)}{" "}
-            <span style={{ fontSize: 12, fontWeight: 500, color: "var(--ink-tertiary)", letterSpacing: 0 }}>
-              MAD
-            </span>
+            MAD
           </span>
+        </span>
 
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.96 }}
-            transition={{ type: "spring", stiffness: 420, damping: 26 }}
-            style={{
-              height: 30,
-              paddingInline: 14,
-              backgroundColor: "var(--accent)",
-              color: "#fff",
-              border: "none",
-              borderRadius: 9999,
-              fontSize: 12,
-              fontWeight: 600,
-              letterSpacing: "-0.01em",
-              cursor: "pointer",
-              fontFamily: "var(--font)",
-              display: "flex",
-              alignItems: "center",
-              gap: 5,
-              flexShrink: 0,
-            }}
-          >
-            Modifier
-          </motion.button>
-        </div>
+        <button
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 5,
+            height: 28,
+            paddingInline: 12,
+            backgroundColor: "var(--ink)",
+            color: "#fff",
+            border: "none",
+            borderRadius: 7,
+            fontSize: 12,
+            fontWeight: 500,
+            letterSpacing: "-0.01em",
+            cursor: "pointer",
+            fontFamily: "var(--font)",
+            flexShrink: 0,
+            transition: "opacity 140ms ease",
+          }}
+          onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.opacity = "0.80"; }}
+          onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.opacity = "1"; }}
+        >
+          <Pencil size={10} strokeWidth={2} />
+          Modifier
+        </button>
       </div>
     </motion.div>
   );
 }
 
-/* ── Skeleton card ─────────────────────────────────── */
+/* ── Skeleton ───────────────────────────────────────────────── */
 function SkeletonCard() {
   return (
     <div
       style={{
-        borderRadius: 16,
+        borderRadius: 12,
         border: "1px solid var(--hairline)",
-        padding: "18px 18px 16px",
+        padding: "18px 20px 16px",
         display: "flex",
         flexDirection: "column",
-        gap: 12,
-        backgroundColor: "var(--surface-1)",
+        gap: 10,
       }}
     >
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <div style={{ height: 15, width: "55%", borderRadius: 6, backgroundColor: "var(--surface-2)", animation: "pulse 1.4s ease-in-out infinite" }} />
-        <div style={{ height: 22, width: 70, borderRadius: 9999, backgroundColor: "var(--surface-2)", animation: "pulse 1.4s ease-in-out infinite" }} />
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
+        <div style={{ height: 14, width: "52%", borderRadius: 5, backgroundColor: "var(--hairline)", animation: "pulse 1.4s ease-in-out infinite" }} />
+        <div style={{ height: 20, width: 60, borderRadius: 9999, backgroundColor: "var(--hairline)", animation: "pulse 1.4s ease-in-out infinite", flexShrink: 0 }} />
       </div>
-      <div style={{ height: 12, width: "80%", borderRadius: 5, backgroundColor: "var(--surface-2)", animation: "pulse 1.4s ease-in-out infinite" }} />
-      <div style={{ height: 12, width: "60%", borderRadius: 5, backgroundColor: "var(--surface-2)", animation: "pulse 1.4s ease-in-out infinite" }} />
-      <div style={{ marginTop: 4, paddingTop: 12, borderTop: "1px solid var(--hairline)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <div style={{ height: 20, width: 80, borderRadius: 6, backgroundColor: "var(--surface-2)", animation: "pulse 1.4s ease-in-out infinite" }} />
-        <div style={{ height: 30, width: 70, borderRadius: 9999, backgroundColor: "var(--surface-2)", animation: "pulse 1.4s ease-in-out infinite" }} />
+      <div style={{ display: "flex", flexDirection: "column", gap: 5, flex: 1 }}>
+        <div style={{ height: 12, width: "82%", borderRadius: 4, backgroundColor: "var(--hairline)", animation: "pulse 1.4s ease-in-out infinite" }} />
+        <div style={{ height: 12, width: "62%", borderRadius: 4, backgroundColor: "var(--hairline)", animation: "pulse 1.4s ease-in-out infinite" }} />
+      </div>
+      <div style={{ paddingTop: 12, borderTop: "1px solid var(--hairline)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div style={{ height: 17, width: 72, borderRadius: 5, backgroundColor: "var(--hairline)", animation: "pulse 1.4s ease-in-out infinite" }} />
+        <div style={{ height: 28, width: 76, borderRadius: 7, backgroundColor: "var(--hairline)", animation: "pulse 1.4s ease-in-out infinite" }} />
       </div>
     </div>
   );
 }
 
-/* ── Page ──────────────────────────────────────────── */
+/* ── Page ─────────────────────────────────────────────────── */
 export default function ServicesPage() {
-  const [search, setSearch] = useState("");
-
   const { data: providerData, isLoading } = useQuery({
     queryKey: ["dashboard", "provider"],
     queryFn: () => api.getDashboardProvider(),
@@ -204,7 +201,7 @@ export default function ServicesPage() {
   });
 
   const raw: any[] = providerData?.services ?? [];
-  const allServices: Service[] = raw.map((s) => ({
+  const services: Service[] = raw.map((s) => ({
     id: s.id,
     name: s.name,
     description: s.description ?? "",
@@ -212,21 +209,15 @@ export default function ServicesPage() {
     priceCents: s.priceCents ?? 0,
   }));
 
-  /* Stats */
-  const totalCount = allServices.length;
+  const totalCount = services.length;
   const avgDuration =
     totalCount > 0
-      ? Math.round(allServices.reduce((a, s) => a + s.durationMinutes, 0) / totalCount)
+      ? Math.round(services.reduce((a, s) => a + s.durationMinutes, 0) / totalCount)
       : 0;
   const avgPrice =
     totalCount > 0
-      ? Math.round(allServices.reduce((a, s) => a + s.priceCents, 0) / totalCount / 100)
+      ? Math.round(services.reduce((a, s) => a + s.priceCents, 0) / totalCount / 100)
       : 0;
-
-  /* Filter */
-  const filtered = allServices.filter((s) =>
-    s.name.toLowerCase().includes(search.toLowerCase())
-  );
 
   return (
     <DashboardLayout
@@ -234,149 +225,100 @@ export default function ServicesPage() {
       breadcrumb="Prestations"
       actions={
         <Button variant="primary" size="sm" icon={<Plus size={13} />}>
-          Ajouter une prestation
+          Ajouter
         </Button>
       }
     >
-      {/* Stats strip */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginBottom: 24 }}>
+      {/* Stats — compact inline strip, pas de hero-metric */}
+      <div
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 0,
+          border: "1px solid var(--hairline)",
+          borderRadius: 10,
+          overflow: "hidden",
+          marginBottom: 28,
+        }}
+      >
         {[
-          { label: "Prestations", value: isLoading ? "…" : String(totalCount) },
-          { label: "Durée moyenne", value: isLoading ? "…" : `${avgDuration} min` },
-          { label: "Prix moyen", value: isLoading ? "…" : `${avgPrice} MAD` },
-        ].map((s) => (
+          { label: "Prestations", value: isLoading ? "—" : String(totalCount) },
+          { label: "Durée moy.", value: isLoading ? "—" : `${avgDuration} min` },
+          { label: "Prix moy.", value: isLoading ? "—" : `${avgPrice} MAD` },
+        ].map((s, i, arr) => (
           <div
             key={s.label}
             style={{
-              border: "1px solid var(--hairline)",
-              borderRadius: 12,
-              padding: "14px 18px",
-              backgroundColor: "var(--surface-1)",
+              padding: "10px 20px",
+              borderRight: i < arr.length - 1 ? "1px solid var(--hairline)" : "none",
+              display: "flex",
+              flexDirection: "column",
+              gap: 2,
             }}
           >
-            <div
+            <span
               style={{
-                fontSize: 11,
-                fontWeight: 500,
+                fontSize: 10,
+                fontWeight: 600,
                 color: "var(--ink-tertiary)",
+                letterSpacing: "0.07em",
                 textTransform: "uppercase",
-                letterSpacing: "0.06em",
-                marginBottom: 6,
               }}
             >
               {s.label}
-            </div>
-            <div
+            </span>
+            <span
               style={{
-                fontSize: 24,
-                fontWeight: 700,
+                fontSize: 15,
+                fontWeight: 600,
                 color: "var(--ink)",
-                letterSpacing: "-0.03em",
+                letterSpacing: "-0.02em",
                 lineHeight: 1,
               }}
             >
               {s.value}
-            </div>
+            </span>
           </div>
         ))}
       </div>
 
-      {/* Search */}
-      <div style={{ position: "relative", marginBottom: 20, maxWidth: 320 }}>
-        <Search
-          size={14}
-          style={{
-            position: "absolute",
-            left: 10,
-            top: "50%",
-            transform: "translateY(-50%)",
-            color: "var(--ink-tertiary)",
-            pointerEvents: "none",
-          }}
-        />
-        <input
-          type="text"
-          placeholder="Rechercher une prestation…"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          style={{
-            width: "100%",
-            height: 36,
-            paddingLeft: 32,
-            paddingRight: search ? 32 : 12,
-            border: "1px solid var(--hairline)",
-            borderRadius: "var(--radius-control)",
-            backgroundColor: "var(--surface-1)",
-            fontSize: 13,
-            color: "var(--ink)",
-            outline: "none",
-            fontFamily: "var(--font)",
-            boxSizing: "border-box",
-            transition: "border-color 160ms ease",
-          }}
-          onFocus={(e) => { e.currentTarget.style.borderColor = "var(--hairline-strong)"; }}
-          onBlur={(e) => { e.currentTarget.style.borderColor = "var(--hairline)"; }}
-        />
-        {search && (
-          <button
-            onClick={() => setSearch("")}
-            style={{
-              position: "absolute",
-              right: 8,
-              top: "50%",
-              transform: "translateY(-50%)",
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              color: "var(--ink-tertiary)",
-              padding: 2,
-              display: "flex",
-            }}
-          >
-            <X size={13} />
-          </button>
-        )}
-      </div>
-
-      {/* Cards grid */}
+      {/* Grid */}
       {isLoading ? (
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))",
-            gap: 14,
+            gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
+            gap: 12,
           }}
         >
-          {Array.from({ length: 6 }).map((_, i) => (
-            <SkeletonCard key={i} />
-          ))}
+          {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}
         </div>
-      ) : filtered.length === 0 ? (
+      ) : services.length === 0 ? (
         <div
           style={{
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
-            gap: 12,
-            padding: "72px 24px",
+            gap: 14,
+            padding: "80px 24px",
             border: "1px dashed var(--hairline-strong)",
-            borderRadius: 16,
+            borderRadius: 12,
             textAlign: "center",
           }}
         >
           <div
             style={{
-              width: 48,
-              height: 48,
-              borderRadius: 12,
-              backgroundColor: "var(--surface-2)",
+              width: 40,
+              height: 40,
+              borderRadius: 10,
+              backgroundColor: "rgba(12,12,14,0.04)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
             }}
           >
-            <Tag size={20} color="var(--ink-tertiary)" strokeWidth={1.5} />
+            <Tag size={18} color="var(--ink-tertiary)" strokeWidth={1.5} />
           </div>
           <div>
             <p
@@ -388,29 +330,27 @@ export default function ServicesPage() {
                 letterSpacing: "-0.01em",
               }}
             >
-              {search ? `Aucun résultat pour « ${search} »` : "Aucune prestation"}
+              Aucune prestation
             </p>
             <p style={{ fontSize: 13, color: "var(--ink-tertiary)", margin: 0 }}>
-              {search ? "Essayez un autre mot-clé" : "Ajoutez votre première prestation"}
+              Ajoutez votre première prestation pour qu'elle apparaisse ici.
             </p>
           </div>
-          {!search && (
-            <Button variant="primary" size="sm" icon={<Plus size={13} />}>
-              Ajouter une prestation
-            </Button>
-          )}
+          <Button variant="primary" size="sm" icon={<Plus size={13} />}>
+            Ajouter une prestation
+          </Button>
         </div>
       ) : (
         <motion.div
           layout
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))",
-            gap: 14,
+            gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
+            gap: 12,
           }}
         >
           <AnimatePresence mode="popLayout">
-            {filtered.map((service, i) => (
+            {services.map((service, i) => (
               <ServiceCard key={service.id} service={service} index={i} />
             ))}
           </AnimatePresence>
