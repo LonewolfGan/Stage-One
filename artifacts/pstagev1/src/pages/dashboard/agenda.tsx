@@ -26,12 +26,22 @@ interface BlockModal {
   date: string;
 }
 
+/* ── Status system — single source of truth ── */
+const STATUS_CONFIG = {
+  confirmed:  { color: "#33CA7F", bg: "rgba(51,202,127,0.10)",  border: "rgba(51,202,127,0.22)",  label: "Confirmé"   },
+  pending:    { color: "#EC8932", bg: "rgba(236,137,50,0.10)",  border: "rgba(236,137,50,0.22)",  label: "En attente" },
+  cancelled:  { color: "#DC0470", bg: "rgba(220,4,112,0.10)",   border: "rgba(220,4,112,0.22)",   label: "Annulé"     },
+  completed:  { color: "#0C0C0E", bg: "rgba(12,12,14,0.06)",    border: "rgba(12,12,14,0.16)",    label: "Terminé"    },
+} as const;
+
+type BookingStatus = keyof typeof STATUS_CONFIG;
+
 const MOCK_BOOKINGS = [
-  { id: "m1", clientName: "Yasmine Alaoui",  service: "Coupe + Brushing",  time: "09:00 – 10:30", duration: 90,  amount: 250, status: "confirmed", tags: ["Coiffure"], color: "#D4466E" },
-  { id: "m2", clientName: "Sara Benali",     service: "Soin kératine",     time: "11:00 – 12:30", duration: 90,  amount: 480, status: "confirmed", tags: ["Soin"],     color: "#06B6D4" },
-  { id: "m3", clientName: "Nadia Fassi",     service: "Coloration racines", time: "14:00 – 15:00", duration: 60,  amount: 320, status: "pending",   tags: ["Couleur"],  color: "#8B5CF6" },
-  { id: "m4", clientName: "Kenza Moussaoui", service: "Manucure gel",       time: "15:30 – 16:30", duration: 60,  amount: 180, status: "confirmed", tags: ["Beauté"],   color: "#E8A33D" },
-  { id: "m5", clientName: "Leila Bouzid",    service: "Massage détente",    time: "17:00 – 18:00", duration: 60,  amount: 350, status: "confirmed", tags: ["Bien-être"],$color: "#10B981" },
+  { id: "m1", clientName: "Yasmine Alaoui",  service: "Coupe + Brushing",   time: "09:00 – 10:30", duration: 90, amount: 250, status: "confirmed"  as BookingStatus },
+  { id: "m2", clientName: "Sara Benali",     service: "Soin kératine",      time: "11:00 – 12:30", duration: 90, amount: 480, status: "confirmed"  as BookingStatus },
+  { id: "m3", clientName: "Nadia Fassi",     service: "Coloration racines", time: "14:00 – 15:00", duration: 60, amount: 320, status: "pending"    as BookingStatus },
+  { id: "m4", clientName: "Kenza Moussaoui", service: "Manucure gel",       time: "15:30 – 16:30", duration: 60, amount: 180, status: "cancelled"  as BookingStatus },
+  { id: "m5", clientName: "Leila Bouzid",    service: "Massage détente",    time: "17:00 – 18:00", duration: 60, amount: 350, status: "completed"  as BookingStatus },
 ];
 
 function avatarInitials(name: string) {
@@ -39,7 +49,7 @@ function avatarInitials(name: string) {
 }
 
 function avatarColor(name: string) {
-  const colors = ["#D4466E", "#06B6D4", "#8B5CF6", "#E8A33D", "#10B981", "#F97316"];
+  const colors = ["#33CA7F", "#EC8932", "#DC0470", "#0C0C0E", "#6B8CFF", "#B06DCC"];
   let hash = 0;
   for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
   return colors[Math.abs(hash) % colors.length];
@@ -173,7 +183,7 @@ function MonthCalendar({
 
 /* ── Timeline event block ── */
 function TimelineEvent({ b, index }: { b: typeof MOCK_BOOKINGS[0]; index: number }) {
-  const isConfirmed = b.status === "confirmed";
+  const st = STATUS_CONFIG[b.status as BookingStatus] ?? STATUS_CONFIG.pending;
 
   return (
     <motion.div
@@ -191,7 +201,7 @@ function TimelineEvent({ b, index }: { b: typeof MOCK_BOOKINGS[0]; index: number
 
       {/* Dot + line */}
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flexShrink: 0 }}>
-        <div style={{ width: 8, height: 8, borderRadius: "50%", backgroundColor: "var(--accent)", marginTop: 13, flexShrink: 0 }} />
+        <div style={{ width: 8, height: 8, borderRadius: "50%", backgroundColor: st.color, marginTop: 13, flexShrink: 0 }} />
         <div style={{ flex: 1, width: 1, backgroundColor: "var(--hairline)", marginTop: 4 }} />
       </div>
 
@@ -226,11 +236,12 @@ function TimelineEvent({ b, index }: { b: typeof MOCK_BOOKINGS[0]; index: number
           </div>
           <span style={{
             fontSize: 10, fontWeight: 600,
-            color: isConfirmed ? "#D4466E" : "var(--ink-secondary)",
-            backgroundColor: isConfirmed ? "rgba(212,70,110,0.08)" : "var(--surface-2)",
+            color: st.color,
+            backgroundColor: st.bg,
+            border: `1px solid ${st.border}`,
             padding: "3px 8px", borderRadius: 20, flexShrink: 0, marginLeft: 8,
           }}>
-            {isConfirmed ? "Confirmé" : "En attente"}
+            {st.label}
           </span>
         </div>
       </div>
@@ -240,7 +251,7 @@ function TimelineEvent({ b, index }: { b: typeof MOCK_BOOKINGS[0]; index: number
 
 /* ── Booking card (left panel) ── */
 function BookingCard({ b, index }: { b: typeof MOCK_BOOKINGS[0]; index: number }) {
-  const isConfirmed = b.status === "confirmed";
+  const st = STATUS_CONFIG[b.status as BookingStatus] ?? STATUS_CONFIG.pending;
 
   return (
     <motion.div
@@ -248,7 +259,7 @@ function BookingCard({ b, index }: { b: typeof MOCK_BOOKINGS[0]; index: number }
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.08 + index * 0.07, duration: 0.38, ease: [0, 0, 0.2, 1] }}
       className="ds-card"
-      style={{ padding: "14px 16px", cursor: "pointer" }}
+      style={{ padding: "14px 16px", cursor: "pointer", borderLeft: `3px solid ${st.color}` }}
     >
       {/* Service name + status */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
@@ -263,10 +274,13 @@ function BookingCard({ b, index }: { b: typeof MOCK_BOOKINGS[0]; index: number }
         <span style={{
           display: "inline-flex", alignItems: "center", gap: 4,
           fontSize: 10, fontWeight: 600, flexShrink: 0,
-          color: isConfirmed ? "var(--accent)" : "var(--ink-tertiary)",
+          color: st.color,
+          backgroundColor: st.bg,
+          border: `1px solid ${st.border}`,
+          padding: "3px 8px", borderRadius: 20,
         }}>
-          <span style={{ width: 5, height: 5, borderRadius: "50%", backgroundColor: isConfirmed ? "var(--accent)" : "var(--ink-disabled)", display: "inline-block", flexShrink: 0 }} />
-          {isConfirmed ? "Confirmé" : "En attente"}
+          <span style={{ width: 5, height: 5, borderRadius: "50%", backgroundColor: st.color, display: "inline-block", flexShrink: 0 }} />
+          {st.label}
         </span>
       </div>
 
@@ -367,7 +381,12 @@ export default function AgendaPage() {
           time: `${format(start, "HH:mm")} – ${format(end, "HH:mm")}`,
           duration: b.service?.durationMinutes ?? 60,
           amount: Math.round((b.amountCents ?? 0) / 100),
-          status: b.status === "CONFIRMED" || b.status === "COMPLETED" ? "confirmed" : "pending",
+          status: (
+            b.status === "CONFIRMED" ? "confirmed" :
+            b.status === "COMPLETED" ? "completed" :
+            b.status === "CANCELLED" ? "cancelled" :
+            "pending"
+          ) as BookingStatus,
           tags: [b.service?.category ?? "Prestation"],
           color,
         } as any;

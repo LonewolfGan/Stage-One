@@ -33,11 +33,19 @@
   --accent-tint:        #FBEEF1;
   --accent-hairline:    rgba(212, 70, 110, 0.24);
 
-  /* Semantic */
-  --success:            #1A8A4C;
-  --success-bg:         #EEF8F1;
-  --error:              #D6334A;
-  --error-bg:           #FCEEF0;
+  /* Semantic — status palette */
+  --success:            #33CA7F;
+  --success-bg:         rgba(51, 202, 127, 0.10);
+  --success-border:     rgba(51, 202, 127, 0.22);
+  --warning:            #EC8932;
+  --warning-bg:         rgba(236, 137, 50, 0.10);
+  --warning-border:     rgba(236, 137, 50, 0.22);
+  --error:              #DC0470;
+  --error-bg:           rgba(220, 4, 112, 0.10);
+  --error-border:       rgba(220, 4, 112, 0.22);
+  --completed:          #0C0C0E;
+  --completed-bg:       rgba(12, 12, 14, 0.06);
+  --completed-border:   rgba(12, 12, 14, 0.16);
   --rating:             #E8A33D;
 
   /* Typography */

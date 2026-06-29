@@ -32,13 +32,13 @@ const MOCK_MONTH = Array.from({ length: 30 }, (_, i) => {
   };
 });
 
-/* Harmonized monochromatic scale — ranked darkest to lightest */
+/* Services — couleurs issues de la palette statut pour cohérence */
 const MOCK_SERVICES = [
-  { name: "Coupe + Brushing", count: 48, color: "#D4466E", max: 48 },
-  { name: "Soin kératine",    count: 31, color: "#3A3D43", max: 48 },
-  { name: "Coloration",       count: 27, color: "#53565C", max: 48 },
-  { name: "Manucure",         count: 21, color: "#8A8D93", max: 48 },
-  { name: "Épilation",        count: 16, color: "#C2C4C8", max: 48 },
+  { name: "Coupe + Brushing", count: 48, color: "#33CA7F", max: 48 },
+  { name: "Soin kératine",    count: 31, color: "#EC8932", max: 48 },
+  { name: "Coloration",       count: 27, color: "#DC0470", max: 48 },
+  { name: "Manucure",         count: 21, color: "#0C0C0E", max: 48 },
+  { name: "Épilation",        count: 16, color: "#B0B3B8", max: 48 },
 ];
 
 const tooltipStyle = {
@@ -228,7 +228,7 @@ export default function AnalyticsPage() {
               <p style={{ fontSize: 12, color: "var(--ink-tertiary)", margin: "3px 0 0" }}>30 derniers jours</p>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-              <div style={{ width: 8, height: 8, borderRadius: "50%", backgroundColor: "var(--accent)" }} />
+              <div style={{ width: 8, height: 8, borderRadius: "50%", backgroundColor: "#33CA7F" }} />
               <span style={{ fontSize: 11, color: "var(--ink-tertiary)" }}>Réservations</span>
             </div>
           </div>
@@ -237,15 +237,15 @@ export default function AnalyticsPage() {
               <AreaChart data={monthData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="ga-main" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="var(--accent)" stopOpacity={0.30} />
-                    <stop offset="100%" stopColor="var(--accent)" stopOpacity={0} />
+                    <stop offset="0%" stopColor="#33CA7F" stopOpacity={0.28} />
+                    <stop offset="100%" stopColor="#33CA7F" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid stroke="var(--hairline)" vertical={false} strokeDasharray="3 3" />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: "var(--ink-tertiary)", fontSize: 10 }} interval={5} />
                 <YAxis axisLine={false} tickLine={false} tick={{ fill: "var(--ink-tertiary)", fontSize: 10 }} />
                 <Tooltip content={<CustomTooltip />} />
-                <Area type="monotone" dataKey="bookings" name="Réservations" stroke="var(--accent)" strokeWidth={2} fill="url(#ga-main)" dot={false} activeDot={{ r: 4, fill: "var(--accent)", strokeWidth: 0 }} />
+                <Area type="monotone" dataKey="bookings" name="Réservations" stroke="#33CA7F" strokeWidth={2} fill="url(#ga-main)" dot={false} activeDot={{ r: 4, fill: "#33CA7F", strokeWidth: 0 }} />
               </AreaChart>
             </ResponsiveContainer>
           </div>

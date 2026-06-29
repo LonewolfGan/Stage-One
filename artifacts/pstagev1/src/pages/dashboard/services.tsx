@@ -18,11 +18,11 @@ const MOCK_SERVICES = [
 ];
 
 const CATEGORY_COLORS: Record<string, string> = {
-  Coiffure:   "var(--ink)",
-  Traitement: "#6B5E8B",
-  Couleur:    "#D4466E",
-  Ongles:     "#5B7B9E",
-  Épilation:  "#7B8B55",
+  Coiffure:   "#0C0C0E",
+  Traitement: "#EC8932",
+  Couleur:    "#DC0470",
+  Ongles:     "#33CA7F",
+  Épilation:  "#8A8D93",
 };
 
 export default function ServicesPage() {

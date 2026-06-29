@@ -4,17 +4,19 @@ type BadgeVariant =
   | "success"
   | "error"
   | "warning"
+  | "completed"
   | "info"
   | "accent"
   | "neutral";
 
 const STYLES: Record<BadgeVariant, { bg: string; color: string; border: string }> = {
-  success: { bg: "var(--success-bg)",  color: "var(--success)",        border: "rgba(26,138,76,0.2)" },
-  error:   { bg: "var(--error-bg)",    color: "var(--error)",          border: "rgba(214,51,74,0.2)" },
-  warning: { bg: "#FEF9EC",            color: "#B45309",               border: "rgba(180,83,9,0.2)" },
-  info:    { bg: "#EEF4FF",            color: "#3B6FE0",               border: "rgba(59,111,224,0.2)" },
-  accent:  { bg: "var(--accent-tint)", color: "var(--accent)",         border: "var(--accent-hairline)" },
-  neutral: { bg: "rgba(12,12,14,0.04)", color: "var(--ink-secondary)", border: "var(--hairline)" },
+  success:   { bg: "var(--success-bg)",   color: "var(--success)",   border: "var(--success-border)"   },
+  warning:   { bg: "var(--warning-bg)",   color: "var(--warning)",   border: "var(--warning-border)"   },
+  error:     { bg: "var(--error-bg)",     color: "var(--error)",     border: "var(--error-border)"     },
+  completed: { bg: "var(--completed-bg)", color: "var(--completed)", border: "var(--completed-border)" },
+  info:      { bg: "#EEF4FF",             color: "#3B6FE0",          border: "rgba(59,111,224,0.20)"   },
+  accent:    { bg: "var(--accent-tint)",  color: "var(--accent)",    border: "var(--accent-hairline)"  },
+  neutral:   { bg: "rgba(12,12,14,0.04)", color: "var(--ink-secondary)", border: "var(--hairline)"    },
 };
 
 interface BadgeProps {
