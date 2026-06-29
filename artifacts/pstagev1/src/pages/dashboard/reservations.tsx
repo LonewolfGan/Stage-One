@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useLocation } from "wouter";
+import { useQuery } from "@tanstack/react-query";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { api } from "@/lib/api";
 import {
   ArrowLeft,
   ChevronLeft,
@@ -11,64 +13,54 @@ import {
 import {
   format,
   addWeeks,
-  subWeeks,
   startOfWeek,
   eachDayOfInterval,
   addDays,
   isToday,
-  isSameDay,
 } from "date-fns";
 import { fr } from "date-fns/locale";
 import { motion } from "framer-motion";
 
-/* ── Types ── */
+/* ── API response types ── */
+interface ApiBooking {
+  id: string;
+  startDatetime: string;
+  endDatetime: string;
+  status: "PENDING" | "CONFIRMED" | "CANCELLED" | "COMPLETED" | "EXPIRED";
+  amountCents: number;
+  service: { id: string; name: string; durationMinutes: number } | null;
+  staff:   { id: string; name: string } | null;
+  client:  { id: string; name: string } | null;
+}
+
+/* ── Internal view type ── */
 interface WeekBooking {
   id: string;
   clientName: string;
   service: string;
-  startHour: number; // e.g. 9.0 = 09:00, 9.5 = 09:30
-  durationH: number; // in hours, e.g. 1.5
-  dayIndex: number;  // 0=Mon … 6=Sun
+  startHour: number;
+  durationH: number;
+  dayIndex: number;
   color: string;
   staff: string;
   amount: number;
   status: "confirmed" | "pending" | "cancelled";
 }
 
-/* ── Mock data — 7 jours à partir du lundi courant ── */
-const WEEK_BOOKINGS: WeekBooking[] = [
-  { id: "w1",  clientName: "Yasmine Alaoui",   service: "Coupe + Brushing",    startHour: 9,    durationH: 1.5, dayIndex: 0, color: "#D4466E", staff: "Salma B.",   amount: 250, status: "confirmed" },
-  { id: "w2",  clientName: "Sara Benali",      service: "Soin kératine",       startHour: 11,   durationH: 1.5, dayIndex: 0, color: "#06B6D4", staff: "Nour A.",    amount: 480, status: "confirmed" },
-  { id: "w3",  clientName: "Nadia Fassi",      service: "Coloration racines",  startHour: 14,   durationH: 1,   dayIndex: 0, color: "#8B5CF6", staff: "Salma B.",   amount: 320, status: "pending"   },
-  { id: "w4",  clientName: "Kenza Moussaoui",  service: "Manucure gel",        startHour: 15.5, durationH: 1,   dayIndex: 0, color: "#E8A33D", staff: "Ines M.",    amount: 180, status: "confirmed" },
-  { id: "w5",  clientName: "Leila Bouzid",     service: "Massage détente",     startHour: 17,   durationH: 1,   dayIndex: 0, color: "#10B981", staff: "Nour A.",    amount: 350, status: "confirmed" },
-  { id: "w6",  clientName: "Rim Chraibi",      service: "Brushing",            startHour: 10,   durationH: 1,   dayIndex: 1, color: "#D4466E", staff: "Salma B.",   amount: 150, status: "confirmed" },
-  { id: "w7",  clientName: "Hana El Ouafi",    service: "Soin visage",         startHour: 13,   durationH: 1.5, dayIndex: 1, color: "#06B6D4", staff: "Ines M.",    amount: 280, status: "confirmed" },
-  { id: "w8",  clientName: "Dounia Tazi",      service: "Épilation complète",  startHour: 16,   durationH: 1,   dayIndex: 1, color: "#F97316", staff: "Nour A.",    amount: 200, status: "pending"   },
-  { id: "w9",  clientName: "Meryem Hajji",     service: "Lissage brésilien",   startHour: 9.5,  durationH: 2,   dayIndex: 2, color: "#8B5CF6", staff: "Salma B.",   amount: 550, status: "confirmed" },
-  { id: "w10", clientName: "Soumia Rhazi",     service: "Manucure + Pédicure", startHour: 12,   durationH: 1.5, dayIndex: 2, color: "#E8A33D", staff: "Ines M.",    amount: 220, status: "confirmed" },
-  { id: "w11", clientName: "Fatima Zahra",     service: "Coloration totale",   startHour: 15,   durationH: 2,   dayIndex: 2, color: "#D4466E", staff: "Nour A.",    amount: 450, status: "confirmed" },
-  { id: "w12", clientName: "Asmaa Berrada",    service: "Coupe femme",         startHour: 10.5, durationH: 1,   dayIndex: 3, color: "#10B981", staff: "Salma B.",   amount: 180, status: "confirmed" },
-  { id: "w13", clientName: "Zineb Lahlou",     service: "Soin kératine",       startHour: 14.5, durationH: 1.5, dayIndex: 3, color: "#06B6D4", staff: "Nour A.",    amount: 480, status: "pending"   },
-  { id: "w14", clientName: "Houda Mansouri",   service: "Épilation sourcils",  startHour: 9,    durationH: 0.5, dayIndex: 4, color: "#F97316", staff: "Ines M.",    amount: 60,  status: "confirmed" },
-  { id: "w15", clientName: "Sanaa El Alami",   service: "Brushing + Coupe",    startHour: 11,   durationH: 1.5, dayIndex: 4, color: "#D4466E", staff: "Salma B.",   amount: 250, status: "confirmed" },
-  { id: "w16", clientName: "Naima Idrissi",    service: "Manucure gel",        startHour: 15,   durationH: 1,   dayIndex: 4, color: "#E8A33D", staff: "Ines M.",    amount: 180, status: "confirmed" },
-  { id: "w17", clientName: "Lamiae Sqalli",    service: "Massage dos",         startHour: 10,   durationH: 1,   dayIndex: 5, color: "#10B981", staff: "Nour A.",    amount: 300, status: "confirmed" },
-  { id: "w18", clientName: "Ghizlane Amrani",  service: "Soin visage",         startHour: 13,   durationH: 1,   dayIndex: 5, color: "#06B6D4", staff: "Ines M.",    amount: 280, status: "confirmed" },
-];
-
 /* ── Constants ── */
 const HOUR_START = 8;
 const HOUR_END   = 20;
 const TOTAL_H    = HOUR_END - HOUR_START;
-const SLOT_PX    = 64; // pixels per hour
+const SLOT_PX    = 64;
 const GRID_H     = TOTAL_H * SLOT_PX;
 const LABEL_W    = 48;
 
 const DAY_SHORT = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
 const HOURS = Array.from({ length: TOTAL_H + 1 }, (_, i) => HOUR_START + i);
 
-/* ── Color tint helper (20% opacity bg, full color text/border) ── */
+const STAFF_COLORS = ["#D4466E", "#06B6D4", "#8B5CF6", "#E8A33D", "#10B981", "#F97316"];
+
+/* ── Helpers ── */
 function hexAlpha(hex: string, a: number) {
   const r = parseInt(hex.slice(1, 3), 16);
   const g = parseInt(hex.slice(3, 5), 16);
@@ -76,17 +68,41 @@ function hexAlpha(hex: string, a: number) {
   return `rgba(${r},${g},${b},${a})`;
 }
 
+function staffColor(staffId: string): string {
+  let hash = 0;
+  for (let i = 0; i < staffId.length; i++) hash = staffId.charCodeAt(i) + ((hash << 5) - hash);
+  return STAFF_COLORS[Math.abs(hash) % STAFF_COLORS.length];
+}
+
+function mapStatus(s: ApiBooking["status"]): WeekBooking["status"] {
+  if (s === "CONFIRMED" || s === "COMPLETED") return "confirmed";
+  if (s === "CANCELLED" || s === "EXPIRED")  return "cancelled";
+  return "pending";
+}
+
+function toWeekBooking(b: ApiBooking, dayIndex: number): WeekBooking {
+  const start = new Date(b.startDatetime);
+  const startHour = start.getUTCHours() + start.getUTCMinutes() / 60;
+  const durationH = b.service ? b.service.durationMinutes / 60 : 1;
+  return {
+    id: b.id,
+    clientName: b.client?.name ?? "—",
+    service: b.service?.name ?? "—",
+    startHour,
+    durationH,
+    dayIndex,
+    color: staffColor(b.staff?.id ?? b.id),
+    staff: b.staff?.name ?? "—",
+    amount: b.amountCents / 100,
+    status: mapStatus(b.status),
+  };
+}
+
 /* ── Booking block component ── */
-function BookingBlock({
-  booking,
-  colW,
-}: {
-  booking: WeekBooking;
-  colW: number;
-}) {
+function BookingBlock({ booking, colW }: { booking: WeekBooking; colW: number }) {
   const [hovered, setHovered] = useState(false);
-  const top     = (booking.startHour - HOUR_START) * SLOT_PX;
-  const height  = Math.max(booking.durationH * SLOT_PX - 4, 28);
+  const top    = (booking.startHour - HOUR_START) * SLOT_PX;
+  const height = Math.max(booking.durationH * SLOT_PX - 4, 28);
   const isShort = height < 52;
 
   return (
@@ -117,7 +133,7 @@ function BookingBlock({
         <div style={{ display: "flex", alignItems: "center", gap: 4, marginBottom: 2 }}>
           <Clock size={9} color={booking.color} strokeWidth={2.5} />
           <span style={{ fontSize: 10, fontWeight: 600, color: booking.color, letterSpacing: "0.01em" }}>
-            {`${Math.floor(booking.startHour)}:${String((booking.startHour % 1) * 60).padStart(2, "0")} – ${Math.floor(booking.startHour + booking.durationH)}:${String(((booking.startHour + booking.durationH) % 1) * 60).padStart(2, "0")}`}
+            {`${Math.floor(booking.startHour)}:${String(Math.round((booking.startHour % 1) * 60)).padStart(2, "0")} – ${Math.floor(booking.startHour + booking.durationH)}:${String(Math.round(((booking.startHour + booking.durationH) % 1) * 60)).padStart(2, "0")}`}
           </span>
         </div>
       )}
@@ -172,6 +188,24 @@ export default function ReservationsPage() {
     return `${start} – ${end}`;
   })();
 
+  /* ── Fetch all 7 days in parallel ── */
+  const { data: weekBookings = [], isLoading } = useQuery<WeekBooking[]>({
+    queryKey: ["dashboard-week-bookings", weekOffset],
+    queryFn: async () => {
+      const results = await Promise.all(
+        days.map((day, dayIndex) => {
+          const dateStr = format(day, "yyyy-MM-dd");
+          return api
+            .get<ApiBooking[]>(`/dashboard/bookings?date=${dateStr}`)
+            .then((list) => list.map((b) => toWeekBooking(b, dayIndex)))
+            .catch(() => [] as WeekBooking[]);
+        }),
+      );
+      return results.flat();
+    },
+    staleTime: 30_000,
+  });
+
   return (
     <DashboardLayout title="Réservations" breadcrumb="Agenda" noPadding>
       <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
@@ -215,38 +249,40 @@ export default function ReservationsPage() {
 
           {/* Week navigator */}
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <button
+              type="button"
+              onClick={() => setWeekOffset((w) => w - 1)}
+              style={{ width: 32, height: 32, borderRadius: 9, border: "1px solid var(--hairline)", background: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--ink-secondary)", transition: "background 120ms" }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-2)")}
+              onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
+            >
+              <ChevronLeft size={15} />
+            </button>
+            <span style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.01em", minWidth: 160, textAlign: "center" }}>
+              {isLoading ? (
+                <span style={{ display: "inline-block", width: 140, height: 14, borderRadius: 6, background: "var(--surface-3)", animation: "pulse 1.5s ease-in-out infinite" }} />
+              ) : weekLabel}
+            </span>
+            <button
+              type="button"
+              onClick={() => setWeekOffset((w) => w + 1)}
+              style={{ width: 32, height: 32, borderRadius: 9, border: "1px solid var(--hairline)", background: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--ink-secondary)", transition: "background 120ms" }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-2)")}
+              onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
+            >
+              <ChevronRight size={15} />
+            </button>
+            {weekOffset !== 0 && (
               <button
                 type="button"
-                onClick={() => setWeekOffset((w) => w - 1)}
-                style={{ width: 32, height: 32, borderRadius: 9, border: "1px solid var(--hairline)", background: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--ink-secondary)", transition: "background 120ms" }}
+                onClick={() => setWeekOffset(0)}
+                style={{ height: 32, padding: "0 12px", borderRadius: 9, border: "1px solid var(--hairline)", background: "none", cursor: "pointer", fontSize: 12, fontWeight: 500, color: "var(--ink-secondary)", transition: "background 120ms" }}
                 onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-2)")}
                 onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
               >
-                <ChevronLeft size={15} />
+                Aujourd'hui
               </button>
-              <span style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.01em", minWidth: 160, textAlign: "center" }}>
-                {weekLabel}
-              </span>
-              <button
-                type="button"
-                onClick={() => setWeekOffset((w) => w + 1)}
-                style={{ width: 32, height: 32, borderRadius: 9, border: "1px solid var(--hairline)", background: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--ink-secondary)", transition: "background 120ms" }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-2)")}
-                onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
-              >
-                <ChevronRight size={15} />
-              </button>
-              {weekOffset !== 0 && (
-                <button
-                  type="button"
-                  onClick={() => setWeekOffset(0)}
-                  style={{ height: 32, padding: "0 12px", borderRadius: 9, border: "1px solid var(--hairline)", background: "none", cursor: "pointer", fontSize: 12, fontWeight: 500, color: "var(--ink-secondary)", transition: "background 120ms" }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-2)")}
-                  onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
-                >
-                  Aujourd'hui
-                </button>
-              )}
+            )}
           </div>
         </div>
 
@@ -264,7 +300,6 @@ export default function ReservationsPage() {
               backgroundColor: "var(--canvas-pure)",
               borderBottom: "1px solid var(--hairline)",
             }}>
-              {/* empty corner */}
               <div style={{ borderRight: "1px solid var(--hairline)" }} />
               {days.map((day, i) => {
                 const active = isToday(day);
@@ -326,7 +361,7 @@ export default function ReservationsPage() {
 
               {/* Day columns */}
               {days.map((day, colIdx) => {
-                const colBookings = WEEK_BOOKINGS.filter((b) => b.dayIndex === colIdx);
+                const colBookings = weekBookings.filter((b) => b.dayIndex === colIdx);
                 const active = isToday(day);
                 return (
                   <div
@@ -369,8 +404,23 @@ export default function ReservationsPage() {
                       />
                     ))}
 
+                    {/* Skeleton while loading */}
+                    {isLoading && colIdx === 0 && (
+                      <div style={{
+                        position: "absolute",
+                        top: 2 * SLOT_PX,
+                        left: 3,
+                        right: 3,
+                        height: SLOT_PX - 4,
+                        borderRadius: 8,
+                        background: "var(--surface-3)",
+                        opacity: 0.5,
+                        animation: "pulse 1.5s ease-in-out infinite",
+                      }} />
+                    )}
+
                     {/* Booking blocks */}
-                    {colBookings.map((b) => (
+                    {!isLoading && colBookings.map((b) => (
                       <BookingBlock key={b.id} booking={b} colW={120} />
                     ))}
                   </div>
