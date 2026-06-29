@@ -173,105 +173,73 @@ function MonthCalendar({
 /* ── Timeline event block ── */
 function TimelineEvent({ b, index }: { b: typeof MOCK_BOOKINGS[0]; index: number }) {
   const isConfirmed = b.status === "confirmed";
-  const color       = (b as any).color ?? "#D4466E";
-  const bg          = color + "12";
-  const border      = color + "30";
 
   return (
     <motion.div
       initial={{ opacity: 0, x: 12 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: index * 0.06, duration: 0.35, ease: [0, 0, 0.2, 1] }}
-      style={{
-        display: "flex",
-        gap: 12,
-        alignItems: "stretch",
-        marginBottom: 6,
-      }}
+      style={{ display: "flex", gap: 10, alignItems: "stretch", marginBottom: 4 }}
     >
       {/* Time label */}
-      <div style={{ width: 76, flexShrink: 0, textAlign: "right", paddingTop: 10 }}>
+      <div style={{ width: 38, flexShrink: 0, textAlign: "right", paddingTop: 10 }}>
         <span style={{ fontSize: 11, fontWeight: 500, color: "var(--ink-tertiary)", lineHeight: 1 }}>
           {b.time.split(" – ")[0]}
         </span>
       </div>
 
-      {/* Colored dot + line */}
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 0, flexShrink: 0 }}>
-        <div style={{ width: 10, height: 10, borderRadius: "50%", backgroundColor: color, marginTop: 11, flexShrink: 0, border: `2px solid ${color}40` }} />
-        <div style={{ flex: 1, width: 1.5, backgroundColor: "var(--hairline)", marginTop: 4 }} />
+      {/* Dot + line */}
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flexShrink: 0 }}>
+        <div style={{ width: 8, height: 8, borderRadius: "50%", backgroundColor: "var(--accent)", marginTop: 13, flexShrink: 0 }} />
+        <div style={{ flex: 1, width: 1, backgroundColor: "var(--hairline)", marginTop: 4 }} />
       </div>
 
       {/* Card */}
       <div
         style={{
           flex: 1,
-          backgroundColor: bg,
-          border: `1px solid ${border}`,
-          borderRadius: 12,
-          padding: "10px 14px",
-          marginBottom: 8,
-          position: "relative",
-          overflow: "hidden",
+          backgroundColor: "var(--surface-1)",
+          border: "1px solid var(--hairline)",
+          borderRadius: 10,
+          padding: "9px 12px",
+          marginBottom: 6,
         }}
       >
-        <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 3, backgroundColor: color, borderRadius: "0 2px 2px 0" }} />
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div style={{ minWidth: 0 }}>
-            <p style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)", margin: "0 0 2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            <p style={{ fontSize: 12, fontWeight: 600, color: "var(--ink)", margin: "0 0 2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
               {b.service}
             </p>
-            <p style={{ fontSize: 11, color: "var(--ink-tertiary)", margin: "0 0 8px" }}>{b.time}</p>
-            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                <div style={{
-                  width: 20, height: 20, borderRadius: "50%",
-                  backgroundColor: avatarColor(b.clientName),
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: 8, fontWeight: 700, color: "#fff",
-                }}>
-                  {avatarInitials(b.clientName)}
-                </div>
-                <span style={{ fontSize: 11, color: "var(--ink-secondary)", fontWeight: 500 }}>{b.clientName}</span>
+            <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+              <div style={{
+                width: 16, height: 16, borderRadius: "50%",
+                backgroundColor: "var(--ink)", opacity: 0.12,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: 7, fontWeight: 700, color: "var(--ink)",
+                flexShrink: 0,
+              }}>
+                <span style={{ opacity: 1 / 0.12, color: "var(--ink)" }}>{avatarInitials(b.clientName)}</span>
               </div>
+              <span style={{ fontSize: 11, color: "var(--ink-secondary)", fontWeight: 500 }}>{b.clientName}</span>
             </div>
           </div>
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6, flexShrink: 0, marginLeft: 8 }}>
-            {b.tags.map((tag) => (
-              <span
-                key={tag}
-                style={{
-                  fontSize: 10, fontWeight: 600,
-                  color: color,
-                  backgroundColor: color + "15",
-                  padding: "3px 8px", borderRadius: 20,
-                  whiteSpace: "nowrap",
-                }}
-              >
-                {tag}
-              </span>
-            ))}
-            <span style={{
-              fontSize: 10, fontWeight: 600,
-              color: isConfirmed ? "#10B981" : "#E8A33D",
-              backgroundColor: isConfirmed ? "#10B98115" : "#E8A33D15",
-              padding: "3px 8px", borderRadius: 20,
-            }}>
-              {isConfirmed ? "Confirmé" : "En attente"}
-            </span>
-          </div>
+          <span style={{
+            fontSize: 10, fontWeight: 600,
+            color: isConfirmed ? "#D4466E" : "var(--ink-secondary)",
+            backgroundColor: isConfirmed ? "rgba(212,70,110,0.08)" : "var(--surface-2)",
+            padding: "3px 8px", borderRadius: 20, flexShrink: 0, marginLeft: 8,
+          }}>
+            {isConfirmed ? "Confirmé" : "En attente"}
+          </span>
         </div>
       </div>
     </motion.div>
   );
 }
 
-/* ── Booking card (left panel) — Figma-inspired ── */
+/* ── Booking card (left panel) ── */
 function BookingCard({ b, index }: { b: typeof MOCK_BOOKINGS[0]; index: number }) {
   const isConfirmed = b.status === "confirmed";
-  const color       = (b as any).color ?? "#D4466E";
-  // progress bar: percentage of daily max (assume 8h day = 480 min total)
-  const progress = Math.min(100, Math.round((b.amount / 600) * 100));
 
   return (
     <motion.div
@@ -279,7 +247,7 @@ function BookingCard({ b, index }: { b: typeof MOCK_BOOKINGS[0]; index: number }
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.08 + index * 0.07, duration: 0.38, ease: [0, 0, 0.2, 1] }}
       className="ds-card"
-      style={{ padding: 18, cursor: "pointer", position: "relative", overflow: "hidden" }}
+      style={{ padding: "16px 18px", cursor: "pointer", position: "relative" }}
     >
       {/* Three-dot menu */}
       <button
@@ -293,53 +261,41 @@ function BookingCard({ b, index }: { b: typeof MOCK_BOOKINGS[0]; index: number }
         </svg>
       </button>
 
-      {/* Header */}
-      <div style={{ marginBottom: 6, paddingRight: 24 }}>
-        <p style={{ fontSize: 14, fontWeight: 700, color: "var(--ink)", margin: "0 0 3px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", letterSpacing: "-0.01em" }}>
+      {/* Service + time */}
+      <div style={{ marginBottom: 14, paddingRight: 24 }}>
+        <p style={{ fontSize: 14, fontWeight: 700, color: "var(--ink)", margin: "0 0 4px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", letterSpacing: "-0.01em" }}>
           {b.service}
         </p>
-        <p style={{ fontSize: 12, color: "var(--ink-tertiary)", margin: 0 }}>{b.time} · {b.duration} min</p>
+        <p style={{ fontSize: 12, color: "var(--ink-tertiary)", margin: 0, fontWeight: 400 }}>
+          {b.time} · {b.duration} min
+        </p>
       </div>
 
-      {/* Progress bar — Figma key feature */}
-      <div style={{ marginBottom: 14 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-          <span style={{ fontSize: 11, color: "var(--ink-tertiary)", fontWeight: 500 }}>Montant</span>
-          <span style={{ fontSize: 13, fontWeight: 700, color: color, letterSpacing: "-0.01em" }}>
-            {b.amount.toLocaleString("fr-MA")} MAD
-          </span>
-        </div>
-        <div style={{ height: 6, borderRadius: 99, backgroundColor: color + "18", overflow: "hidden" }}>
-          <motion.div
-            initial={{ width: 0 }}
-            animate={{ width: `${progress}%` }}
-            transition={{ delay: 0.15 + index * 0.07, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-            style={{ height: "100%", borderRadius: 99, backgroundColor: color }}
-          />
-        </div>
-      </div>
+      {/* Separator */}
+      <div style={{ height: 1, backgroundColor: "var(--hairline)", marginBottom: 12 }} />
 
-      {/* Footer: avatar stack + status badge */}
+      {/* Footer: client + amount + status */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 0 }}>
-          {/* Overlapping avatar — Figma pattern */}
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <div style={{
-            width: 28, height: 28, borderRadius: "50%",
-            backgroundColor: avatarColor(b.clientName),
+            width: 26, height: 26, borderRadius: "50%",
+            backgroundColor: "var(--ink)",
             display: "flex", alignItems: "center", justifyContent: "center",
             fontSize: 9, fontWeight: 700, color: "#fff",
-            border: "2px solid var(--surface-1)",
             flexShrink: 0,
           }}>
             {avatarInitials(b.clientName)}
           </div>
-          <span style={{ fontSize: 11, color: "var(--ink-secondary)", marginLeft: 8, fontWeight: 500 }}>{b.clientName}</span>
+          <div>
+            <p style={{ fontSize: 12, fontWeight: 600, color: "var(--ink)", margin: 0, lineHeight: 1.3 }}>{b.clientName}</p>
+            <p style={{ fontSize: 11, color: "var(--ink-tertiary)", margin: 0, fontWeight: 500 }}>{b.amount.toLocaleString("fr-MA")} MAD</p>
+          </div>
         </div>
         <span style={{
           fontSize: 10, fontWeight: 600,
-          color: isConfirmed ? "#10B981" : "#E8A33D",
-          backgroundColor: isConfirmed ? "#10B98114" : "#E8A33D14",
-          padding: "3px 9px", borderRadius: 20,
+          color: isConfirmed ? "#D4466E" : "var(--ink-secondary)",
+          backgroundColor: isConfirmed ? "rgba(212,70,110,0.08)" : "var(--surface-2)",
+          padding: "4px 10px", borderRadius: 20, flexShrink: 0,
         }}>
           {isConfirmed ? "Confirmé" : "En attente"}
         </span>
@@ -473,7 +429,7 @@ export default function AgendaPage() {
               </button>
               <button
                 onClick={() => setCurrentDate(new Date())}
-                style={{ fontSize: 12, fontWeight: 600, color: "#0E7B6C", padding: "5px 12px", borderRadius: 20, border: "1px solid #0E7B6C30", background: "#0E7B6C10", cursor: "pointer" }}
+                style={{ fontSize: 12, fontWeight: 600, color: "var(--accent)", padding: "5px 12px", borderRadius: 20, border: "1px solid rgba(212,70,110,0.25)", background: "rgba(212,70,110,0.07)", cursor: "pointer" }}
               >
                 Aujourd'hui
               </button>
@@ -499,10 +455,8 @@ export default function AgendaPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.06, duration: 0.35, ease: [0, 0, 0.2, 1] }}
                 className="ds-card"
-                style={{ padding: "16px 18px", position: "relative", overflow: "hidden" }}
+                style={{ padding: "16px 18px" }}
               >
-                {/* Left accent stripe */}
-                <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 3, backgroundColor: s.color, borderRadius: "12px 0 0 12px" }} />
                 <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase", color: "var(--ink-tertiary)", margin: "0 0 8px" }}>
                   {s.label}
                 </p>
@@ -528,7 +482,7 @@ export default function AgendaPage() {
             <h3 style={{ fontSize: 15, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.01em", margin: 0 }}>
               Réservations du jour
             </h3>
-            <span style={{ fontSize: 12, color: "#0E7B6C", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 3 }}>
+            <span style={{ fontSize: 12, color: "var(--accent)", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 3 }}>
               Tout voir <ArrowUpRight size={12} />
             </span>
           </div>
