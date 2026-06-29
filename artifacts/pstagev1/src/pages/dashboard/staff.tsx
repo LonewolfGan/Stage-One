@@ -1,214 +1,628 @@
-import { motion } from "framer-motion";
-import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/DSButton";
-import { Badge } from "@/components/ui/Badge";
-import { api } from "@/lib/api";
-import { Plus, Phone, Mail, Scissors, Palette, Sparkles } from "lucide-react";
-import { fadeUp, staggerContainer } from "@/lib/motion";
+import { api, type ApiStaff, type ApiService } from "@/lib/api";
+import { Plus, Pencil, X, Trash2, Scissors } from "lucide-react";
 
-const MOCK_STAFF = [
-  {
-    id: "m1",
-    name: "Nadia Bensali",
-    bio: "Coiffeuse senior — 8 ans d'expérience",
-    speciality: "Coiffure",
-    icon: Scissors,
-    color: "#D4466E",
-    bookingsThisWeek: 24,
-    rating: 4.9,
-  },
-  {
-    id: "m2",
-    name: "Sara El Amrani",
-    bio: "Coloriste — Spécialiste balayage & mèches",
-    speciality: "Couleur",
-    icon: Palette,
-    color: "#0C0C0E",
-    bookingsThisWeek: 18,
-    rating: 4.8,
-  },
-  {
-    id: "m3",
-    name: "Kenza Alaoui",
-    bio: "Esthéticienne — Soins visage & épilation",
-    speciality: "Beauté",
-    icon: Sparkles,
-    color: "#6B5E8B",
-    bookingsThisWeek: 21,
-    rating: 5.0,
-  },
-];
-
-interface StaffMember {
-  id: string;
-  name: string;
-  bio?: string;
-  speciality?: string;
-  photoUrl?: string;
-  bookingsThisWeek?: number;
-  rating?: number;
-  icon?: React.ElementType;
-  color?: string;
+/* ─── helpers ─────────────────────────────────────────────── */
+function initials(name: string) {
+  return name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase();
 }
 
+function serviceCount(staffId: string, services: ApiService[]) {
+  return services.filter((s) => s.staffIds?.includes(staffId)).length;
+}
+
+/* ─── Status toggle ───────────────────────────────────────── */
+function StatusChip({
+  isActive,
+  loading,
+  onClick,
+}: {
+  isActive: boolean;
+  loading: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={loading}
+      title={isActive ? "Marquer indisponible" : "Marquer disponible"}
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 6,
+        height: 26,
+        paddingInline: 10,
+        borderRadius: 9999,
+        border: "1px solid",
+        borderColor: isActive ? "var(--success-border)" : "var(--hairline-strong)",
+        backgroundColor: isActive ? "var(--success-bg)" : "rgba(12,12,14,0.04)",
+        color: isActive ? "var(--success)" : "var(--ink-tertiary)",
+        fontSize: 11,
+        fontWeight: 600,
+        cursor: loading ? "not-allowed" : "pointer",
+        fontFamily: "var(--font)",
+        opacity: loading ? 0.5 : 1,
+        transition: "all 160ms ease",
+        whiteSpace: "nowrap",
+        flexShrink: 0,
+      }}
+    >
+      <span
+        style={{
+          width: 6,
+          height: 6,
+          borderRadius: "50%",
+          backgroundColor: isActive ? "var(--success)" : "var(--ink-disabled)",
+          flexShrink: 0,
+        }}
+      />
+      {loading ? "…" : isActive ? "Disponible" : "Indisponible"}
+    </button>
+  );
+}
+
+/* ─── Staff Row Card ──────────────────────────────────────── */
+function StaffCard({
+  member,
+  services,
+  slug,
+  index,
+  onEdit,
+}: {
+  member: ApiStaff;
+  services: ApiService[];
+  slug: string;
+  index: number;
+  onEdit: (m: ApiStaff) => void;
+}) {
+  const qc = useQueryClient();
+
+  const toggle = useMutation({
+    mutationFn: () =>
+      api.updateStaff(slug, member.id, { isActive: !member.isActive }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["staff", slug] }),
+  });
+
+  const count = serviceCount(member.id, services);
+
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0 }}
+      transition={{ delay: index * 0.04, duration: 0.2, ease: [0, 0, 0.2, 1] }}
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 14,
+        padding: "14px 18px",
+        borderRadius: 12,
+        border: "1px solid var(--hairline)",
+        backgroundColor: member.isActive ? "var(--surface-1)" : "rgba(12,12,14,0.02)",
+        transition: "border-color 150ms ease, background-color 150ms ease",
+      }}
+    >
+      {/* Avatar */}
+      {member.photoUrl ? (
+        <img
+          src={member.photoUrl}
+          alt={member.name}
+          style={{
+            width: 42,
+            height: 42,
+            borderRadius: "50%",
+            objectFit: "cover",
+            flexShrink: 0,
+            border: "1px solid var(--hairline)",
+            opacity: member.isActive ? 1 : 0.5,
+          }}
+        />
+      ) : (
+        <div
+          style={{
+            width: 42,
+            height: 42,
+            borderRadius: "50%",
+            backgroundColor: "rgba(12,12,14,0.06)",
+            border: "1px solid var(--hairline)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: 13,
+            fontWeight: 700,
+            color: "var(--ink-secondary)",
+            flexShrink: 0,
+            opacity: member.isActive ? 1 : 0.45,
+            letterSpacing: "-0.01em",
+          }}
+        >
+          {initials(member.name)}
+        </div>
+      )}
+
+      {/* Name + bio */}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <p
+          style={{
+            fontSize: 14,
+            fontWeight: 600,
+            color: member.isActive ? "var(--ink)" : "var(--ink-tertiary)",
+            letterSpacing: "-0.015em",
+            margin: "0 0 2px",
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+          }}
+        >
+          {member.name}
+        </p>
+        {member.bio && (
+          <p
+            style={{
+              fontSize: 12,
+              color: "var(--ink-tertiary)",
+              margin: 0,
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+            }}
+          >
+            {member.bio}
+          </p>
+        )}
+      </div>
+
+      {/* Services badge */}
+      <span
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 5,
+          fontSize: 11,
+          fontWeight: 500,
+          color: count > 0 ? "var(--ink-secondary)" : "var(--ink-disabled)",
+          backgroundColor: "rgba(12,12,14,0.05)",
+          border: "1px solid var(--hairline)",
+          borderRadius: 9999,
+          padding: "3px 9px",
+          whiteSpace: "nowrap",
+          flexShrink: 0,
+        }}
+      >
+        <Scissors size={10} strokeWidth={2} />
+        {count} prestation{count !== 1 ? "s" : ""}
+      </span>
+
+      {/* Status toggle */}
+      <StatusChip
+        isActive={member.isActive}
+        loading={toggle.isPending}
+        onClick={() => toggle.mutate()}
+      />
+
+      {/* Edit */}
+      <button
+        onClick={() => onEdit(member)}
+        style={{
+          height: 30,
+          width: 30,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          background: "none",
+          border: "1px solid var(--hairline)",
+          borderRadius: 8,
+          cursor: "pointer",
+          color: "var(--ink-tertiary)",
+          flexShrink: 0,
+          transition: "border-color 140ms ease, color 140ms ease",
+        }}
+        onMouseEnter={(e) => {
+          (e.currentTarget as HTMLButtonElement).style.color = "var(--ink)";
+          (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--hairline-strong)";
+        }}
+        onMouseLeave={(e) => {
+          (e.currentTarget as HTMLButtonElement).style.color = "var(--ink-tertiary)";
+          (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--hairline)";
+        }}
+        title="Modifier"
+      >
+        <Pencil size={13} />
+      </button>
+    </motion.div>
+  );
+}
+
+/* ─── Skeleton row ────────────────────────────────────────── */
+function SkeletonRow() {
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 14,
+        padding: "14px 18px",
+        borderRadius: 12,
+        border: "1px solid var(--hairline)",
+      }}
+    >
+      <div style={{ width: 42, height: 42, borderRadius: "50%", backgroundColor: "var(--hairline)", animation: "pulse 1.4s ease-in-out infinite", flexShrink: 0 }} />
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 6 }}>
+        <div style={{ height: 13, width: "38%", borderRadius: 5, backgroundColor: "var(--hairline)", animation: "pulse 1.4s ease-in-out infinite" }} />
+        <div style={{ height: 11, width: "55%", borderRadius: 4, backgroundColor: "var(--hairline)", animation: "pulse 1.4s ease-in-out infinite" }} />
+      </div>
+      <div style={{ height: 24, width: 90, borderRadius: 9999, backgroundColor: "var(--hairline)", animation: "pulse 1.4s ease-in-out infinite" }} />
+      <div style={{ height: 24, width: 90, borderRadius: 9999, backgroundColor: "var(--hairline)", animation: "pulse 1.4s ease-in-out infinite" }} />
+      <div style={{ height: 30, width: 30, borderRadius: 8, backgroundColor: "var(--hairline)", animation: "pulse 1.4s ease-in-out infinite" }} />
+    </div>
+  );
+}
+
+/* ─── Staff Form Modal ────────────────────────────────────── */
+interface StaffFormProps {
+  slug: string;
+  member?: ApiStaff | null; // null = create
+  onClose: () => void;
+}
+
+function StaffForm({ slug, member, onClose }: StaffFormProps) {
+  const isEdit = !!member;
+  const qc = useQueryClient();
+
+  const [name, setName]   = useState(member?.name ?? "");
+  const [bio, setBio]     = useState(member?.bio ?? "");
+  const [photo, setPhoto] = useState(member?.photoUrl ?? "");
+  const [error, setError] = useState("");
+
+  const save = useMutation({
+    mutationFn: () => {
+      const data = {
+        name: name.trim(),
+        bio: bio.trim() || undefined,
+        photoUrl: photo.trim() || undefined,
+      };
+      return isEdit
+        ? api.updateStaff(slug, member!.id, data)
+        : api.createStaff(slug, data);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["staff", slug] });
+      onClose();
+    },
+    onError: () => setError("Une erreur est survenue."),
+  });
+
+  const remove = useMutation({
+    mutationFn: () => api.deleteStaff(slug, member!.id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["staff", slug] });
+      onClose();
+    },
+    onError: () => setError("Impossible de supprimer ce membre."),
+  });
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError("");
+    if (!name.trim()) { setError("Le nom est requis."); return; }
+    save.mutate();
+  }
+
+  const fieldStyle: React.CSSProperties = {
+    width: "100%",
+    height: 38,
+    padding: "0 12px",
+    border: "1px solid var(--hairline-strong)",
+    borderRadius: 8,
+    backgroundColor: "var(--surface-1)",
+    fontSize: 13,
+    color: "var(--ink)",
+    outline: "none",
+    fontFamily: "var(--font)",
+    boxSizing: "border-box",
+    transition: "border-color 140ms ease",
+  };
+
+  const labelStyle: React.CSSProperties = {
+    display: "block",
+    fontSize: 12,
+    fontWeight: 500,
+    color: "var(--ink-secondary)",
+    marginBottom: 6,
+    letterSpacing: "-0.01em",
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      transition={{ duration: 0.15 }}
+      onClick={onClose}
+      style={{
+        position: "fixed", inset: 0, zIndex: 200,
+        backgroundColor: "rgba(0,0,0,0.46)",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        padding: 20,
+      }}
+    >
+      <motion.div
+        initial={{ opacity: 0, scale: 0.97, y: 8 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.97, y: 8 }}
+        transition={{ duration: 0.18, ease: [0, 0, 0.2, 1] }}
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          width: "100%", maxWidth: 420,
+          backgroundColor: "var(--surface-1)",
+          borderRadius: 14,
+          border: "1px solid var(--hairline)",
+          overflow: "hidden",
+        }}
+      >
+        {/* Header */}
+        <div style={{
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+          padding: "18px 20px 16px",
+          borderBottom: "1px solid var(--hairline)",
+        }}>
+          <h2 style={{ margin: 0, fontSize: 15, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.015em" }}>
+            {isEdit ? "Modifier le membre" : "Nouveau membre"}
+          </h2>
+          <button
+            onClick={onClose}
+            style={{ background: "none", border: "none", cursor: "pointer", color: "var(--ink-tertiary)", padding: 4, display: "flex", borderRadius: 6 }}
+          >
+            <X size={16} />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} style={{ padding: 20 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            <div>
+              <label style={labelStyle}>Nom <span style={{ color: "var(--accent)" }}>*</span></label>
+              <input
+                style={fieldStyle}
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Ex. Nadia Bensali"
+                autoFocus
+                onFocus={(e) => { e.currentTarget.style.borderColor = "var(--ink)"; }}
+                onBlur={(e) => { e.currentTarget.style.borderColor = "var(--hairline-strong)"; }}
+              />
+            </div>
+            <div>
+              <label style={labelStyle}>Biographie <span style={{ color: "var(--ink-disabled)", fontWeight: 400 }}>(optionnel)</span></label>
+              <textarea
+                style={{ ...fieldStyle, height: 68, padding: "10px 12px", resize: "vertical", lineHeight: 1.5 }}
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+                placeholder="Coiffeuse senior — 8 ans d'expérience"
+                onFocus={(e) => { e.currentTarget.style.borderColor = "var(--ink)"; }}
+                onBlur={(e) => { e.currentTarget.style.borderColor = "var(--hairline-strong)"; }}
+              />
+            </div>
+            <div>
+              <label style={labelStyle}>URL photo <span style={{ color: "var(--ink-disabled)", fontWeight: 400 }}>(optionnel)</span></label>
+              <input
+                style={fieldStyle}
+                value={photo}
+                onChange={(e) => setPhoto(e.target.value)}
+                placeholder="https://…"
+                type="url"
+                onFocus={(e) => { e.currentTarget.style.borderColor = "var(--ink)"; }}
+                onBlur={(e) => { e.currentTarget.style.borderColor = "var(--hairline-strong)"; }}
+              />
+            </div>
+            {error && (
+              <p style={{ margin: 0, fontSize: 12, color: "var(--error)", fontWeight: 500 }}>{error}</p>
+            )}
+          </div>
+
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 22, gap: 10 }}>
+            {isEdit ? (
+              <button
+                type="button"
+                onClick={() => remove.mutate()}
+                disabled={remove.isPending}
+                style={{
+                  display: "inline-flex", alignItems: "center", gap: 5,
+                  height: 34, paddingInline: 14,
+                  backgroundColor: "var(--error-bg)", color: "var(--error)",
+                  border: "1px solid var(--error-border)",
+                  borderRadius: 8, fontSize: 12, fontWeight: 500,
+                  cursor: remove.isPending ? "not-allowed" : "pointer",
+                  fontFamily: "var(--font)", opacity: remove.isPending ? 0.6 : 1,
+                  transition: "opacity 140ms ease",
+                }}
+              >
+                <Trash2 size={12} />
+                {remove.isPending ? "Suppression…" : "Retirer de l'équipe"}
+              </button>
+            ) : <span />}
+
+            <div style={{ display: "flex", gap: 8 }}>
+              <button
+                type="button"
+                onClick={onClose}
+                style={{
+                  height: 34, paddingInline: 16,
+                  backgroundColor: "transparent", color: "var(--ink-secondary)",
+                  border: "1px solid var(--hairline-strong)",
+                  borderRadius: 8, fontSize: 13, fontWeight: 500,
+                  cursor: "pointer", fontFamily: "var(--font)",
+                }}
+              >
+                Annuler
+              </button>
+              <button
+                type="submit"
+                disabled={save.isPending}
+                style={{
+                  height: 34, paddingInline: 18,
+                  backgroundColor: save.isPending ? "rgba(12,12,14,0.5)" : "var(--ink)",
+                  color: "#fff", border: "none",
+                  borderRadius: 8, fontSize: 13, fontWeight: 500,
+                  cursor: save.isPending ? "not-allowed" : "pointer",
+                  fontFamily: "var(--font)", transition: "background-color 140ms ease",
+                }}
+              >
+                {save.isPending ? "Enregistrement…" : isEdit ? "Enregistrer" : "Ajouter"}
+              </button>
+            </div>
+          </div>
+        </form>
+      </motion.div>
+    </motion.div>
+  );
+}
+
+/* ─── Page ────────────────────────────────────────────────── */
 export default function StaffPage() {
-  const { data: providerData, isLoading } = useQuery({
+  const [editing, setEditing] = useState<ApiStaff | null | undefined>(undefined);
+  // undefined = closed, null = create, ApiStaff = edit
+
+  const qc = useQueryClient();
+
+  // Step 1: get provider slug + services
+  const { data: providerData } = useQuery({
     queryKey: ["dashboard", "provider"],
     queryFn: () => api.getDashboardProvider(),
     staleTime: 300_000,
     retry: false,
   });
 
-  const rawStaff: StaffMember[] = providerData?.staff ?? [];
-  const staffList: StaffMember[] = rawStaff.length > 0 ? rawStaff : MOCK_STAFF;
+  const slug: string = providerData?.slug ?? "";
+  const services: ApiService[] = providerData?.services ?? [];
+
+  // Step 2: get all staff (including inactive) once we have the slug
+  const { data: staffData, isLoading } = useQuery({
+    queryKey: ["staff", slug],
+    queryFn: () => api.getStaff(slug),
+    enabled: !!slug,
+    staleTime: 60_000,
+  });
+
+  const allStaff: ApiStaff[] = staffData ?? [];
+  const activeCount   = allStaff.filter((s) => s.isActive).length;
+  const inactiveCount = allStaff.filter((s) => !s.isActive).length;
 
   return (
-    <DashboardLayout
-      title="Équipe"
-      breadcrumb="Équipe"
-      actions={
-        <Button variant="primary" size="sm" icon={<Plus size={13} />}>
-          Ajouter un membre
-        </Button>
-      }
-    >
-      {/* Summary row */}
-      <div style={{ display: "flex", gap: 12, marginBottom: 28 }}>
-        {[
-          { label: "Membres actifs",    value: staffList.length,   accent: false },
-          { label: "RDV cette semaine", value: staffList.reduce((a, s) => a + (s.bookingsThisWeek ?? 0), 0), accent: true },
-          { label: "Note moyenne",      value: (staffList.reduce((a, s) => a + (s.rating ?? 0), 0) / staffList.length).toFixed(1) + " / 5", accent: false },
-        ].map((stat) => (
-          <div
-            key={stat.label}
-            style={{
-              flex: 1,
-              border: "1px solid var(--hairline)",
-              borderRadius: 10,
-              padding: "14px 18px",
-              backgroundColor: "var(--surface-1)",
-            }}
+    <>
+      <DashboardLayout
+        title="Équipe"
+        breadcrumb="Équipe"
+        actions={
+          <Button
+            variant="primary"
+            size="sm"
+            icon={<Plus size={13} />}
+            onClick={() => setEditing(null)}
           >
-            <div style={{ fontSize: 11, fontWeight: 500, color: "var(--ink-tertiary)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6 }}>
-              {stat.label}
-            </div>
-            <div style={{ fontSize: 22, fontWeight: 600, color: stat.accent ? "#D4466E" : "var(--ink)", letterSpacing: "-0.02em" }}>
-              {stat.value}
-            </div>
+            Ajouter un membre
+          </Button>
+        }
+      >
+        {/* Section: disponibles */}
+        {isLoading ? (
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {[1, 2, 3].map((i) => <SkeletonRow key={i} />)}
           </div>
-        ))}
-      </div>
+        ) : allStaff.length === 0 ? (
+          <div style={{
+            display: "flex", flexDirection: "column", alignItems: "center",
+            justifyContent: "center", gap: 14, padding: "80px 24px",
+            border: "1px dashed var(--hairline-strong)", borderRadius: 12, textAlign: "center",
+          }}>
+            <div style={{ width: 40, height: 40, borderRadius: 10, backgroundColor: "rgba(12,12,14,0.04)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <Scissors size={18} color="var(--ink-tertiary)" strokeWidth={1.5} />
+            </div>
+            <div>
+              <p style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)", margin: "0 0 4px", letterSpacing: "-0.01em" }}>
+                Aucun membre dans l'équipe
+              </p>
+              <p style={{ fontSize: 13, color: "var(--ink-tertiary)", margin: 0 }}>
+                Ajoutez des membres pour qu'ils apparaissent sur vos disponibilités.
+              </p>
+            </div>
+            <Button variant="primary" size="sm" icon={<Plus size={13} />} onClick={() => setEditing(null)}>
+              Ajouter un membre
+            </Button>
+          </div>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
 
-      {isLoading ? (
-        <div className="dash-staff-grid">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="ds-card animate-pulse" style={{ height: 240, backgroundColor: "var(--surface-2)" }} />
-          ))}
-        </div>
-      ) : (
-        <motion.div
-          className="dash-staff-grid"
-          variants={staggerContainer}
-          initial="hidden"
-          animate="visible"
-        >
-          {staffList.map((member) => {
-            const initials = member.name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase();
-            const IconComp = (member as any).icon as React.ElementType | undefined;
-            const accentColor = (member as any).color ?? "#0C0C0E";
-
-            return (
-              <motion.div
-                key={member.id}
-                className="ds-card"
-                variants={fadeUp}
-                whileHover={{ borderColor: "var(--hairline-strong)" }}
-                transition={{ duration: 0.18, ease: [0.4, 0, 0.2, 1] }}
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  textAlign: "center",
-                  cursor: "default",
-                  padding: "24px 20px 20px",
-                }}
-              >
-                {/* Avatar */}
-                {member.photoUrl ? (
-                  <img
-                    src={member.photoUrl}
-                    alt={member.name}
-                    style={{ width: 64, height: 64, borderRadius: "50%", objectFit: "cover", marginBottom: 14, border: "2px solid var(--hairline)" }}
-                  />
-                ) : (
-                  <div style={{
-                    width: 64, height: 64, borderRadius: "50%",
-                    backgroundColor: `${accentColor}10`,
-                    border: `2px solid ${accentColor}25`,
-                    color: accentColor,
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    fontSize: 18, fontWeight: 600, marginBottom: 14, flexShrink: 0,
-                  }}>
-                    {initials}
-                  </div>
-                )}
-
-                <p style={{ fontSize: 15, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.01em", margin: "0 0 4px" }}>
-                  {member.name}
+            {/* Active */}
+            {activeCount > 0 && (
+              <section>
+                <p style={{
+                  fontSize: 11, fontWeight: 600, color: "var(--ink-tertiary)",
+                  letterSpacing: "0.07em", textTransform: "uppercase",
+                  margin: "0 0 10px", paddingLeft: 2,
+                }}>
+                  Disponibles · {activeCount}
                 </p>
-                <p style={{ fontSize: 12, color: "var(--ink-tertiary)", margin: "0 0 12px", lineHeight: 1.4 }}>
-                  {member.bio ?? "Professionnel(le)"}
+                <motion.div layout style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  <AnimatePresence mode="popLayout">
+                    {allStaff.filter((m) => m.isActive).map((member, i) => (
+                      <StaffCard
+                        key={member.id}
+                        member={member}
+                        services={services}
+                        slug={slug}
+                        index={i}
+                        onEdit={(m) => setEditing(m)}
+                      />
+                    ))}
+                  </AnimatePresence>
+                </motion.div>
+              </section>
+            )}
+
+            {/* Inactive */}
+            {inactiveCount > 0 && (
+              <section>
+                <p style={{
+                  fontSize: 11, fontWeight: 600, color: "var(--ink-disabled)",
+                  letterSpacing: "0.07em", textTransform: "uppercase",
+                  margin: "0 0 10px", paddingLeft: 2,
+                }}>
+                  Indisponibles · {inactiveCount}
                 </p>
+                <motion.div layout style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  <AnimatePresence mode="popLayout">
+                    {allStaff.filter((m) => !m.isActive).map((member, i) => (
+                      <StaffCard
+                        key={member.id}
+                        member={member}
+                        services={services}
+                        slug={slug}
+                        index={i}
+                        onEdit={(m) => setEditing(m)}
+                      />
+                    ))}
+                  </AnimatePresence>
+                </motion.div>
+              </section>
+            )}
 
-                <div style={{ display: "flex", gap: 6, alignItems: "center", justifyContent: "center", marginBottom: 14 }}>
-                  <Badge variant="success">Actif</Badge>
-                  {member.speciality && (
-                    <span style={{ fontSize: 11, color: "var(--ink-tertiary)", padding: "3px 8px", border: "1px solid var(--hairline)", borderRadius: 6, display: "flex", alignItems: "center", gap: 4 }}>
-                      {IconComp && <IconComp size={11} />}
-                      {member.speciality}
-                    </span>
-                  )}
-                </div>
+          </div>
+        )}
+      </DashboardLayout>
 
-                {/* Stat row */}
-                {member.bookingsThisWeek !== undefined && (
-                  <div style={{ display: "flex", gap: 12, marginBottom: 16, width: "100%" }}>
-                    <div style={{ flex: 1, textAlign: "center" }}>
-                      <div style={{ fontSize: 18, fontWeight: 600, color: "#D4466E", letterSpacing: "-0.02em" }}>
-                        {member.bookingsThisWeek}
-                      </div>
-                      <div style={{ fontSize: 10, color: "var(--ink-tertiary)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                        RDV / semaine
-                      </div>
-                    </div>
-                    <div style={{ width: 1, backgroundColor: "var(--hairline)" }} />
-                    <div style={{ flex: 1, textAlign: "center" }}>
-                      <div style={{ fontSize: 18, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.02em" }}>
-                        {member.rating?.toFixed(1) ?? "—"}
-                      </div>
-                      <div style={{ fontSize: 10, color: "var(--ink-tertiary)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                        Note
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                <div className="ds-divider" style={{ width: "100%", margin: "0 0 12px" }} />
-
-                <div style={{ display: "flex", gap: 8, width: "100%" }}>
-                  <Button variant="ghost" size="sm" style={{ flex: 1 }} icon={<Phone size={12} />}>
-                    Appeler
-                  </Button>
-                  <Button variant="ghost" size="sm" style={{ flex: 1 }} icon={<Mail size={12} />}>
-                    Email
-                  </Button>
-                </div>
-              </motion.div>
-            );
-          })}
-        </motion.div>
-      )}
-    </DashboardLayout>
+      {/* Modal */}
+      <AnimatePresence>
+        {editing !== undefined && (
+          <StaffForm
+            slug={slug}
+            member={editing}
+            onClose={() => setEditing(undefined)}
+          />
+        )}
+      </AnimatePresence>
+    </>
   );
 }
