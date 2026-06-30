@@ -1,4 +1,5 @@
-import { motion } from "framer-motion";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { api } from "@/lib/api";
@@ -21,6 +22,14 @@ const MOCK_WEEK = [
   { name: "Dim", bookings: 6  },
 ];
 
+const MOCK_7D = Array.from({ length: 7 }, (_, i) => {
+  const d = new Date();
+  d.setDate(d.getDate() - (6 - i));
+  const DAY = ["Dim","Lun","Mar","Mer","Jeu","Ven","Sam"];
+  const base = 5 + Math.sin(i * 1.2) * 3 + (i % 3) * 1.5;
+  return { name: DAY[d.getDay()], bookings: Math.round(base), revenue: Math.round(base * 320) };
+});
+
 const MOCK_MONTH = Array.from({ length: 30 }, (_, i) => {
   const d = new Date();
   d.setDate(d.getDate() - (29 - i));
@@ -30,6 +39,20 @@ const MOCK_MONTH = Array.from({ length: 30 }, (_, i) => {
     bookings: Math.round(base),
     revenue: Math.round(base * 320),
   };
+});
+
+const MOCK_3M = Array.from({ length: 13 }, (_, i) => {
+  const d = new Date();
+  d.setDate(d.getDate() - (12 - i) * 7);
+  const base = 45 + Math.sin(i / 2.5) * 18 + (i % 4) * 3;
+  return { name: `S${i + 1}`, bookings: Math.round(base), revenue: Math.round(base * 320) };
+});
+
+const MOCK_1Y = Array.from({ length: 12 }, (_, i) => {
+  const d = new Date();
+  d.setMonth(d.getMonth() - (11 - i));
+  const base = 190 + Math.sin(i / 2) * 65 + (i % 3) * 12;
+  return { name: MONTH_SHORT[d.getMonth()], bookings: Math.round(base), revenue: Math.round(base * 320) };
 });
 
 /* Services — couleurs issues de la palette statut pour cohérence */
@@ -319,7 +342,17 @@ function StatWidget({ label, value, sub, dark }: { label: string; value: string;
   );
 }
 
+type Period = "7j" | "1M" | "3M" | "1A";
+const PERIOD_LABELS: Record<Period, string> = {
+  "7j": "7 derniers jours",
+  "1M": "30 derniers jours",
+  "3M": "3 derniers mois",
+  "1A": "12 derniers mois",
+};
+
 export default function AnalyticsPage() {
+  const [period, setPeriod] = useState<Period>("1M");
+
   const { data: analytics } = useQuery({
     queryKey: ["dashboard", "analytics"],
     queryFn: () => api.getAnalytics(),
@@ -344,6 +377,13 @@ export default function AnalyticsPage() {
         return { name: `${dt.getDate()} ${MONTH_SHORT[dt.getMonth()]}`, bookings: x.count, revenue: x.count * 320 };
       })
     : MOCK_MONTH;
+
+  const chartData = period === "7j" ? MOCK_7D
+    : period === "3M" ? MOCK_3M
+    : period === "1A" ? MOCK_1Y
+    : monthData;
+
+  const xAxisInterval = period === "7j" ? 0 : period === "3M" ? 1 : period === "1A" ? 0 : 5;
 
   const apiServices: any[] = analytics?.topServices ?? [];
   const serviceData = apiServices.length > 0
@@ -379,12 +419,33 @@ export default function AnalyticsPage() {
               <h2 style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.01em", margin: 0 }}>
                 Tendance des réservations
               </h2>
-              <p style={{ fontSize: 12, color: "var(--ink-tertiary)", margin: "3px 0 0" }}>30 derniers jours</p>
+              <p style={{ fontSize: 12, color: "var(--ink-tertiary)", margin: "3px 0 0" }}>
+                {PERIOD_LABELS[period]}
+              </p>
+            </div>
+            {/* Period filter pills */}
+            <div style={{ display: "flex", gap: 2, backgroundColor: "var(--surface-2)", borderRadius: 8, padding: 3 }}>
+              {(["7j", "1M", "3M", "1A"] as Period[]).map((p) => (
+                <button
+                  key={p}
+                  onClick={() => setPeriod(p)}
+                  style={{
+                    fontSize: 11, fontWeight: 500, padding: "4px 10px",
+                    borderRadius: 6, border: "none", cursor: "pointer",
+                    transition: "background 0.15s, color 0.15s",
+                    backgroundColor: period === p ? "var(--surface-1)" : "transparent",
+                    color: period === p ? "var(--ink)" : "var(--ink-tertiary)",
+                    boxShadow: period === p ? "0 1px 2px rgba(0,0,0,0.06)" : "none",
+                  }}
+                >
+                  {p}
+                </button>
+              ))}
             </div>
           </div>
           <div style={{ height: 220 }}>
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={monthData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
+              <AreaChart data={chartData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="ga-main" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor="#33CA7F" stopOpacity={0.28} />
@@ -392,7 +453,7 @@ export default function AnalyticsPage() {
                   </linearGradient>
                 </defs>
                 <CartesianGrid stroke="var(--hairline)" vertical={false} strokeDasharray="3 3" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: "var(--ink-tertiary)", fontSize: 10 }} interval={5} />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: "var(--ink-tertiary)", fontSize: 10 }} interval={xAxisInterval} />
                 <YAxis axisLine={false} tickLine={false} tick={{ fill: "var(--ink-tertiary)", fontSize: 10 }} />
                 <Tooltip content={<CustomTooltip />} />
                 <Area type="monotone" dataKey="bookings" name="Réservations" stroke="#33CA7F" strokeWidth={2} fill="url(#ga-main)" dot={false} activeDot={{ r: 4, fill: "#33CA7F", strokeWidth: 0 }} />
