@@ -7,6 +7,35 @@ import { requireAuth, requireOwner } from "../middlewares/auth";
 
 const router = Router();
 
+// GET /reviews/featured — public: last 5-star reviews with clientName + providerName
+router.get("/featured", async (req, res) => {
+  const limit = Math.min(parseInt((req.query.limit as string) ?? "6") || 6, 12);
+
+  const rows = await db
+    .select({
+      id: reviewsTable.id,
+      rating: reviewsTable.rating,
+      comment: reviewsTable.comment,
+      createdAt: reviewsTable.createdAt,
+      clientName: usersTable.name,
+      providerName: providersTable.name,
+      providerSlug: providersTable.slug,
+    })
+    .from(reviewsTable)
+    .leftJoin(usersTable, eq(reviewsTable.clientId, usersTable.id))
+    .leftJoin(providersTable, eq(reviewsTable.providerId, providersTable.id))
+    .where(eq(reviewsTable.rating, 5))
+    .orderBy(desc(reviewsTable.createdAt))
+    .limit(limit);
+
+  const reviews = rows.map((r) => ({
+    ...r,
+    clientName: r.clientName ?? "Client anonyme",
+  }));
+
+  res.json(reviews);
+});
+
 // GET /reviews — provider dashboard: all reviews with client name
 router.get("/", requireOwner, async (req, res) => {
   const provider = await db.query.providersTable.findFirst({

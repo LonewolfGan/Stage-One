@@ -31,6 +31,17 @@ type ProviderRow = {
 
 const router = Router();
 
+const CANONICAL_CATEGORIES = [
+  { id: "COIFFEUR",   label: "Coiffeur" },
+  { id: "BARBIER",    label: "Barbier" },
+  { id: "MANUCURE",   label: "Manucure" },
+  { id: "BEAUTE",     label: "Institut beauté" },
+  { id: "BIENETRE",   label: "Bien-être" },
+  { id: "MAQUILLAGE", label: "Maquillage" },
+  { id: "SOIN",       label: "Soin visage" },
+  { id: "MASSAGE",    label: "Massage" },
+];
+
 function slugify(name: string): string {
   return name
     .toLowerCase()
@@ -41,7 +52,7 @@ function slugify(name: string): string {
 }
 
 router.get("/", async (req, res) => {
-  const { city, type, q, lat, lng, radius } = req.query as Record<string, string>;
+  const { city, type, q, lat, lng, radius, sort } = req.query as Record<string, string>;
 
   const userLat = lat ? parseFloat(lat) : null;
   const userLng = lng ? parseFloat(lng) : null;
@@ -122,7 +133,30 @@ router.get("/", async (req, res) => {
     }),
   );
 
+  if (sort === "rating") {
+    enriched.sort((a, b) => (b.avgRating ?? 0) - (a.avgRating ?? 0));
+  }
+
   res.json(enriched);
+});
+
+router.get("/categories", async (_req, res) => {
+  res.json(CANONICAL_CATEGORIES);
+});
+
+router.get("/cities", async (_req, res) => {
+  const rows = await db.execute(sql`
+    SELECT DISTINCT city, COUNT(*) AS count
+    FROM providers
+    WHERE status = 'ACTIVE'
+    GROUP BY city
+    ORDER BY count DESC
+  `);
+  const cities = (rows.rows as { city: string; count: string }[]).map((r) => ({
+    name: r.city,
+    count: parseInt(r.count, 10),
+  }));
+  res.json(cities);
 });
 
 router.get("/:slug", async (req, res) => {
@@ -134,12 +168,26 @@ router.get("/:slug", async (req, res) => {
     return;
   }
 
-  const [staffList, serviceList, hours, reviews] = await Promise.all([
+  const [staffList, serviceList, hours] = await Promise.all([
     db.query.staffTable.findMany({ where: and(eq(staffTable.providerId, provider.id), eq(staffTable.isActive, true)) }),
     db.query.servicesTable.findMany({ where: and(eq(servicesTable.providerId, provider.id), eq(servicesTable.isActive, true)) }),
     db.query.businessHoursTable.findMany({ where: eq(businessHoursTable.providerId, provider.id) }),
-    db.query.reviewsTable.findMany({ where: eq(reviewsTable.providerId, provider.id) }),
   ]);
+
+  const reviewRows = await db.execute(sql`
+    SELECT r.id, r.booking_id AS "bookingId", r.provider_id AS "providerId",
+           r.client_id AS "clientId", r.rating, r.comment, r.reply, r.created_at AS "createdAt",
+           u.name AS "clientName"
+    FROM reviews r
+    LEFT JOIN users u ON r.client_id = u.id
+    WHERE r.provider_id = ${provider.id}
+    ORDER BY r.created_at DESC
+  `);
+  const reviews = (reviewRows.rows as Array<{
+    id: string; bookingId: string; providerId: string; clientId: string;
+    rating: number; comment: string | null; reply: string | null;
+    createdAt: string; clientName: string | null;
+  }>).map((r) => ({ ...r, clientName: r.clientName ?? "Client anonyme" }));
 
   const serviceStaff = await Promise.all(
     serviceList.map(async (s) => {

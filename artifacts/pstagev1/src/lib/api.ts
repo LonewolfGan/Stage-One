@@ -262,7 +262,8 @@ export const api = {
     return apiFetch<any[]>(`/dashboard/bookings?${qs}`);
   },
 
-  getAnalytics: () => apiFetch<any>("/dashboard/analytics"),
+  getAnalytics: (period: "7d" | "30d" | "3m" | "1y" = "30d") =>
+    apiFetch<any>(`/dashboard/analytics?period=${period}`),
 
   createBlock: (data: { staffId?: string; startDatetime: string; endDatetime: string; title?: string }) =>
     apiFetch<any>("/dashboard/blocks", { method: "POST", body: JSON.stringify(data) }),
@@ -291,6 +292,14 @@ export const api = {
   // Hours
   updateHours: (slug: string, hours: { dayOfWeek: number; openTime: string; closeTime: string; isClosed: boolean }[]) =>
     apiFetch<ApiBusinessHours[]>(`/providers/${slug}/hours`, { method: "PUT", body: JSON.stringify({ hours }) }),
+
+  // Public discovery
+  getCategories: () => apiFetch<{ id: string; label: string }[]>("/providers/categories"),
+  getCities: () => apiFetch<{ name: string; count: number }[]>("/providers/cities"),
+  getFeaturedReviews: (limit = 6) =>
+    apiFetch<{ id: string; rating: number; comment: string | null; clientName: string; providerName: string; providerSlug: string; createdAt: string }[]>(
+      `/reviews/featured?limit=${limit}`,
+    ),
 
   // Reviews
   createReview: (data: { bookingId: string; rating: number; comment?: string }) =>

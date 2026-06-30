@@ -84,7 +84,7 @@ export default function SubscriptionPage() {
       queryClient.invalidateQueries({ queryKey: ["dashboard", "subscription"] });
       toast.success("Plan mis à jour avec succès");
     },
-    onError: () => toast.error("Changement de plan non disponible en mode démo"),
+    onError: () => toast.error("Erreur lors du changement de plan"),
     onSettled: () => setChanging(null),
   });
 
@@ -206,9 +206,6 @@ export default function SubscriptionPage() {
           })}
         </div>
 
-        <p style={{ marginTop: 20, fontSize: 12, color: "var(--ink-tertiary)" }}>
-          Mode démo — les changements de plan sont appliqués sans paiement. L'intégration Stripe sera activée en Phase 3.
-        </p>
       </div>
     </DashboardLayout>
   );

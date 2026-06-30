@@ -220,16 +220,25 @@ router.get("/analytics", requireOwner, requirePlan("PRO"), async (req, res) => {
   const provider = await getOwnedProvider(req.user!.sub);
   if (!provider) { res.status(404).json({ code: "ERR-004", message: "Espace prestataire introuvable" }); return; }
 
+  const period = (req.query.period as string) ?? "30d";
   const now = new Date();
-  const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60_000);
+  let since: Date;
+  let periodDays: number;
+  switch (period) {
+    case "7d":  since = new Date(now.getTime() - 7   * 24 * 60 * 60_000); periodDays = 7;   break;
+    case "3m":  since = new Date(now.getTime() - 90  * 24 * 60 * 60_000); periodDays = 90;  break;
+    case "1y":  since = new Date(now.getTime() - 365 * 24 * 60 * 60_000); periodDays = 365; break;
+    default:    since = new Date(now.getTime() - 30  * 24 * 60 * 60_000); periodDays = 30;
+  }
 
   const allBookings = await db.query.bookingsTable.findMany({
-    where: and(eq(bookingsTable.providerId, provider.id), gte(bookingsTable.createdAt, thirtyDaysAgo)),
+    where: and(eq(bookingsTable.providerId, provider.id), gte(bookingsTable.startDatetime, since)),
   });
 
   const confirmed = allBookings.filter((b) => b.status === "CONFIRMED" || b.status === "COMPLETED");
   const totalRevenue = confirmed.reduce((sum, b) => sum + b.amountCents, 0);
   const totalBookings = confirmed.length;
+  const uniqueClients = new Set(confirmed.map((b) => b.clientId)).size;
 
   const bookingsByDay: Record<string, number> = {};
   for (const b of confirmed) {
@@ -237,39 +246,49 @@ router.get("/analytics", requireOwner, requirePlan("PRO"), async (req, res) => {
     bookingsByDay[day] = (bookingsByDay[day] ?? 0) + 1;
   }
 
-  const serviceCount: Record<string, { count: number; name: string }> = {};
+  const serviceCount: Record<string, { count: number; revenueCents: number }> = {};
   for (const b of confirmed) {
-    if (!serviceCount[b.serviceId]) {
-      serviceCount[b.serviceId] = { count: 0, name: b.serviceId };
-    }
+    if (!serviceCount[b.serviceId]) serviceCount[b.serviceId] = { count: 0, revenueCents: 0 };
     serviceCount[b.serviceId].count++;
+    serviceCount[b.serviceId].revenueCents += b.amountCents;
   }
 
-  const services = await db.query.servicesTable.findMany({ where: eq(servicesTable.providerId, provider.id) });
+  const [services, staff] = await Promise.all([
+    db.query.servicesTable.findMany({ where: eq(servicesTable.providerId, provider.id) }),
+    db.query.staffTable.findMany({ where: and(eq(staffTable.providerId, provider.id), eq(staffTable.isActive, true)) }),
+  ]);
+
   const topServices = Object.entries(serviceCount)
     .map(([id, data]) => ({
       serviceId: id,
       name: services.find((s) => s.id === id)?.name ?? id,
       count: data.count,
+      revenueCents: data.revenueCents,
     }))
     .sort((a, b) => b.count - a.count)
     .slice(0, 5);
 
-  const staff = await db.query.staffTable.findMany({
-    where: and(eq(staffTable.providerId, provider.id), eq(staffTable.isActive, true)),
-  });
+  const staffBookingCount: Record<string, number> = {};
+  for (const b of confirmed) staffBookingCount[b.staffId] = (staffBookingCount[b.staffId] ?? 0) + 1;
+  const staffPerformance = staff
+    .map((s) => ({ staffId: s.id, name: s.name, bookings: staffBookingCount[s.id] ?? 0 }))
+    .sort((a, b) => b.bookings - a.bookings);
 
-  const workingHours = 10 * 30;
-  const fillRate = staff.length > 0 ? Math.min(100, (totalBookings / (staff.length * workingHours)) * 100) : 0;
+  const slotsTotal = staff.length * periodDays * 10;
+  const fillRate = slotsTotal > 0 ? Math.min(100, (totalBookings / slotsTotal) * 100) : 0;
 
   res.json({
+    period,
     totalBookings,
     estimatedRevenueCents: totalRevenue,
+    revenueMad: Math.round(totalRevenue / 100),
+    uniqueClients,
     fillRate: Math.round(fillRate * 10) / 10,
     bookingsByDay: Object.entries(bookingsByDay)
       .map(([date, count]) => ({ date, count }))
       .sort((a, b) => a.date.localeCompare(b.date)),
     topServices,
+    staffPerformance,
   });
 });
 
