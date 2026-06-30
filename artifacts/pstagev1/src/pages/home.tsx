@@ -44,22 +44,22 @@ const COLLAGE_CARDS = [
 const BEAUTY_CASES = [
   {
     title: "Coiffure & Couleur",
-    desc: "Coupes tendance, balayages et soins capillaires par des experts.",
+    desc: "Coupes, balayages et soins capillaires.",
     img: "https://images.unsplash.com/photo-1560066984-138dadb4c035?q=80&w=1200&auto=format&fit=crop",
   },
   {
     title: "Barbiers & Rasage",
-    desc: "Barbe sculptée, rasage traditionnel et soins homme haut de gamme.",
+    desc: "Barbe sculptée, rasage au rasoir et soins homme.",
     img: "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?q=80&w=1200&auto=format&fit=crop",
   },
   {
     title: "Ongles & Manucure",
-    desc: "Nail art, gel, semi-permanent — des mains parfaites en quelques minutes.",
+    desc: "Nail art, gel et semi-permanent. Sans attendre.",
     img: "https://images.unsplash.com/photo-1604654894610-df63bc536371?q=80&w=1200&auto=format&fit=crop",
   },
   {
     title: "Bien-être & Massages",
-    desc: "Massages relaxants, soins du corps et rituels bien-être personnalisés.",
+    desc: "Massages, soins du corps et rituels hammam.",
     img: "https://images.unsplash.com/photo-1544161515-4ab6ce6db874?q=80&w=1200&auto=format&fit=crop",
   },
 ];
@@ -209,7 +209,7 @@ const STEPS = [
   {
     step: "02",
     title: "Profils vérifiés",
-    desc: "Chaque salon est contrôlé — photos, avis clients et certifications à jour. Vous choisissez en confiance.",
+    desc: "Chaque salon est contrôlé : photos, avis clients et certifications à jour.",
     img: "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?q=80&w=1400&auto=format&fit=crop",
   },
   {
@@ -583,7 +583,7 @@ export default function HomePage() {
               >
                 une question de timing.
               </span>
-              {" "}Chaque créneau disponible, à portée de main — à toute heure, partout au Maroc.
+              {" "}Tous les créneaux disponibles, visibles en direct, partout au Maroc.
             </p>
 
             {/* Attribution line */}
@@ -859,7 +859,7 @@ export default function HomePage() {
             margin: "0 0 40px",
             maxWidth: 620,
           }}>
-            Réservez en ligne,<br />profitez du moment,<br />oubliez l'attente.
+            Votre prochain rendez-vous<br />vous attend en ligne.
           </h2>
         </Reveal>
         <Reveal delay={0.2}>

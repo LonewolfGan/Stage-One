@@ -900,7 +900,7 @@ function ExtraSections({ onCitySelect, onCategorySelect }: {
 const FAQ_ITEMS = [
   {
     q: "La réservation est-elle gratuite ?",
-    a: "Oui, totalement. Réserver via la plateforme ne coûte rien au client — vous payez uniquement la prestation directement au professionnel.",
+    a: "Oui, totalement. Réserver via la plateforme ne coûte rien au client. Vous payez uniquement la prestation directement au professionnel.",
   },
   {
     q: "Puis-je réserver sans créer de compte ?",
@@ -1010,7 +1010,7 @@ function FAQ() {
           fontSize: 13, color: "rgba(255,255,255,0.55)",
           lineHeight: 1.65, margin: "0 0 28px",
         }}>
-          Rejoignez 3 400 professionnels qui gèrent leur agenda et attirent de nouveaux clients via la plateforme — sans commission sur les réservations.
+          Rejoignez 3 400 professionnels qui gèrent leur agenda et attirent de nouveaux clients via la plateforme. Zéro commission sur les réservations.
         </p>
         <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 32 }}>
           {[

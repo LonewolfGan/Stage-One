@@ -385,7 +385,7 @@ function StaffForm({ slug, member, services, onClose }: StaffFormProps) {
             <div>
               <label style={labelStyle}>Biographie <span style={{ color: ds.colors.inkDisabled, fontWeight: 400 }}>(optionnel)</span></label>
               <textarea style={{ ...fieldStyle, height: 68, padding: "10px 12px", resize: "vertical", lineHeight: 1.5 }}
-                value={bio} onChange={(e) => setBio(e.target.value)} placeholder="Coiffeuse senior — 8 ans d'expérience"
+                value={bio} onChange={(e) => setBio(e.target.value)} placeholder="Coiffeuse senior, 8 ans d'expérience"
                 onFocus={(e) => { e.currentTarget.style.borderColor = ds.colors.ink; }}
                 onBlur={(e)  => { e.currentTarget.style.borderColor = ds.colors.borderStrong; }}
               />
