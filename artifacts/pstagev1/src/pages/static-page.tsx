@@ -7,35 +7,35 @@ import { FileTextIcon } from "@/components/ui/file-text";
 const PAGE_CONTENT: Record<string, { title: string; subtitle: string }> = {
   "a-propos": {
     title: "À propos",
-    subtitle: "Découvrez notre mission et notre équipe.",
+    subtitle: "Our mission and team.",
   },
   "contact": {
     title: "Nous contacter",
-    subtitle: "Une question ? Nous sommes là pour vous aider.",
+    subtitle: "Questions? Get in touch.",
   },
   "presse": {
     title: "Presse",
-    subtitle: "Retrouvez nos communiqués et ressources médias.",
+    subtitle: "Press releases and media resources.",
   },
   "tarifs": {
     title: "Tarifs",
-    subtitle: "Des formules adaptées à chaque établissement.",
+    subtitle: "Plans for salons and independent providers.",
   },
   "mentions-legales": {
     title: "Mentions légales",
-    subtitle: "Informations légales relatives à la plateforme.",
+    subtitle: "Legal information.",
   },
   "cgu": {
     title: "Conditions générales d'utilisation",
-    subtitle: "Les règles qui régissent l'utilisation de la plateforme.",
+    subtitle: "Terms of use for the platform.",
   },
   "confidentialite": {
     title: "Politique de confidentialité",
-    subtitle: "Comment nous protégeons vos données personnelles.",
+    subtitle: "How we protect your data.",
   },
   "cookies": {
     title: "Gestion des cookies",
-    subtitle: "Information sur l'utilisation des cookies sur notre site.",
+    subtitle: "Cookie policy and preferences.",
   },
 };
 
@@ -91,8 +91,7 @@ export default function StaticPage() {
             }}
           >
             <p style={{ fontSize: 14, color: "var(--ink-secondary)", lineHeight: 1.6, margin: 0 }}>
-              <strong style={{ color: "var(--ink)", fontWeight: 600 }}>Bientôt disponible —</strong>{" "}
-              Cette page sera complétée lors de la mise en production de la plateforme (Phase 3).
+              <strong style={{ color: "var(--ink)", fontWeight: 600 }}>Coming soon.</strong> This page will be available in Phase 3.
             </p>
           </div>
 

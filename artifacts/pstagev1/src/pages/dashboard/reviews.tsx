@@ -63,6 +63,8 @@ function RatingSummary({ reviews }: { reviews: DashboardReview[] }) {
                     backgroundColor: "#E8A33D",
                     borderRadius: 3,
                     transition: "width 0.4s ease",
+                    transformOrigin: "left",
+                    willChange: "width",
                   }}
                 />
               </div>

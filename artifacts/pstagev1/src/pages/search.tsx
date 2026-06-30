@@ -822,10 +822,10 @@ function ExtraSections({ onCitySelect, onCategorySelect }: {
         <div style={{ paddingInline: 24, marginBottom: 24, display: "flex", alignItems: "baseline", justifyContent: "space-between" }}>
           <div>
             <h2 style={{ fontSize: 22, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.02em", margin: "0 0 4px" }}>
-              Explorez par ville
+              Villes
             </h2>
             <p style={{ fontSize: 13, color: "var(--ink-tertiary)", margin: 0 }}>
-              Les destinations beauté les plus demandées au Maroc
+              Les salons et spas du Maroc
             </p>
           </div>
           <button onClick={() => onCitySelect("")} style={{
@@ -855,10 +855,10 @@ function ExtraSections({ onCitySelect, onCategorySelect }: {
           {/* Left: categories */}
           <div>
             <h2 style={{ fontSize: 22, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.02em", margin: "0 0 4px" }}>
-              Nos catégories
+              Services
             </h2>
             <p style={{ fontSize: 13, color: "var(--ink-tertiary)", margin: "0 0 20px" }}>
-              Trouvez le professionnel adapté à votre besoin
+              Choisissez une catégorie
             </p>
             <CategoryShowcase onSelect={onCategorySelect} />
           </div>
@@ -1010,7 +1010,7 @@ function FAQ() {
           fontSize: 13, color: "rgba(255,255,255,0.55)",
           lineHeight: 1.65, margin: "0 0 28px",
         }}>
-          Rejoignez 3 400 professionnels qui gèrent leur agenda et attirent de nouveaux clients via la plateforme. Zéro commission sur les réservations.
+          Rejoignez 3 400 professionnels sur la plateforme. Zéro commission.
         </p>
         <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 32 }}>
           {[

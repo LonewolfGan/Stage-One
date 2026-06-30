@@ -122,7 +122,7 @@ export default function BookingConfirmationPage() {
                   <ClockIcon size={15} style={{ color: "var(--ink-tertiary)", flexShrink: 0 }} />
                   <span style={{ fontSize: 14, color: "var(--ink)" }}>
                     {booking.serviceName}
-                    {booking.serviceDuration ? ` — ${booking.serviceDuration} min` : ""}
+                    {booking.serviceDuration ? ` (${booking.serviceDuration} min)` : ""}
                   </span>
                 </div>
               )}

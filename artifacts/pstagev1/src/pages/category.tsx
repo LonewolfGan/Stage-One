@@ -22,49 +22,49 @@ const CATEGORY_CONFIG: Record<string, {
   coiffeur: {
     image: "https://images.unsplash.com/photo-1560066984-138dadb4c035?w=1600&q=80&fit=crop",
     headline: "Les meilleurs coiffeurs du Maroc",
-    subtitle: "Coupe, brushing, coloration — trouvez le salon qu'il vous faut.",
+    subtitle: "Coupes, brushing, coloration.",
     plural: "coiffeurs",
   },
   barbier: {
     image: "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=1600&q=80&fit=crop",
     headline: "Les meilleurs barbiers du Maroc",
-    subtitle: "Rasage, coupe homme, entretien de barbe — l'expérience du vrai barbier.",
+    subtitle: "Rasage, coupe homme, entretien de barbe.",
     plural: "barbiers",
   },
   manucure: {
     image: "https://images.unsplash.com/photo-1604654894610-df63bc536371?w=1600&q=80&fit=crop",
-    headline: "Salons de manucure & pédicure",
-    subtitle: "Gel, semi-permanent, nail art — prenez soin de vos mains et de vos pieds.",
+    headline: "Salons de manucure et pédicure",
+    subtitle: "Gel, semi-permanent, nail art.",
     plural: "salons de manucure",
   },
   beaute: {
     image: "https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=1600&q=80&fit=crop",
     headline: "Instituts de beauté au Maroc",
-    subtitle: "Soins du visage, épilation, maquillage — sublimez votre beauté au quotidien.",
+    subtitle: "Soins du visage, épilation, maquillage.",
     plural: "instituts de beauté",
   },
   "bien-etre": {
     image: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=1600&q=80&fit=crop",
-    headline: "Spas & centres de bien-être",
-    subtitle: "Massages, hammam, relaxation — offrez-vous un moment de pure détente.",
+    headline: "Spas et centres de bien-être",
+    subtitle: "Massages, hammam, relaxation.",
     plural: "centres de bien-être",
   },
   maquillage: {
     image: "https://images.unsplash.com/photo-1487412947147-5cebf100d6a6?w=1600&q=80&fit=crop",
     headline: "Artistes maquilleurs au Maroc",
-    subtitle: "Mariage, événement, quotidien — confiez votre visage à des expertes.",
+    subtitle: "Mariage, événement, quotidien.",
     plural: "artistes maquilleurs",
   },
   epilation: {
     image: "https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?w=1600&q=80&fit=crop",
     headline: "Centres d'épilation au Maroc",
-    subtitle: "Cire, laser, fil — une peau douce et sans souci, toute l'année.",
+    subtitle: "Cire, laser, fil.",
     plural: "centres d'épilation",
   },
   soin: {
     image: "https://images.unsplash.com/photo-1552693673-1bf958298935?w=1600&q=80&fit=crop",
     headline: "Instituts de soins visage",
-    subtitle: "Nettoyage, hydratation, anti-âge — prenez soin de votre peau avec les meilleurs.",
+    subtitle: "Nettoyage, hydratation, anti-âge.",
     plural: "instituts de soins",
   },
 };
@@ -725,7 +725,7 @@ export default function CategoryPage() {
                   marginBottom: 12,
                 }}
               >
-                Rejoignez les {cfg.plural} déjà sur la plateforme
+                Gérez en ligne, simplement
               </h2>
               <p
                 style={{
@@ -734,7 +734,7 @@ export default function CategoryPage() {
                   lineHeight: 1.55,
                 }}
               >
-                Gérez vos rendez-vous, votre agenda et votre équipe depuis un seul endroit. Inscription gratuite, sans engagement.
+                Inscription gratuite, aucune carte de crédit.
               </p>
             </div>
             <motion.button
