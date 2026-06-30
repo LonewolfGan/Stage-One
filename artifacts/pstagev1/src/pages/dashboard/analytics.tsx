@@ -11,66 +11,44 @@ import {
 import { TrendingUp, Users, Scissors, Star, ArrowUpRight, ArrowDownRight } from "lucide-react";
 
 const MONTH_SHORT = ["Jan", "Fév", "Mar", "Avr", "Mai", "Jun", "Jul", "Aoû", "Sep", "Oct", "Nov", "Déc"];
+const DAY_NAMES   = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
 
-const MOCK_WEEK = [
-  { name: "Lun", bookings: 8  },
-  { name: "Mar", bookings: 14 },
-  { name: "Mer", bookings: 11 },
-  { name: "Jeu", bookings: 18 },
-  { name: "Ven", bookings: 22 },
-  { name: "Sam", bookings: 28 },
-  { name: "Dim", bookings: 6  },
-];
+const PERIOD_MAP: Record<Period, "7d" | "30d" | "3m" | "1y"> = {
+  "7j": "7d", "1M": "30d", "3M": "3m", "1A": "1y",
+};
 
-const MOCK_7D = Array.from({ length: 7 }, (_, i) => {
-  const d = new Date();
-  d.setDate(d.getDate() - (6 - i));
-  const DAY = ["Dim","Lun","Mar","Mer","Jeu","Ven","Sam"];
-  const base = 5 + Math.sin(i * 1.2) * 3 + (i % 3) * 1.5;
-  return { name: DAY[d.getDay()], bookings: Math.round(base), revenue: Math.round(base * 320) };
-});
+type DayEntry = { date: string; count: number };
 
-const MOCK_MONTH = Array.from({ length: 30 }, (_, i) => {
-  const d = new Date();
-  d.setDate(d.getDate() - (29 - i));
-  const base = 6 + Math.sin(i / 3) * 4 + Math.random() * 5;
-  return {
-    name: `${d.getDate()} ${MONTH_SHORT[d.getMonth()]}`,
-    bookings: Math.round(base),
-    revenue: Math.round(base * 320),
-  };
-});
-
-const MOCK_3M = Array.from({ length: 13 }, (_, i) => {
-  const d = new Date();
-  d.setDate(d.getDate() - (12 - i) * 7);
-  const base = 45 + Math.sin(i / 2.5) * 18 + (i % 4) * 3;
-  return { name: `S${i + 1}`, bookings: Math.round(base), revenue: Math.round(base * 320) };
-});
-
-const MOCK_1Y = Array.from({ length: 12 }, (_, i) => {
-  const d = new Date();
-  d.setMonth(d.getMonth() - (11 - i));
-  const base = 190 + Math.sin(i / 2) * 65 + (i % 3) * 12;
-  return { name: MONTH_SHORT[d.getMonth()], bookings: Math.round(base), revenue: Math.round(base * 320) };
-});
-
-/* Services — couleurs issues de la palette statut pour cohérence */
-const MOCK_SERVICES = [
-  { name: "Coupe + Brushing", count: 48, color: "#33CA7F", max: 48 },
-  { name: "Soin kératine",    count: 31, color: "#EC8932", max: 48 },
-  { name: "Coloration",       count: 27, color: "#DC0470", max: 48 },
-  { name: "Manucure",         count: 21, color: "#0C0C0E", max: 48 },
-  { name: "Épilation",        count: 16, color: "#B0B3B8", max: 48 },
-];
-
-/* Staff performance — mock for Phase 1 */
-const MOCK_STAFF_PERF = [
-  { name: "Yasmine B.",  role: "Coiffure",   bookings: 38, revenueCents: 1_140_000 },
-  { name: "Karim L.",    role: "Coupe homme", bookings: 29, revenueCents:   754_000 },
-  { name: "Sara M.",     role: "Manucure",   bookings: 21, revenueCents:   504_000 },
-  { name: "Nadia R.",    role: "Esthétique", bookings: 12, revenueCents:   288_000 },
-];
+function formatChartData(days: DayEntry[], period: Period): { name: string; bookings: number }[] {
+  if (days.length === 0) return [];
+  if (period === "7j" || period === "1M") {
+    return days.map((d) => {
+      const dt = new Date(d.date + "T12:00:00");
+      const name = period === "7j"
+        ? DAY_NAMES[dt.getDay()]
+        : `${dt.getDate()} ${MONTH_SHORT[dt.getMonth()]}`;
+      return { name, bookings: d.count };
+    });
+  }
+  if (period === "3M") {
+    const buckets: Record<string, number> = {};
+    days.forEach((d, i) => {
+      const week = `S${Math.floor(i / 7) + 1}`;
+      buckets[week] = (buckets[week] ?? 0) + d.count;
+    });
+    return Object.entries(buckets).map(([name, bookings]) => ({ name, bookings }));
+  }
+  // 1A — group by month
+  const buckets: Record<string, number> = {};
+  const order: string[] = [];
+  days.forEach((d) => {
+    const dt = new Date(d.date + "T12:00:00");
+    const key = MONTH_SHORT[dt.getMonth()];
+    if (!buckets[key]) { buckets[key] = 0; order.push(key); }
+    buckets[key] += d.count;
+  });
+  return order.map((name) => ({ name, bookings: buckets[name] }));
+}
 
 /** Largest-remainder method — guarantees sum == 100 */
 function distributePercent(counts: number[]): number[] {
@@ -354,56 +332,49 @@ export default function AnalyticsPage() {
   const [period, setPeriod] = useState<Period>("1M");
 
   const { data: analytics } = useQuery({
-    queryKey: ["dashboard", "analytics"],
-    queryFn: () => api.getAnalytics(),
+    queryKey: ["dashboard", "analytics", period],
+    queryFn: () => api.getAnalytics(PERIOD_MAP[period]),
     staleTime: 60_000,
   });
 
-  const totalBookings = analytics?.totalBookings ?? 107;
-  const revenueMad    = analytics?.estimatedRevenueCents ? Math.round(analytics.estimatedRevenueCents / 100) : 32_400;
-  const fillRate      = analytics?.fillRate ?? 73;
+  // Always keep 7d data for the weekly bar chart (independent of period selector)
+  const { data: weekAnalytics } = useQuery({
+    queryKey: ["dashboard", "analytics", "7d-fixed"],
+    queryFn: () => api.getAnalytics("7d"),
+    staleTime: 60_000,
+  });
 
-  // Taux de remplissage du jour (bookings aujourd'hui / capacité journalière)
-  const DAILY_CAPACITY = 12;
-  const todayStr = new Date().toISOString().slice(0, 10);
-  const todayEntry = (analytics?.bookingsByDay ?? []).find((d: any) => d.date?.slice(0, 10) === todayStr);
-  const todayBookings = todayEntry?.count ?? Math.round(DAILY_CAPACITY * 0.58);
-  const dailyFillRate = Math.min(Math.round((todayBookings / DAILY_CAPACITY) * 100), 100);
+  const totalBookings  = analytics?.totalBookings  ?? "—";
+  const revenueMad     = analytics?.revenueMad     != null ? analytics.revenueMad.toLocaleString("fr-MA") : "—";
+  const fillRate       = analytics?.fillRate       != null ? analytics.fillRate : "—";
+  const uniqueClients  = analytics?.uniqueClients  ?? "—";
 
-  const apiDays   = analytics?.bookingsByDay ?? [];
-  const monthData = apiDays.length >= 10
-    ? apiDays.slice(-30).map((x: any) => {
-        const dt = new Date(x.date);
-        return { name: `${dt.getDate()} ${MONTH_SHORT[dt.getMonth()]}`, bookings: x.count, revenue: x.count * 320 };
-      })
-    : MOCK_MONTH;
-
-  const chartData = period === "7j" ? MOCK_7D
-    : period === "3M" ? MOCK_3M
-    : period === "1A" ? MOCK_1Y
-    : monthData;
-
+  const apiDays: DayEntry[] = analytics?.bookingsByDay ?? [];
+  const chartData = formatChartData(apiDays, period);
   const xAxisInterval = period === "7j" ? 0 : period === "3M" ? 1 : period === "1A" ? 0 : 5;
 
-  const apiServices: any[] = analytics?.topServices ?? [];
-  const serviceData = apiServices.length > 0
-    ? apiServices.map((s, i) => ({ ...MOCK_SERVICES[i % MOCK_SERVICES.length], name: s.name, count: s.count }))
-    : MOCK_SERVICES;
+  const weekData = (weekAnalytics?.bookingsByDay ?? []).map((d: DayEntry) => {
+    const dt = new Date(d.date + "T12:00:00");
+    return { name: DAY_NAMES[dt.getDay()], bookings: d.count };
+  });
 
-  const spark = (arr: { bookings: number }[]) => arr.slice(-12).map((d) => ({ v: d.bookings }));
-  const sparkR = monthData.slice(-12).map((d) => ({ v: d.revenue / 100 }));
-  const sparkF = Array.from({ length: 12 }, (_, i) => ({ v: 55 + Math.sin(i) * 20 }));
-  const sparkC = Array.from({ length: 12 }, (_, i) => ({ v: 40 + Math.cos(i) * 12 }));
+  const serviceData: { name: string; count: number }[] = analytics?.topServices ?? [];
+  const staffData: { staffId: string; name: string; bookings: number }[] = analytics?.staffPerformance ?? [];
+
+  // Taux de remplissage du jour — derived from fillRate returned by current period
+  const dailyFillRate = typeof fillRate === "number" ? Math.round(fillRate) : 0;
+
+  const sparkDays = apiDays.slice(-12).map((d) => ({ v: d.count }));
 
   return (
     <DashboardLayout title="Statistiques" breadcrumb="Statistiques">
 
       {/* ── KPI cards ── */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 20 }}>
-        <KpiCard label="Réservations (30 j)" value={`${totalBookings}`} delta="+12%" positive icon={TrendingUp} sparkData={spark(monthData)} />
-        <KpiCard label="CA estimé (30 j)" value={revenueMad.toLocaleString("fr-MA")} sub="MAD" delta="+8%" positive icon={Star} sparkData={sparkR} />
-        <KpiCard label="Taux de remplissage" value={`${fillRate}%`} delta="+5 pts" positive icon={Scissors} sparkData={sparkF} />
-        <KpiCard label="Clients ce mois" value="84" delta="+3" positive icon={Users} sparkData={sparkC} />
+        <KpiCard label="Réservations" value={`${totalBookings}`} icon={TrendingUp} sparkData={sparkDays} />
+        <KpiCard label="CA estimé" value={revenueMad} sub={revenueMad !== "—" ? "MAD" : undefined} icon={Star} sparkData={sparkDays} />
+        <KpiCard label="Taux de remplissage" value={fillRate === "—" ? "—" : `${fillRate}%`} icon={Scissors} sparkData={sparkDays} />
+        <KpiCard label="Clients uniques" value={`${uniqueClients}`} icon={Users} sparkData={sparkDays} />
       </div>
 
       {/* ── Area chart + pill bars ── */}
@@ -490,7 +461,11 @@ export default function AnalyticsPage() {
 
           {/* Ranked rows */}
           <div style={{ marginTop: 8 }}>
-            {(() => {
+            {serviceData.length === 0 ? (
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: 120 }}>
+                <p style={{ fontSize: 13, color: "var(--ink-tertiary)", margin: 0 }}>Pas encore de données sur cette période</p>
+              </div>
+            ) : (() => {
               const total    = serviceData.reduce((acc, x) => acc + x.count, 0);
               const percents = distributePercent(serviceData.map(x => x.count));
               return serviceData.map((s, i) => (
@@ -525,7 +500,11 @@ export default function AnalyticsPage() {
           </h2>
           <p style={{ fontSize: 12, color: "var(--ink-tertiary)", margin: "0 0 12px" }}>Aujourd'hui</p>
           <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12 }}>
-            <CircularFillRate rate={dailyFillRate} />
+            {fillRate === "—" ? (
+              <p style={{ fontSize: 13, color: "var(--ink-tertiary)", margin: 0 }}>Pas encore de données</p>
+            ) : (
+              <CircularFillRate rate={dailyFillRate} />
+            )}
           </div>
         </motion.div>
 
@@ -542,7 +521,7 @@ export default function AnalyticsPage() {
           <p style={{ fontSize: 12, color: "var(--ink-tertiary)", margin: "0 0 12px" }}>Réservations par jour</p>
           <div style={{ flex: 1, minHeight: 0 }}>
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={MOCK_WEEK} barSize={16} margin={{ top: 0, right: 0, left: -30, bottom: 0 }}>
+              <BarChart data={weekData} barSize={16} margin={{ top: 0, right: 0, left: -30, bottom: 0 }}>
                 <defs>
                   <linearGradient id="gb" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor="#0C0C0E" stopOpacity={0.80} />
@@ -581,27 +560,30 @@ export default function AnalyticsPage() {
               fontVariantNumeric: "tabular-nums", letterSpacing: "-0.01em",
               flexShrink: 0,
             }}>
-              {MOCK_STAFF_PERF.reduce((s, x) => s + x.bookings, 0)} RDV
+              {staffData.reduce((s, x) => s + x.bookings, 0)} RDV
             </span>
           </div>
 
           {/* Ranked rows */}
           <div style={{ marginTop: 8 }}>
-            {(() => {
-              const total    = MOCK_STAFF_PERF.reduce((s, x) => s + x.bookings, 0);
-              const percents = distributePercent(MOCK_STAFF_PERF.map(x => x.bookings));
-              return MOCK_STAFF_PERF.map((member, i) => (
+            {staffData.length === 0 ? (
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: 120 }}>
+                <p style={{ fontSize: 13, color: "var(--ink-tertiary)", margin: 0 }}>Pas encore de données sur cette période</p>
+              </div>
+            ) : (() => {
+              const total    = staffData.reduce((s, x) => s + x.bookings, 0);
+              const percents = distributePercent(staffData.map(x => x.bookings));
+              return staffData.map((member, i) => (
                 <motion.div
-                  key={member.name}
+                  key={member.staffId}
                   initial={{ opacity: 0, x: -12 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.38 + i * 0.07, duration: 0.38, ease: [0, 0, 0.2, 1] }}
                   style={{
                     paddingBlock: 10,
-                    borderBottom: i < MOCK_STAFF_PERF.length - 1 ? "1px solid var(--hairline)" : "none",
+                    borderBottom: i < staffData.length - 1 ? "1px solid var(--hairline)" : "none",
                   }}
                 >
-                  {/* Top line */}
                   <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 6 }}>
                     <span style={{
                       fontSize: 10, fontWeight: 600, letterSpacing: "0.05em",
@@ -630,28 +612,15 @@ export default function AnalyticsPage() {
                       {percents[i]}%
                     </span>
                   </div>
-                  {/* Role + bar */}
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, paddingLeft: 26 }}>
-                    <span style={{ fontSize: 11, color: "var(--ink-tertiary)", flexShrink: 0 }}>
-                      {member.role}
-                    </span>
-                    <div style={{ flex: 1, height: 3, backgroundColor: "var(--surface-3)", borderRadius: 2, overflow: "hidden" }}>
+                  <div style={{ paddingLeft: 26 }}>
+                    <div style={{ height: 3, backgroundColor: "var(--surface-3)", borderRadius: 2, overflow: "hidden" }}>
                       <motion.div
                         initial={{ width: 0 }}
                         animate={{ width: `${total > 0 ? (member.bookings / total) * 100 : 0}%` }}
                         transition={{ delay: 0.56 + i * 0.07, duration: 0.72, ease: [0.4, 0, 0.2, 1] }}
-                        style={{
-                          height: "100%", borderRadius: 2,
-                          backgroundColor: BAR_COLORS[i] ?? "#8A8D93",
-                        }}
+                        style={{ height: "100%", borderRadius: 2, backgroundColor: BAR_COLORS[i] ?? "#8A8D93" }}
                       />
                     </div>
-                    <span style={{
-                      fontSize: 10, color: "var(--ink-disabled)",
-                      fontVariantNumeric: "tabular-nums", flexShrink: 0, textAlign: "right",
-                    }}>
-                      {Math.round(member.revenueCents / 100).toLocaleString("fr-MA")} MAD
-                    </span>
                   </div>
                 </motion.div>
               ));

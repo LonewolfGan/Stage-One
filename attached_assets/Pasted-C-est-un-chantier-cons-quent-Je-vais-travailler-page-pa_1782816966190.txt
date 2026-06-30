@@ -1,0 +1,41 @@
+C'est un chantier conséquent. Je vais travailler page par page, backend puis frontend, en parallèle quand c'est possible. D'abord je lis les fichiers clés pour ne pas dupliquer ce qui existe déjà.
+
+Bonne base — beaucoup de routes existent déjà. Je lis les fichiers backend clés avant de commencer les modifications.
+
+Je lis tous les fichiers nécessaires en parallèle avant de commencer les modifications.
+
+J'ai tout ce qu'il me faut. Je crée un plan de session et j'attaque en parallèle — backend d'abord, frontend ensuite.
+
+Je lis les sections critiques restantes en parallèle.
+
+Beaucoup à faire. Je crée d'abord le plan de session, puis j'attaque backend et frontend en parallèle.
+
+Maintenant j'ai tout le contexte. Je vais implémenter tout en parallèle — backend (3 fichiers) d'un côté, frontend de l'autre.
+
+BACKEND — 3 fichiers en parallèle :
+
+Je lis les 3 fichiers backend en parallèle pour avoir le contexte exact avant de les modifier.
+
+Je lis la section analytics du dashboard.ts pendant que j'implémente les autres changements en parallèle.
+
+Maintenant j'ai tout le contexte. Je vais implémenter les 3 fichiers backend en parallèle, puis les fichiers frontend.
+
+Maintenant reviews.ts et dashboard.ts en parallèle :
+
+Maintenant le dashboard.ts — je remplace uniquement la route analytics :
+
+Backend terminé. Maintenant je lis les sections frontend critiques en parallèle avant d'écrire.
+
+Je lis les sections restantes des fichiers frontend clés en parallèle.
+
+Je vois tout ce qu'il faut. Maintenant j'attaque les changements frontend — je lis les parties manquantes d'api.ts pendant que j'écris les autres fichiers.
+
+Maintenant j'implémente tous les changements frontend. D'abord api.ts pour ajouter les méthodes manquantes.
+
+J'ajoute les méthodes manquantes dans api.ts et commence tous les changements frontend en parallèle.
+
+Je vais maintenant implémenter toutes les modifications frontend en commençant par les fichiers les plus simples en parallèle.
+
+Je continue avec tous les changements en parallèle — booking, settings, provider-profile, et analytics.
+
+You've reached your monthly free quota limit. It will reset on July 29, 2026.

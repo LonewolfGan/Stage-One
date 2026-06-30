@@ -17,7 +17,7 @@ import locationSearchIllustration from "@assets/Location_search-bro_(1)_17826835
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { adaptProviderList } from "@/lib/provider-adapter";
-import { MOROCCO_CITIES, SERVICE_CATEGORIES, SORT_OPTIONS } from "@/lib/cities";
+import { SERVICE_CATEGORIES, SORT_OPTIONS } from "@/lib/cities";
 import {
   MapPin, Star, ChevronLeft, ChevronRight,
   Map, X, Calendar, Search, LocateFixed,
@@ -31,10 +31,7 @@ import { useBreakpoint } from "@/hooks/use-mobile";
 /* ─────────────────────────────────────────────
    Constants
 ───────────────────────────────────────────── */
-const CITY_OPTIONS = [
-  { id: "", label: "Toutes les villes" },
-  ...MOROCCO_CITIES.map(c => ({ id: c, label: c })),
-];
+const FALLBACK_CITIES = ["Casablanca", "Rabat", "Marrakech", "Fès", "Tanger", "Agadir"];
 const PER_PAGE = 9;
 const TOPBAR_H = 56;
 
@@ -152,15 +149,25 @@ function ResultCardList({ provider, isSelected, onHover, onLeave, index }: {
     >
       {/* Photo */}
       <div style={{ width: 168, flexShrink: 0, position: "relative", overflow: "hidden" }}>
-        <img
-          src={provider.photos[0] || "https://images.unsplash.com/photo-1560066984-138dadb4c035?w=400&q=80"}
-          alt={provider.name}
-          style={{
-            width: "100%", height: "100%", objectFit: "cover", display: "block",
-            transform: hov ? "scale(1.04)" : "scale(1)",
-            transition: "transform 420ms cubic-bezier(0.16,1,0.3,1)",
-          }}
-        />
+        {provider.photos[0] ? (
+          <img
+            src={provider.photos[0]}
+            alt={provider.name}
+            style={{
+              width: "100%", height: "100%", objectFit: "cover", display: "block",
+              transform: hov ? "scale(1.04)" : "scale(1)",
+              transition: "transform 420ms cubic-bezier(0.16,1,0.3,1)",
+            }}
+          />
+        ) : (
+          <div style={{
+            width: "100%", height: "100%", minHeight: 136,
+            backgroundColor: "rgba(12,12,14,0.05)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}>
+            <Scissors size={24} color="rgba(12,12,14,0.18)" />
+          </div>
+        )}
         <div style={{
           position: "absolute", inset: 0,
           background: "linear-gradient(180deg, transparent 40%, rgba(10,10,15,0.54) 100%)",
@@ -281,15 +288,25 @@ function ResultCardGrid({ provider, isSelected, onHover, onLeave, index }: {
       }}
     >
       <div style={{ position: "relative", aspectRatio: "4/3", overflow: "hidden" }}>
-        <img
-          src={provider.photos[0] || "https://images.unsplash.com/photo-1560066984-138dadb4c035?w=400&q=80"}
-          alt={provider.name}
-          style={{
-            width: "100%", height: "100%", objectFit: "cover", display: "block",
-            transform: hov ? "scale(1.05)" : "scale(1)",
-            transition: "transform 420ms cubic-bezier(0.16,1,0.3,1)",
-          }}
-        />
+        {provider.photos[0] ? (
+          <img
+            src={provider.photos[0]}
+            alt={provider.name}
+            style={{
+              width: "100%", height: "100%", objectFit: "cover", display: "block",
+              transform: hov ? "scale(1.05)" : "scale(1)",
+              transition: "transform 420ms cubic-bezier(0.16,1,0.3,1)",
+            }}
+          />
+        ) : (
+          <div style={{
+            width: "100%", height: "100%",
+            backgroundColor: "rgba(12,12,14,0.05)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}>
+            <Scissors size={28} color="rgba(12,12,14,0.18)" />
+          </div>
+        )}
         <div style={{
           position: "absolute", inset: 0,
           background: "linear-gradient(180deg, transparent 45%, rgba(10,10,15,0.65) 100%)",
@@ -588,7 +605,13 @@ function MapView({
                 onClick={() => navigate(`/${p.slug}`)}
                 style={{ width: 210, cursor: "pointer", fontFamily: "var(--font)", borderRadius: 12, overflow: "hidden" }}
               >
-                <img src={p.photos[0] || "https://images.unsplash.com/photo-1560066984-138dadb4c035?w=400&q=80"} alt={p.name} style={{ width: "100%", height: 96, objectFit: "cover", display: "block" }} />
+                {p.photos[0] ? (
+                  <img src={p.photos[0]} alt={p.name} style={{ width: "100%", height: 96, objectFit: "cover", display: "block" }} />
+                ) : (
+                  <div style={{ width: "100%", height: 96, backgroundColor: "rgba(12,12,14,0.05)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <Scissors size={20} color="rgba(12,12,14,0.18)" />
+                  </div>
+                )}
                 <div style={{ padding: "10px 12px" }}>
                   <p style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)", margin: "0 0 2px", letterSpacing: "-0.01em" }}>{p.name}</p>
                   <p style={{ fontSize: 11, color: "var(--ink-tertiary)", margin: "0 0 6px" }}>{p.city}</p>
@@ -1065,6 +1088,17 @@ export default function SearchPage() {
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
 
+  /* Cities from API */
+  const { data: apiCities = [] } = useQuery<{ name: string; count: number }[]>({
+    queryKey: ["providers", "cities"],
+    queryFn: () => api.get("/providers/cities"),
+    staleTime: 300_000,
+  });
+  const cityOptions = [
+    { id: "", label: "Toutes les villes" },
+    ...(apiCities.length > 0 ? apiCities : FALLBACK_CITIES.map(c => ({ name: c, count: 0 }))).map((c) => ({ id: c.name, label: c.name })),
+  ];
+
   /* Data */
   const { data: rawProviders, isLoading: apiLoading } = useQuery({
     queryKey: ["providers", cityId, userCoords?.lat, userCoords?.lng],
@@ -1210,7 +1244,7 @@ export default function SearchPage() {
         {!isMobile && (
           <div style={{ width: 148, flexShrink: 0 }}>
             <NiceSelect
-              options={CITY_OPTIONS} value={cityId}
+              options={cityOptions} value={cityId}
               onChange={v => { setCityId(v); setUserCoords(null); }}
               placeholder="Ville" searchable
             />
@@ -1337,7 +1371,7 @@ export default function SearchPage() {
               <div style={{ display: "flex", gap: 8 }}>
                 <div style={{ flex: 1 }}>
                   <NiceSelect
-                    options={CITY_OPTIONS} value={cityId}
+                    options={cityOptions} value={cityId}
                     onChange={v => { setCityId(v); setUserCoords(null); setMobileFilterOpen(false); }}
                     placeholder="Ville" searchable
                   />

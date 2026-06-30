@@ -25,19 +25,11 @@ const CATEGORIES   = [
   "Institut de beauté", "Spa & Bien-être", "Salon à domicile",
 ];
 
-const MOCK_PHOTOS = [
-  "https://images.unsplash.com/photo-1560066984-138dadb4c035?w=600&q=80",
-  "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=600&q=80",
-  "https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?w=600&q=80",
-  "https://images.unsplash.com/photo-1559599101-f09722fb4948?w=600&q=80",
-  "https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?w=600&q=80",
-  "https://images.unsplash.com/photo-1595476108010-b4d1f102b1b1?w=600&q=80",
-];
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 let _uid = 0;
-function uid() { return `id-${++_uid}-${Math.random().toString(36).slice(2, 6)}`; }
+function uid() { return `id-${Date.now()}-${++_uid}`; }
 
 function defaultHours(): DayHours[] {
   return DAYS_FULL.map((_, i) => ({
@@ -258,7 +250,7 @@ function PhotoGallery({ photos, onDelete, onAdd }: {
       {/* Caption */}
       <div style={{ padding: "10px 18px", borderTop: "1px solid var(--hairline)" }}>
         <p style={{ fontSize: 11, color: "var(--ink-tertiary)", margin: 0 }}>
-          Formats acceptés : JPG, PNG, WebP — Taille max : 5 Mo — Upload disponible en Phase 2
+          Formats acceptés : JPG, PNG, WebP — Taille max : 5 Mo — Upload disponible après configuration du stockage
         </p>
       </div>
     </div>
@@ -449,20 +441,46 @@ export default function SettingsPage() {
   const queryClient = useQueryClient();
 
   const [hours, setHours] = useState<DayHours[]>(defaultHours());
-  const [photos, setPhotos] = useState<string[]>(MOCK_PHOTOS);
+  const [photos, setPhotos] = useState<string[]>([]);
   const [phones, setPhones] = useState<PhoneEntry[]>([
-    { id: uid(), number: "+212 6 12 34 56 78", label: "Réception" },
+    { id: uid(), number: "", label: "Réception" },
   ]);
   const [profile, setProfile] = useState({
-    name:        "Salon Atlas",
+    name:        "",
     category:    "Coiffure mixte",
-    description: "Salon de coiffure premium au cœur de Guéliz, Marrakech. Spécialisé en colorations végétales, soins kératine et coupes contemporaines.",
-    email:       "contact@salon-atlas.ma",
-    address:     "12 Rue Ibn Sina, Guéliz, Marrakech",
+    description: "",
+    email:       "",
+    address:     "",
   });
   const [notifs, setNotifs] = useState({
     newBooking: true, cancelation: true, reminder24h: true, weeklyReport: false,
   });
+
+  /* Load provider profile from API */
+  const { data: providerData } = useQuery<any>({
+    queryKey: ["dashboard", "provider"],
+    queryFn:  () => api.get("/dashboard/provider"),
+    staleTime: 60_000,
+    retry: false,
+  });
+
+  useEffect(() => {
+    if (providerData) {
+      setProfile((p) => ({
+        ...p,
+        name:        providerData.name        ?? p.name,
+        description: providerData.description ?? p.description,
+        email:       providerData.email       ?? p.email,
+        address:     providerData.address     ?? p.address,
+        category:    providerData.type        ?? p.category,
+      }));
+      // providers table has no photos array; photos feature requires storage config
+      setPhotos([]);
+      if (providerData.phone) {
+        setPhones([{ id: uid(), number: providerData.phone, label: "Réception" }]);
+      }
+    }
+  }, [providerData]);
 
   /* Load hours from API */
   const { data, isLoading } = useQuery<any[]>({
@@ -488,7 +506,7 @@ export default function SettingsPage() {
       queryClient.invalidateQueries({ queryKey: ["dashboard", "business-hours"] });
       toast.success("Horaires mis à jour");
     },
-    onError: () => toast.error("Sauvegarde non disponible en mode démo"),
+    onError: () => toast.error("Erreur lors de la sauvegarde des horaires"),
   });
 
   function setDay(i: number, patch: Partial<DayHours>) {
@@ -507,7 +525,7 @@ export default function SettingsPage() {
               setPhotos((prev) => prev.filter((_, idx) => idx !== i));
               toast.success("Photo supprimée");
             }}
-            onAdd={() => toast.info("Upload de photos disponible en Phase 2")}
+            onAdd={() => toast.info("Upload de photos disponible après configuration du stockage")}
           />
         </Section>
 
@@ -678,12 +696,6 @@ export default function SettingsPage() {
             </div>
             <div style={{ display: "flex", justifyContent: "flex-end" }}>
               <SaveBtn label="Changer le mot de passe" onClick={() => toast.success("Mot de passe modifié")} />
-            </div>
-            <div style={{ padding: "12px 14px", backgroundColor: "var(--surface-2)", borderRadius: 8, border: "1px solid var(--hairline)" }}>
-              <p style={{ fontSize: 12, color: "var(--ink-secondary)", lineHeight: 1.6, margin: 0 }}>
-                <strong style={{ color: "var(--ink)", fontWeight: 600 }}>Mode démo —</strong>{" "}
-                L'authentification complète sera activée en Phase 2.
-              </p>
             </div>
           </div>
         </Section>

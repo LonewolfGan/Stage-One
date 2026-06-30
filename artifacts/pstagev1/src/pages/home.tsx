@@ -12,10 +12,6 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { Logo } from "@/components/ui/Logo";
 import { Reveal, Stagger, StaggerItem } from "@/components/ui/Reveal";
 
-const MARQUEE_ITEMS = [
-  "Coiffeur", "Barbier", "Manucure", "Institut beauté",
-  "Bien-être", "Maquillage", "Soin visage", "Massage",
-];
 
 const COLLAGE_CARDS = [
   {
@@ -425,6 +421,12 @@ export default function HomePage() {
   });
   const featuredProviders = adaptProviderList(rawProviders ?? []).slice(0, 3);
 
+  const { data: featuredReviews = [] } = useQuery<any[]>({
+    queryKey: ["reviews", "featured"],
+    queryFn: () => api.get("/reviews/featured?limit=10"),
+    staleTime: 300_000,
+  });
+
   return (
     <div style={{ minHeight: "100vh", backgroundColor: "var(--canvas)" }}>
       <TopBar />
@@ -711,28 +713,33 @@ export default function HomePage() {
         </div>
 
         {/* Row 1 — scrolls left */}
-        <div style={{ overflow: "hidden", marginBottom: 16 }}>
-          <div
-            className="testimonial-track"
-            style={{ gap: 16, animationDuration: "40s" }}
-          >
-            {[...TESTIMONIALS, ...TESTIMONIALS].map((t, i) => (
-              <TestimonialCard key={i} {...t} />
-            ))}
+        {featuredReviews.length > 0 && (
+          <div style={{ overflow: "hidden", marginBottom: 16 }}>
+            <div
+              className="testimonial-track"
+              style={{ gap: 16, animationDuration: "40s" }}
+            >
+              {[...featuredReviews, ...featuredReviews].map((r: any, i: number) => (
+                <TestimonialCard
+                  key={i}
+                  quote={r.comment ?? ""}
+                  name={r.clientName ?? "Client anonyme"}
+                  role={r.providerName ?? ""}
+                  avatar=""
+                  rating={r.rating ?? 5}
+                />
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
-        {/* Row 2 — scrolls right (reverse) */}
-        <div style={{ overflow: "hidden" }}>
-          <div
-            className="testimonial-track testimonial-track--reverse"
-            style={{ gap: 16, animationDuration: "52s" }}
-          >
-            {[...TESTIMONIALS_2, ...TESTIMONIALS_2].map((t, i) => (
-              <TestimonialCard key={i} {...t} />
-            ))}
+        {featuredReviews.length === 0 && (
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", paddingBlock: 24 }}>
+            <p style={{ fontSize: 13, color: "var(--ink-tertiary)", margin: 0 }}>
+              Les premiers avis apparaîtront ici
+            </p>
           </div>
-        </div>
+        )}
       </section>
 
       {/* ─────────────────────────────────────────
