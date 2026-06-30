@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
-import { User, Store, Menu, X, LogOut, LayoutDashboard } from "lucide-react";
+import { Store, LogOut, LayoutDashboard } from "lucide-react";
+import { UserIcon } from "@/components/ui/user";
+import { MenuIcon } from "@/components/ui/menu";
+import { XIcon } from "@/components/ui/x";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Dialog,
@@ -88,7 +91,7 @@ function AuthActions({
               display: "flex", alignItems: "center", justifyContent: "center",
               flexShrink: 0,
             }}>
-              <User size={11} color="var(--accent)" />
+              <UserIcon size={11} style={{ color: "var(--accent)" }} />
             </div>
             {!compact && (
               <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>

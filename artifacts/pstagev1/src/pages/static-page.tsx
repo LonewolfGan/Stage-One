@@ -1,7 +1,8 @@
 import { useParams, Link } from "wouter";
 import { TopBar } from "@/components/layout/TopBar";
 import { Footer } from "@/components/layout/Footer";
-import { ArrowLeft, FileText } from "lucide-react";
+import { ArrowLeftIcon } from "@/components/ui/arrow-left";
+import { FileTextIcon } from "@/components/ui/file-text";
 
 const PAGE_CONTENT: Record<string, { title: string; subtitle: string }> = {
   "a-propos": {
@@ -62,7 +63,7 @@ export default function StaticPage() {
               marginBottom: 24,
             }}
           >
-            <FileText size={24} color="var(--ink-secondary)" />
+            <FileTextIcon size={24} style={{ color: "var(--ink-secondary)" }} />
           </div>
           <h1
             style={{
@@ -107,7 +108,7 @@ export default function StaticPage() {
             onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.borderColor = "rgba(10,10,15,0.45)"; }}
             onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.borderColor = "rgba(10,10,15,0.18)"; }}
           >
-            <ArrowLeft size={14} />
+            <ArrowLeftIcon size={14} />
             Retour à l&apos;accueil
           </Link>
         </div>

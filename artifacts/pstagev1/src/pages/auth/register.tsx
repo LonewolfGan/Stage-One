@@ -1,6 +1,11 @@
 import { useState, FormEvent } from "react";
 import { useSearch, useLocation } from "wouter";
-import { Eye, EyeOff, ArrowLeft, Check, Building2, User } from "lucide-react";
+import { Building2 } from "lucide-react";
+import { EyeIcon } from "@/components/ui/eye";
+import { EyeOffIcon } from "@/components/ui/eye-off";
+import { ArrowLeftIcon } from "@/components/ui/arrow-left";
+import { CheckIcon } from "@/components/ui/check";
+import { UserIcon } from "@/components/ui/user";
 import { motion, AnimatePresence } from "framer-motion";
 import { Logo } from "@/components/ui/Logo";
 import { api } from "@/lib/api";

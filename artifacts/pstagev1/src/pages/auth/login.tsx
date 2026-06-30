@@ -1,6 +1,8 @@
 import { useState, FormEvent } from "react";
 import { useLocation } from "wouter";
-import { Eye, EyeOff, ArrowLeft } from "lucide-react";
+import { EyeIcon } from "@/components/ui/eye";
+import { EyeOffIcon } from "@/components/ui/eye-off";
+import { ArrowLeftIcon } from "@/components/ui/arrow-left";
 import { motion, AnimatePresence } from "framer-motion";
 import { api } from "@/lib/api";
 import { setTokens } from "@/lib/auth-store";
@@ -94,7 +96,7 @@ export default function LoginPage() {
             onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "var(--ink)"; }}
             onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "var(--ink-tertiary)"; }}
           >
-            <ArrowLeft size={14} />
+            <ArrowLeftIcon size={14} />
             Accueil
           </button>
         </div>
@@ -161,7 +163,7 @@ export default function LoginPage() {
                     color: "var(--ink-tertiary)", display: "flex", alignItems: "center", padding: 0,
                   }}
                 >
-                  {showPwd ? <EyeOff size={15} /> : <Eye size={15} />}
+                  {showPwd ? <EyeOffIcon size={15} /> : <EyeIcon size={15} />}
                 </button>
               </div>
             </div>

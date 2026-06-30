@@ -6,7 +6,11 @@ import { TopBar } from "@/components/layout/TopBar";
 import { Button } from "@/components/ui/DSButton";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Calendar, Clock, MapPin, AlertCircle, ChevronLeft, X, Star } from "lucide-react";
+import { Calendar, AlertCircle, Star } from "lucide-react";
+import { ClockIcon } from "@/components/ui/clock";
+import { MapPinIcon } from "@/components/ui/map-pin";
+import { ChevronLeftIcon } from "@/components/ui/chevron-left";
+import { XIcon } from "@/components/ui/x";
 
 const STATUS_LABELS: Record<string, { label: string; color: string; bg: string }> = {
   CONFIRMED: { label: "Confirmé", color: "#059669", bg: "#D1FAE5" },

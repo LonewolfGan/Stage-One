@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { Search } from "lucide-react";
+import { SearchIcon } from "@/components/ui/search";
 
 export function SearchPill() {
   const [, setLocation] = useLocation();
@@ -29,7 +29,7 @@ export function SearchPill() {
         maxWidth: 480,
       }}
     >
-      <Search size={16} color="var(--ink-tertiary)" style={{ flexShrink: 0 }} />
+      <SearchIcon size={16} style={{ color: "var(--ink-tertiary)", flexShrink: 0 }} />
       <input
         type="text"
         placeholder="Salon, prestation, ville…"

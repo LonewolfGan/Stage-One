@@ -4,7 +4,11 @@ import { useState, useRef, useEffect } from "react";
 import { TopBar } from "@/components/layout/TopBar";
 import { Footer } from "@/components/layout/Footer";
 import { SERVICE_CATEGORIES, MOROCCO_CITIES } from "@/lib/cities";
-import { Search, ArrowRight, MapPin, ChevronDown, Tag } from "lucide-react";
+import { Tag } from "lucide-react";
+import { SearchIcon } from "@/components/ui/search";
+import { ArrowRightIcon } from "@/components/ui/arrow-right";
+import { MapPinIcon } from "@/components/ui/map-pin";
+import { ChevronDownIcon } from "@/components/ui/chevron-down";
 import { useBreakpoint, useIsMobile } from "@/hooks/use-mobile";
 import { Reveal, Stagger, StaggerItem } from "@/components/ui/Reveal";
 

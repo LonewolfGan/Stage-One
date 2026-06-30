@@ -4,7 +4,9 @@ import { Footer } from "@/components/layout/Footer";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
-import { User, Mail, Phone, Save, AlertTriangle } from "lucide-react";
+import { Mail, Save, AlertTriangle } from "lucide-react";
+import { UserIcon } from "@/components/ui/user";
+import { PhoneIcon } from "@/components/ui/phone";
 
 interface UserProfile {
   id: string;

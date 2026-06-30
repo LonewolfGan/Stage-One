@@ -2,7 +2,10 @@ import { useSearch, Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { TopBar } from "@/components/layout/TopBar";
-import { CheckCircle2, Calendar, MapPin, Clock, ChevronLeft } from "lucide-react";
+import { CheckCircle2, Calendar } from "lucide-react";
+import { MapPinIcon } from "@/components/ui/map-pin";
+import { ClockIcon } from "@/components/ui/clock";
+import { ChevronLeftIcon } from "@/components/ui/chevron-left";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 

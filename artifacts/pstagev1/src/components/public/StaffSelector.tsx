@@ -1,4 +1,4 @@
-import { User } from "lucide-react";
+import { UserIcon } from "@/components/ui/user";
 import { StaffMember } from "@/lib/types";
 
 interface StaffSelectorProps {
@@ -52,7 +52,7 @@ export function StaffSelector({ staff, selectedStaffId, onSelectStaff }: StaffSe
             color: selectedStaffId === null ? "#FFFFFF" : "var(--ink-tertiary)",
           }}
         >
-          <User size={14} strokeWidth={2} />
+          <UserIcon size={14} />
         </div>
         <span style={{ fontSize: 14, fontWeight: 500 }}>Pas de préférence</span>
       </button>
