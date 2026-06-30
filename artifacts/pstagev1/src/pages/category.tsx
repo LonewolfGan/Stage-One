@@ -255,9 +255,9 @@ export default function CategoryPage() {
                     textAlign: "left",
                   }}
                 >
-                  <MapPin size={14} color="var(--ink-tertiary)" style={{ flexShrink: 0 }} />
+                  <MapPinIcon size={14} color="var(--ink-tertiary)" style={{ flexShrink: 0 }} />
                   <span style={{ flex: 1 }}>{cityId || "Ville"}</span>
-                  <ChevronDown
+                  <ChevronDownIcon
                     size={14}
                     color="var(--ink-tertiary)"
                     style={{ transition: "transform var(--ease)", transform: cityOpen ? "rotate(180deg)" : "none" }}
@@ -367,7 +367,7 @@ export default function CategoryPage() {
                   onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = "var(--accent-hover)"; }}
                   onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = "var(--accent)"; }}
                 >
-                  <Search size={16} />
+                  <SearchIcon size={16} />
                 </button>
               </div>
             </div>
@@ -426,9 +426,9 @@ export default function CategoryPage() {
                     minWidth: 130,
                   }}
                 >
-                  <MapPin size={13} color="var(--ink-tertiary)" style={{ flexShrink: 0 }} />
+                  <MapPinIcon size={13} color="var(--ink-tertiary)" style={{ flexShrink: 0 }} />
                   <span style={{ flex: 1, textAlign: "left" }}>{cityId || "Ville"}</span>
-                  <ChevronDown
+                  <ChevronDownIcon
                     size={13}
                     color="var(--ink-tertiary)"
                     style={{ transition: "transform var(--ease)", transform: cityOpen ? "rotate(180deg)" : "none", flexShrink: 0 }}
@@ -554,7 +554,7 @@ export default function CategoryPage() {
                 onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = "var(--accent-hover)"; }}
                 onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = "var(--accent)"; }}
               >
-                <Search size={14} />
+                <SearchIcon size={14} />
                 Rechercher
               </button>
             </div>
@@ -667,7 +667,7 @@ export default function CategoryPage() {
                       flexShrink: 0,
                     }}
                   >
-                    <ArrowRight size={14} color="#FFFFFF" />
+                    <ArrowRightIcon size={14} color="#FFFFFF" />
                   </motion.div>
                 </div>
               </motion.div>
@@ -762,7 +762,7 @@ export default function CategoryPage() {
               }}
             >
               Inscrire mon établissement
-              <ArrowRight size={15} />
+              <ArrowRightIcon size={15} />
             </motion.button>
           </div>
         </section>

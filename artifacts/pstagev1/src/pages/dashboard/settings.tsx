@@ -250,7 +250,7 @@ function PhotoGallery({ photos, onDelete, onAdd }: {
       {/* Caption */}
       <div style={{ padding: "10px 18px", borderTop: "1px solid var(--hairline)" }}>
         <p style={{ fontSize: 11, color: "var(--ink-tertiary)", margin: 0 }}>
-          Formats acceptés : JPG, PNG, WebP — Taille max : 5 Mo — Upload disponible après configuration du stockage
+          Formats acceptés : JPG, PNG, WebP — Taille max : 5 Mo — La première photo est la couverture de la fiche publique
         </p>
       </div>
     </div>
@@ -442,7 +442,7 @@ export default function SettingsPage() {
 
   const [hours, setHours] = useState<DayHours[]>(defaultHours());
   const [photos, setPhotos] = useState<string[]>([]);
-  const photoInputRef = React.useRef<HTMLInputElement>(null);
+  const photoInputRef = useRef<HTMLInputElement>(null);
 
   function handleAddPhoto() {
     photoInputRef.current?.click();
@@ -502,8 +502,7 @@ export default function SettingsPage() {
         address:     providerData.address     ?? p.address,
         category:    providerData.type        ?? p.category,
       }));
-      // providers table has no photos array; photos feature requires storage config
-      setPhotos([]);
+      setPhotos(Array.isArray(providerData.photos) ? providerData.photos : []);
       if (providerData.phone) {
         setPhones([{ id: uid(), number: providerData.phone, label: "Réception" }]);
       }
@@ -549,8 +548,15 @@ export default function SettingsPage() {
         <Section title="Photos du salon" icon={Image}>
           <PhotoGallery
             photos={photos}
-            onDelete={(i) => {
+            onDelete={async (i) => {
+              const photoUrl = photos[i];
               setPhotos((prev) => prev.filter((_, idx) => idx !== i));
+              try {
+                await api.deleteProviderPhoto(photoUrl);
+                queryClient.invalidateQueries({ queryKey: ["dashboard", "provider"] });
+              } catch {
+                /* best-effort — local state already updated */
+              }
               toast.success("Photo supprimée");
             }}
             onAdd={handleAddPhoto}

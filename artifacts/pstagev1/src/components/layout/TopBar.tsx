@@ -182,7 +182,7 @@ function OnboardingModal({
           <div className="grid grid-cols-2 gap-2">
             {[
               {
-                icon: User,
+                icon: UserIcon,
                 title: "Je cherche un salon",
                 desc: "Réservez en ligne, 24h/24",
                 onClick: () => { onOpenChange(false); setLocation("/auth/register?role=client"); },
@@ -307,7 +307,7 @@ function TopBarSearch({ onCommencer }: { onCommencer: () => void }) {
                   transition={{ duration: 0.18 }}
                   style={{ display: "flex" }}
                 >
-                  {menuOpen ? <X size={16} /> : <Menu size={16} />}
+                  {menuOpen ? <XIcon size={16} /> : <MenuIcon size={16} />}
                 </motion.span>
               </AnimatePresence>
             </motion.button>

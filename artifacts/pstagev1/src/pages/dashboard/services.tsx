@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/DSButton";
 import { api, type ApiService, type ApiStaff } from "@/lib/api";
 import { Pencil, Tag, Trash2, Clock, Timer, Users, ToggleLeft, ToggleRight, Plus, X } from "lucide-react";
 import { ds } from "@/lib/design-system";
+import { toast } from "sonner";
 
 /* ── helpers ─────────────────────────────────────────────── */
 function initials(name: string) {
@@ -57,7 +58,11 @@ function ServiceCard({
   const toggle = useMutation({
     mutationFn: () =>
       api.updateService(slug, service.id, { isActive: !service.isActive }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["dashboard", "provider"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["dashboard", "provider"] });
+      toast.success(service.isActive ? "Prestation désactivée" : "Prestation activée");
+    },
+    onError: () => toast.error("Impossible de modifier l'état"),
   });
 
   const assignedStaff = staff.filter((m) => service.staffIds?.includes(m.id));
@@ -241,13 +246,21 @@ function ServiceForm({ slug, service, allStaff, onClose }: ServiceFormProps) {
         ? api.updateService(slug, service!.id, data)
         : api.createService(slug, data);
     },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["dashboard", "provider"] }); onClose(); },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["dashboard", "provider"] });
+      toast.success(isEdit ? "Prestation mise à jour" : "Prestation ajoutée");
+      onClose();
+    },
     onError: () => setError("Une erreur est survenue. Veuillez réessayer."),
   });
 
   const remove = useMutation({
     mutationFn: () => api.deleteService(slug, service!.id),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["dashboard", "provider"] }); onClose(); },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["dashboard", "provider"] });
+      toast.success("Prestation supprimée");
+      onClose();
+    },
     onError: () => setError("Impossible de supprimer cette prestation."),
   });
 

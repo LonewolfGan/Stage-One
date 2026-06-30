@@ -166,7 +166,11 @@ function StaffCard({
 
   const toggle = useMutation({
     mutationFn: () => api.updateStaff(slug, member.id, { isActive: !member.isActive }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["staff", slug] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["staff", slug] });
+      toast.success(member.isActive ? `${member.name} marqué indisponible` : `${member.name} marqué disponible`);
+    },
+    onError: () => toast.error("Impossible de modifier le statut"),
   });
 
   const count = serviceCount(member.id, services);

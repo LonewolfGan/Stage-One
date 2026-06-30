@@ -497,7 +497,7 @@ function BookingPill({
   onClick,
 }: {
   booking: Stacked;
-  scrollContainerRef: React.RefObject<HTMLDivElement>;
+  scrollContainerRef: React.RefObject<HTMLDivElement | null>;
   onHover: (booking: Stacked, position: PopupPosition) => void;
   onLeave: () => void;
   onClick: (booking: Stacked) => void;

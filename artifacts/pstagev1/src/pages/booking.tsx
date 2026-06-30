@@ -200,7 +200,7 @@ export default function BookingPage() {
       transition={{ duration: 0.4, ease: [0.0, 0.0, 0.2, 1] }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
-        <CreditCard size={18} style={{ color: "var(--ink-secondary)" }} />
+        <CreditCardIcon size={18} style={{ color: "var(--ink-secondary)" }} />
         <h2 style={{ fontSize: 17, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.01em" }}>
           Paiement
         </h2>
@@ -234,7 +234,7 @@ export default function BookingPage() {
           gap: 8,
         }}
       >
-        <Clock size={13} style={{ color: "var(--ink-tertiary)", flexShrink: 0 }} />
+        <ClockIcon size={13} style={{ color: "var(--ink-tertiary)", flexShrink: 0 }} />
         <span style={{ fontSize: 12, color: "var(--ink-secondary)" }}>
           Créneau réservé pendant 10 minutes
         </span>
@@ -287,7 +287,7 @@ export default function BookingPage() {
           transition: "border-color 140ms",
         }}
       >
-        <ChevronLeft size={13} /> Modifier la sélection
+        <ChevronLeftIcon size={13} /> Modifier la sélection
       </button>
     </motion.div>
   );
@@ -354,7 +354,7 @@ export default function BookingPage() {
 
       {selectedTime && (
         <p style={{ fontSize: 12, color: "var(--ink-tertiary)", textAlign: "center", marginTop: 12, display: "flex", alignItems: "center", justifyContent: "center", gap: 4 }}>
-          <Clock size={12} />
+          <ClockIcon size={12} />
           Ce créneau est bloqué pendant 10 minutes
         </p>
       )}
@@ -392,7 +392,7 @@ export default function BookingPage() {
               onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.borderColor = "rgba(10,10,15,0.45)"; }}
               onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.borderColor = "rgba(10,10,15,0.18)"; }}
             >
-              <ChevronLeft size={14} /> Retour
+              <ChevronLeftIcon size={14} /> Retour
             </Link>
 
             <AnimatePresence mode="wait">

@@ -119,7 +119,7 @@ export default function BookingConfirmationPage() {
 
               {booking.serviceName && (
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <Clock size={15} style={{ color: "var(--ink-tertiary)", flexShrink: 0 }} />
+                  <ClockIcon size={15} style={{ color: "var(--ink-tertiary)", flexShrink: 0 }} />
                   <span style={{ fontSize: 14, color: "var(--ink)" }}>
                     {booking.serviceName}
                     {booking.serviceDuration ? ` — ${booking.serviceDuration} min` : ""}
@@ -129,7 +129,7 @@ export default function BookingConfirmationPage() {
 
               {booking.providerCity && (
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <MapPin size={15} style={{ color: "var(--ink-tertiary)", flexShrink: 0 }} />
+                  <MapPinIcon size={15} style={{ color: "var(--ink-tertiary)", flexShrink: 0 }} />
                   <span style={{ fontSize: 14, color: "var(--ink)" }}>
                     {booking.providerAddress ? `${booking.providerAddress}, ` : ""}{booking.providerCity}
                   </span>
@@ -169,7 +169,7 @@ export default function BookingConfirmationPage() {
                 textDecoration: "none",
               }}
             >
-              <ChevronLeft size={13} /> Mes réservations
+              <ChevronLeftIcon size={13} /> Mes réservations
             </Link>
           </div>
 

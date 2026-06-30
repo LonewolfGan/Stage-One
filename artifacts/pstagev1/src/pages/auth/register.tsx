@@ -44,7 +44,7 @@ function PasswordRule({ met, label }: { met: boolean; label: string }) {
           transition: "background-color 200ms ease, border-color 200ms ease",
         }}
       >
-        {met && <Check size={9} color="#fff" strokeWidth={3} />}
+        {met && <svg width={9} height={9} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
       </div>
       <span
         style={{
@@ -148,7 +148,7 @@ export default function RegisterPage() {
             onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "var(--ink)"; }}
             onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "var(--ink-tertiary)"; }}
           >
-            <ArrowLeft size={14} />
+            <ArrowLeftIcon size={14} />
             Accueil
           </button>
         </div>
@@ -171,7 +171,7 @@ export default function RegisterPage() {
                     marginBottom: 20,
                   }}
                 >
-                  <Check size={22} color="var(--ink)" strokeWidth={2.5} />
+                  <svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke="var(--ink)" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                 </div>
                 <h1 style={{ fontSize: 22, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.015em", marginBottom: 8 }}>
                   Compte créé !
@@ -208,7 +208,7 @@ export default function RegisterPage() {
                       <div style={{ display: "flex", gap: 8 }}>
                         {([
                           { value: "ESTABLISHMENT", label: "Établissement", icon: Building2 },
-                          { value: "INDIVIDUAL", label: "Indépendant", icon: User },
+                          { value: "INDIVIDUAL", label: "Indépendant", icon: UserIcon },
                         ] as const).map(({ value, label, icon: Icon }) => (
                           <button
                             key={value}
@@ -306,7 +306,7 @@ export default function RegisterPage() {
                           color: "var(--ink-tertiary)", display: "flex", alignItems: "center", padding: 0,
                         }}
                       >
-                        {showPwd ? <EyeOff size={15} /> : <Eye size={15} />}
+                        {showPwd ? <EyeOffIcon size={15} /> : <EyeIcon size={15} />}
                       </button>
                     </div>
                     {/* Validation rules */}

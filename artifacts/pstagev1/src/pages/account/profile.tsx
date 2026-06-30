@@ -92,7 +92,7 @@ export default function ProfilePage() {
           <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               <span style={{ fontSize: 13, fontWeight: 500, color: "var(--ink-secondary)", display: "flex", alignItems: "center", gap: 6 }}>
-                <User size={13} /> Nom complet
+                <UserIcon size={13} /> Nom complet
               </span>
               <input
                 value={name}
@@ -149,7 +149,7 @@ export default function ProfilePage() {
 
             <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               <span style={{ fontSize: 13, fontWeight: 500, color: "var(--ink-secondary)", display: "flex", alignItems: "center", gap: 6 }}>
-                <Phone size={13} /> Téléphone
+                <PhoneIcon size={13} /> Téléphone
                 {user?.phoneVerified
                   ? <span style={{ fontSize: 11, color: "#16A34A", fontWeight: 500 }}>· Vérifié</span>
                   : <span style={{ fontSize: 11, color: "var(--accent)", fontWeight: 500 }}>· Non vérifié</span>}

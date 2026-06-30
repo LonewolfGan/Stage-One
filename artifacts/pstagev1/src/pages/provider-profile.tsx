@@ -368,7 +368,7 @@ export default function ProviderProfilePage() {
     );
   }
 
-  if (isError || (!isLoading && !provider)) {
+  if (isError || !provider) {
     setLocation("/404");
     return null;
   }
