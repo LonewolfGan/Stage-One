@@ -336,6 +336,7 @@ export default function ProviderProfilePage() {
     date: new Date(r.createdAt).toLocaleDateString("fr-MA", { day: "numeric", month: "long", year: "numeric" }),
     rating: r.rating,
     comment: r.comment ?? "",
+    providerReply: r.reply ?? null,
   }));
 
   const [favorited, setFavorited] = useState(false);
@@ -497,6 +498,47 @@ export default function ProviderProfilePage() {
                         <StaffCard member={member} providerSlug={provider.slug} />
                       </motion.div>
                     ))}
+                  </div>
+                </section>
+              )}
+
+              {/* Business Hours */}
+              {provider.businessHours && provider.businessHours.length > 0 && (
+                <section style={{ marginBottom: 56 }}>
+                  <h2 style={{ fontSize: 20, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.02em", margin: "0 0 20px" }}>
+                    Horaires d'ouverture
+                  </h2>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 0, border: "1px solid var(--hairline)", borderRadius: 12, overflow: "hidden" }}>
+                    {["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"].map((dayName, dow) => {
+                      const hours = provider.businessHours.find((h) => h.dayOfWeek === dow);
+                      const isToday = dow === todayDow;
+                      return (
+                        <div
+                          key={dow}
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            padding: "11px 18px",
+                            backgroundColor: isToday ? "rgba(12,12,14,0.025)" : "transparent",
+                            borderBottom: dow < 6 ? "1px solid var(--hairline)" : "none",
+                          }}
+                        >
+                          <span style={{ fontSize: 13, fontWeight: isToday ? 600 : 400, color: isToday ? "var(--ink)" : "var(--ink-secondary)", minWidth: 90 }}>
+                            {dayName}
+                          </span>
+                          {hours?.isClosed ? (
+                            <span style={{ fontSize: 12, color: "var(--ink-tertiary)", fontStyle: "italic" }}>Fermé</span>
+                          ) : hours ? (
+                            <span style={{ fontSize: 13, color: "var(--ink)", fontWeight: isToday ? 600 : 400, letterSpacing: "-0.01em" }}>
+                              {hours.openTime} – {hours.closeTime}
+                            </span>
+                          ) : (
+                            <span style={{ fontSize: 12, color: "var(--ink-tertiary)", fontStyle: "italic" }}>Non renseigné</span>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 </section>
               )}

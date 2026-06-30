@@ -309,4 +309,23 @@ export const api = {
     apiFetch<ReviewResult>(`/reviews/${reviewId}/reply`, { method: "POST", body: JSON.stringify({ reply }) }),
 
   getDashboardReviews: () => apiFetch<DashboardReview[]>("/reviews"),
+
+  // Photo upload (base64 body)
+  uploadProviderLogo: (dataUri: string) =>
+    apiFetch<{ logoUrl: string }>("/dashboard/provider/upload-logo", {
+      method: "POST",
+      body: JSON.stringify({ dataUri }),
+    }),
+
+  uploadProviderPhoto: (dataUri: string) =>
+    apiFetch<{ photoUrl: string; photos: string[] }>("/dashboard/provider/upload-photo", {
+      method: "POST",
+      body: JSON.stringify({ dataUri }),
+    }),
+
+  deleteProviderPhoto: (photoUrl: string) =>
+    apiFetch<{ photos: string[] }>("/dashboard/provider/delete-photo", {
+      method: "POST",
+      body: JSON.stringify({ photoUrl }),
+    }),
 };

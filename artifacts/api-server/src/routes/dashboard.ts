@@ -33,6 +33,50 @@ router.get("/provider", requireOwner, async (req, res) => {
   res.json({ ...provider, staff, services });
 });
 
+// ── Photo upload (base64, dev fallback — no cloud storage required) ──────────
+
+const uploadPhotoSchema = z.object({ dataUri: z.string().startsWith("data:image/") });
+
+router.post("/provider/upload-logo", requireOwner, async (req, res) => {
+  const provider = await getOwnedProvider(req.user!.sub);
+  if (!provider) { res.status(404).json({ code: "ERR-004", message: "Espace prestataire introuvable" }); return; }
+
+  const parse = uploadPhotoSchema.safeParse(req.body);
+  if (!parse.success) { res.status(400).json({ code: "ERR-001", message: "dataUri invalide — doit commencer par data:image/" }); return; }
+
+  // Store base64 directly in logoUrl (dev fallback — replace with R2/S3 URL in prod)
+  await db.update(providersTable).set({ logoUrl: parse.data.dataUri }).where(eq(providersTable.id, provider.id));
+  res.json({ logoUrl: parse.data.dataUri });
+});
+
+router.post("/provider/upload-photo", requireOwner, async (req, res) => {
+  const provider = await getOwnedProvider(req.user!.sub);
+  if (!provider) { res.status(404).json({ code: "ERR-004", message: "Espace prestataire introuvable" }); return; }
+
+  const parse = uploadPhotoSchema.safeParse(req.body);
+  if (!parse.success) { res.status(400).json({ code: "ERR-001", message: "dataUri invalide — doit commencer par data:image/" }); return; }
+
+  // Append to existing photos array (stored as JSON in column)
+  const existing: string[] = Array.isArray((provider as any).photos) ? (provider as any).photos : [];
+  if (existing.length >= 10) { res.status(400).json({ code: "ERR-002", message: "Maximum 10 photos atteint" }); return; }
+  const updated = [...existing, parse.data.dataUri];
+  await db.update(providersTable).set({ photos: updated } as any).where(eq(providersTable.id, provider.id));
+  res.json({ photoUrl: parse.data.dataUri, photos: updated });
+});
+
+router.post("/provider/delete-photo", requireOwner, async (req, res) => {
+  const provider = await getOwnedProvider(req.user!.sub);
+  if (!provider) { res.status(404).json({ code: "ERR-004", message: "Espace prestataire introuvable" }); return; }
+
+  const { photoUrl } = req.body as { photoUrl?: string };
+  if (!photoUrl) { res.status(400).json({ code: "ERR-001", message: "photoUrl requis" }); return; }
+
+  const existing: string[] = Array.isArray((provider as any).photos) ? (provider as any).photos : [];
+  const updated = existing.filter((p) => p !== photoUrl);
+  await db.update(providersTable).set({ photos: updated } as any).where(eq(providersTable.id, provider.id));
+  res.json({ photos: updated });
+});
+
 router.get("/bookings", requireOwner, async (req, res) => {
   const provider = await getOwnedProvider(req.user!.sub);
   if (!provider) { res.status(404).json({ code: "ERR-004", message: "Espace prestataire introuvable" }); return; }

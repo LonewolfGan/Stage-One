@@ -12,9 +12,14 @@
 :root {
   /* Canvas */
   --canvas:             #FFFFFF;
+  --canvas-pure:        #FFFFFF;
+  --canvas-muted:       #F5F5F5;
+  --canvas-subtle:      #FAFAFA;
 
   /* Surface */
   --surface-1:          #FFFFFF;
+  --surface-2:          #F5F5F5;
+  --surface-3:          #EFEFEF;
 
   /* Hairlines */
   --hairline:           rgba(12, 12, 14, 0.10);

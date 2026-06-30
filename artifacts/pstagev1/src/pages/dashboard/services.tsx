@@ -1,64 +1,253 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/DSButton";
-import { api } from "@/lib/api";
-import { Pencil, Tag, Trash2 } from "lucide-react";
-import { PlusIcon }  from "@/components/ui/plus";
-import { ClockIcon } from "@/components/ui/clock";
-import { XIcon }     from "@/components/ui/x";
+import { api, type ApiService, type ApiStaff } from "@/lib/api";
+import { Pencil, Tag, Trash2, Clock, Timer, Users, ToggleLeft, ToggleRight, Plus, X } from "lucide-react";
+import { ds } from "@/lib/design-system";
 
-interface Service {
-  id: string;
-  name: string;
-  description?: string;
-  durationMinutes: number;
-  priceCents: number;
+/* ── helpers ─────────────────────────────────────────────── */
+function initials(name: string) {
+  return name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase();
 }
 
-/* ── Form modal ─────────────────────────────────────────────── */
+/* ── Staff chip ───────────────────────────────────────────── */
+function StaffChip({ name }: { name: string }) {
+  return (
+    <span
+      title={name}
+      style={{
+        display:         "inline-flex",
+        alignItems:      "center",
+        justifyContent:  "center",
+        width:           22,
+        height:          22,
+        borderRadius:    "50%",
+        backgroundColor: ds.colors.canvasMuted,
+        border:          `1px solid ${ds.colors.border}`,
+        fontSize:        9,
+        fontWeight:      700,
+        color:           ds.colors.inkSecondary,
+        letterSpacing:   "-0.01em",
+        flexShrink:      0,
+      }}
+    >
+      {initials(name)}
+    </span>
+  );
+}
+
+/* ── Service Card ──────────────────────────────────────────── */
+function ServiceCard({
+  service,
+  staff,
+  slug,
+  index,
+  onEdit,
+}: {
+  service: ApiService;
+  staff:   ApiStaff[];
+  slug:    string;
+  index:   number;
+  onEdit:  (s: ApiService) => void;
+}) {
+  const qc = useQueryClient();
+
+  const toggle = useMutation({
+    mutationFn: () =>
+      api.updateService(slug, service.id, { isActive: !service.isActive }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["dashboard", "provider"] }),
+  });
+
+  const assignedStaff = staff.filter((m) => service.staffIds?.includes(m.id));
+
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0 }}
+      transition={{ delay: index * 0.03, duration: 0.2, ease: [0, 0, 0.2, 1] }}
+      style={{
+        borderRadius:    12,
+        border:          `1px solid ${service.isActive ? ds.colors.border : ds.colors.border}`,
+        backgroundColor: service.isActive ? ds.colors.canvas : ds.colors.canvasSubtle,
+        display:         "flex",
+        flexDirection:   "column",
+        padding:         "16px 18px 14px",
+        gap:             10,
+        opacity:         service.isActive ? 1 : 0.65,
+        transition:      "border-color 150ms ease, background-color 150ms ease, opacity 150ms ease",
+      }}
+    >
+      {/* Name + active badge */}
+      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 10 }}>
+        <p style={{
+          fontSize:      14, fontWeight: 600, color: ds.colors.ink,
+          letterSpacing: "-0.015em", lineHeight: 1.3, margin: 0, flex: 1,
+        }}>
+          {service.name}
+        </p>
+        {/* Active toggle */}
+        <button
+          onClick={() => toggle.mutate()}
+          disabled={toggle.isPending}
+          title={service.isActive ? "Désactiver" : "Activer"}
+          style={{
+            background: "none", border: "none", cursor: "pointer",
+            color:      service.isActive ? ds.colors.success : ds.colors.inkDisabled,
+            padding:    2, display: "flex", flexShrink: 0,
+            opacity:    toggle.isPending ? 0.5 : 1, transition: "opacity 140ms",
+          }}
+        >
+          {service.isActive
+            ? <ToggleRight size={20} />
+            : <ToggleLeft  size={20} />
+          }
+        </button>
+      </div>
+
+      {/* Description */}
+      <p style={{
+        fontSize: 12, color: ds.colors.inkTertiary, lineHeight: 1.55,
+        margin: 0, flex: 1,
+        display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden",
+        minHeight: 37,
+      }}>
+        {service.description || <span style={{ opacity: 0.5, fontStyle: "italic" }}>Pas de description</span>}
+      </p>
+
+      {/* Meta row: duration + buffer */}
+      <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+        <span style={{
+          display: "inline-flex", alignItems: "center", gap: 4,
+          fontSize: 11, fontWeight: 500, color: ds.colors.inkSecondary,
+          backgroundColor: ds.colors.canvasMuted,
+          borderRadius: ds.radius.full, padding: "3px 8px",
+        }}>
+          <Clock size={10} /> {service.durationMinutes} min
+        </span>
+        {service.bufferMinutes > 0 && (
+          <span style={{
+            display: "inline-flex", alignItems: "center", gap: 4,
+            fontSize: 11, fontWeight: 500, color: ds.colors.inkTertiary,
+            backgroundColor: ds.colors.canvasMuted,
+            borderRadius: ds.radius.full, padding: "3px 8px",
+          }}>
+            <Timer size={10} /> +{service.bufferMinutes} min pause
+          </span>
+        )}
+      </div>
+
+      {/* Assigned staff chips */}
+      {assignedStaff.length > 0 && (
+        <div style={{ display: "flex", alignItems: "center", gap: 5, flexWrap: "wrap" }}>
+          <Users size={11} color={ds.colors.inkDisabled} />
+          {assignedStaff.map((m) => (
+            <StaffChip key={m.id} name={m.name} />
+          ))}
+          <span style={{ fontSize: 10, color: ds.colors.inkTertiary, marginLeft: 2 }}>
+            {assignedStaff.length} professionnel{assignedStaff.length > 1 ? "s" : ""}
+          </span>
+        </div>
+      )}
+
+      {/* Footer */}
+      <div style={{
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+        paddingTop: 10, borderTop: `1px solid ${ds.colors.border}`, gap: 8,
+      }}>
+        <span style={{
+          fontSize: 17, fontWeight: 700, color: ds.colors.ink,
+          letterSpacing: "-0.025em", lineHeight: 1,
+        }}>
+          {Math.round(service.priceCents / 100)}{" "}
+          <span style={{ fontSize: 11, fontWeight: 400, color: ds.colors.inkTertiary, letterSpacing: 0 }}>MAD</span>
+        </span>
+
+        <button
+          onClick={() => onEdit(service)}
+          style={{
+            display: "inline-flex", alignItems: "center", gap: 5,
+            height: 28, paddingInline: 12,
+            backgroundColor: ds.colors.ink, color: "#fff",
+            border: "none", borderRadius: 7,
+            fontSize: 12, fontWeight: 500, cursor: "pointer",
+            fontFamily: "var(--font)", flexShrink: 0,
+            transition: "opacity 140ms ease",
+          }}
+          onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.opacity = "0.75"; }}
+          onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.opacity = "1"; }}
+        >
+          <Pencil size={10} strokeWidth={2} /> Modifier
+        </button>
+      </div>
+    </motion.div>
+  );
+}
+
+/* ── Skeleton ───────────────────────────────────────────────── */
+function SkeletonCard() {
+  return (
+    <div style={{ borderRadius: 12, border: `1px solid ${ds.colors.border}`, padding: "16px 18px 14px", display: "flex", flexDirection: "column", gap: 10 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
+        <div style={{ height: 14, width: "52%", borderRadius: 5, backgroundColor: ds.colors.canvasMuted, animation: "pulse 1.4s ease-in-out infinite" }} />
+        <div style={{ height: 20, width: 20, borderRadius: 9999, backgroundColor: ds.colors.canvasMuted, animation: "pulse 1.4s ease-in-out infinite", flexShrink: 0 }} />
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 5, flex: 1 }}>
+        <div style={{ height: 12, width: "82%", borderRadius: 4, backgroundColor: ds.colors.canvasMuted, animation: "pulse 1.4s ease-in-out infinite" }} />
+        <div style={{ height: 12, width: "62%", borderRadius: 4, backgroundColor: ds.colors.canvasMuted, animation: "pulse 1.4s ease-in-out infinite" }} />
+      </div>
+      <div style={{ paddingTop: 10, borderTop: `1px solid ${ds.colors.border}`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div style={{ height: 17, width: 72, borderRadius: 5, backgroundColor: ds.colors.canvasMuted, animation: "pulse 1.4s ease-in-out infinite" }} />
+        <div style={{ height: 28, width: 76, borderRadius: 7, backgroundColor: ds.colors.canvasMuted, animation: "pulse 1.4s ease-in-out infinite" }} />
+      </div>
+    </div>
+  );
+}
+
+/* ── Service Form Modal ─────────────────────────────────────── */
 interface ServiceFormProps {
-  slug: string;
-  service?: Service | null;   // null = create mode
-  onClose: () => void;
+  slug:      string;
+  service?:  ApiService | null;
+  allStaff:  ApiStaff[];
+  onClose:   () => void;
 }
 
-function ServiceForm({ slug, service, onClose }: ServiceFormProps) {
+function ServiceForm({ slug, service, allStaff, onClose }: ServiceFormProps) {
   const isEdit = !!service;
   const qc = useQueryClient();
 
-  const [name, setName]             = useState(service?.name ?? "");
-  const [description, setDesc]      = useState(service?.description ?? "");
-  const [duration, setDuration]     = useState(service ? String(service.durationMinutes) : "");
-  const [price, setPrice]           = useState(service ? String(Math.round(service.priceCents / 100)) : "");
-  const [error, setError]           = useState("");
+  const [name, setName]         = useState(service?.name ?? "");
+  const [description, setDesc]  = useState(service?.description ?? "");
+  const [duration, setDuration] = useState(service ? String(service.durationMinutes) : "");
+  const [buffer, setBuffer]     = useState(service ? String(service.bufferMinutes ?? 0) : "0");
+  const [price, setPrice]       = useState(service ? String(Math.round(service.priceCents / 100)) : "");
+  const [staffIds, setStaffIds] = useState<string[]>(service?.staffIds ?? []);
+  const [error, setError]       = useState("");
 
   const save = useMutation({
     mutationFn: () => {
       const data = {
-        name: name.trim(),
-        description: description.trim() || undefined,
+        name:            name.trim(),
+        description:     description.trim() || undefined,
         durationMinutes: parseInt(duration, 10),
-        priceCents: Math.round(parseFloat(price) * 100),
+        bufferMinutes:   parseInt(buffer, 10) || 0,
+        priceCents:      Math.round(parseFloat(price) * 100),
+        staffIds,
       };
       return isEdit
         ? api.updateService(slug, service!.id, data)
         : api.createService(slug, data);
     },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["dashboard", "provider"] });
-      onClose();
-    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["dashboard", "provider"] }); onClose(); },
     onError: () => setError("Une erreur est survenue. Veuillez réessayer."),
   });
 
   const remove = useMutation({
     mutationFn: () => api.deleteService(slug, service!.id),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["dashboard", "provider"] });
-      onClose();
-    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ["dashboard", "provider"] }); onClose(); },
     onError: () => setError("Impossible de supprimer cette prestation."),
   });
 
@@ -74,71 +263,39 @@ function ServiceForm({ slug, service, onClose }: ServiceFormProps) {
   }
 
   const fieldStyle: React.CSSProperties = {
-    width: "100%",
-    height: 38,
-    padding: "0 12px",
-    border: "1px solid var(--hairline-strong)",
-    borderRadius: 8,
-    backgroundColor: "var(--surface-1)",
-    fontSize: 13,
-    color: "var(--ink)",
-    outline: "none",
-    fontFamily: "var(--font)",
-    boxSizing: "border-box",
+    width: "100%", height: 38, padding: "0 12px",
+    border: `1px solid ${ds.colors.borderStrong}`, borderRadius: 8,
+    backgroundColor: ds.colors.canvas, fontSize: 13, color: ds.colors.ink,
+    outline: "none", fontFamily: "var(--font)", boxSizing: "border-box",
     transition: "border-color 140ms ease",
   };
-
   const labelStyle: React.CSSProperties = {
-    display: "block",
-    fontSize: 12,
-    fontWeight: 500,
-    color: "var(--ink-secondary)",
-    marginBottom: 6,
-    letterSpacing: "-0.01em",
+    display: "block", fontSize: 12, fontWeight: 500,
+    color: ds.colors.inkSecondary, marginBottom: 6, letterSpacing: "-0.01em",
   };
 
   return (
-    /* Backdrop */
     <motion.div
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
       transition={{ duration: 0.15 }}
       onClick={onClose}
-      style={{
-        position: "fixed", inset: 0, zIndex: 200,
-        backgroundColor: "rgba(0,0,0,0.46)",
-        display: "flex", alignItems: "center", justifyContent: "center",
-        padding: 20,
-      }}
+      style={{ position: "fixed", inset: 0, zIndex: 200, backgroundColor: "rgba(0,0,0,0.46)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}
     >
-      {/* Panel */}
       <motion.div
         initial={{ opacity: 0, scale: 0.97, y: 8 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.97, y: 8 }}
         transition={{ duration: 0.18, ease: [0, 0, 0.2, 1] }}
         onClick={(e) => e.stopPropagation()}
-        style={{
-          width: "100%", maxWidth: 440,
-          backgroundColor: "var(--surface-1)",
-          borderRadius: 14,
-          border: "1px solid var(--hairline)",
-          overflow: "hidden",
-        }}
+        style={{ width: "100%", maxWidth: 480, backgroundColor: ds.colors.canvas, borderRadius: 14, border: `1px solid ${ds.colors.border}`, overflow: "hidden", maxHeight: "90vh", overflowY: "auto" }}
       >
         {/* Header */}
-        <div style={{
-          display: "flex", alignItems: "center", justifyContent: "space-between",
-          padding: "18px 20px 16px",
-          borderBottom: "1px solid var(--hairline)",
-        }}>
-          <h2 style={{ margin: 0, fontSize: 15, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.015em" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 20px 16px", borderBottom: `1px solid ${ds.colors.border}`, position: "sticky", top: 0, background: ds.colors.canvas, zIndex: 1 }}>
+          <h2 style={{ margin: 0, fontSize: 15, fontWeight: 600, color: ds.colors.ink, letterSpacing: "-0.015em" }}>
             {isEdit ? "Modifier la prestation" : "Nouvelle prestation"}
           </h2>
-          <button
-            onClick={onClose}
-            style={{ background: "none", border: "none", cursor: "pointer", color: "var(--ink-tertiary)", padding: 4, display: "flex", borderRadius: 6 }}
-          >
-            <XIcon size={16} />
+          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: ds.colors.inkTertiary, padding: 4, display: "flex", borderRadius: 6 }}>
+            <X size={16} />
           </button>
         </div>
 
@@ -146,127 +303,90 @@ function ServiceForm({ slug, service, onClose }: ServiceFormProps) {
         <form onSubmit={handleSubmit} style={{ padding: "20px" }}>
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
 
-            {/* Name */}
             <div>
-              <label style={labelStyle}>Nom <span style={{ color: "var(--accent)" }}>*</span></label>
-              <input
-                style={fieldStyle}
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Ex. Coupe femme"
-                onFocus={(e) => { e.currentTarget.style.borderColor = "var(--ink)"; }}
-                onBlur={(e) => { e.currentTarget.style.borderColor = "var(--hairline-strong)"; }}
-                autoFocus
+              <label style={labelStyle}>Nom <span style={{ color: ds.colors.accent }}>*</span></label>
+              <input style={fieldStyle} value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex. Coupe femme" autoFocus
+                onFocus={(e) => { e.currentTarget.style.borderColor = ds.colors.ink; }}
+                onBlur={(e)  => { e.currentTarget.style.borderColor = ds.colors.borderStrong; }}
               />
             </div>
 
-            {/* Description */}
             <div>
-              <label style={labelStyle}>Description <span style={{ color: "var(--ink-disabled)", fontWeight: 400 }}>(optionnel)</span></label>
-              <textarea
-                style={{ ...fieldStyle, height: 72, padding: "10px 12px", resize: "vertical", lineHeight: 1.5 }}
-                value={description}
-                onChange={(e) => setDesc(e.target.value)}
-                placeholder="Décrivez la prestation…"
-                onFocus={(e) => { e.currentTarget.style.borderColor = "var(--ink)"; }}
-                onBlur={(e) => { e.currentTarget.style.borderColor = "var(--hairline-strong)"; }}
+              <label style={labelStyle}>Description <span style={{ color: ds.colors.inkDisabled, fontWeight: 400 }}>(optionnel)</span></label>
+              <textarea style={{ ...fieldStyle, height: 68, padding: "10px 12px", resize: "vertical", lineHeight: 1.5 }}
+                value={description} onChange={(e) => setDesc(e.target.value)} placeholder="Décrivez la prestation…"
+                onFocus={(e) => { e.currentTarget.style.borderColor = ds.colors.ink; }}
+                onBlur={(e)  => { e.currentTarget.style.borderColor = ds.colors.borderStrong; }}
               />
             </div>
 
-            {/* Duration + Price row */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            {/* Duration + Buffer + Price */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
               <div>
-                <label style={labelStyle}>Durée (min) <span style={{ color: "var(--accent)" }}>*</span></label>
-                <input
-                  style={fieldStyle}
-                  type="number"
-                  min="1"
-                  value={duration}
-                  onChange={(e) => setDuration(e.target.value)}
-                  placeholder="45"
-                  onFocus={(e) => { e.currentTarget.style.borderColor = "var(--ink)"; }}
-                  onBlur={(e) => { e.currentTarget.style.borderColor = "var(--hairline-strong)"; }}
+                <label style={labelStyle}>Durée (min) <span style={{ color: ds.colors.accent }}>*</span></label>
+                <input style={fieldStyle} type="number" min="1" value={duration} onChange={(e) => setDuration(e.target.value)} placeholder="45"
+                  onFocus={(e) => { e.currentTarget.style.borderColor = ds.colors.ink; }}
+                  onBlur={(e)  => { e.currentTarget.style.borderColor = ds.colors.borderStrong; }}
                 />
               </div>
               <div>
-                <label style={labelStyle}>Prix (MAD) <span style={{ color: "var(--accent)" }}>*</span></label>
-                <input
-                  style={fieldStyle}
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={price}
-                  onChange={(e) => setPrice(e.target.value)}
-                  placeholder="150"
-                  onFocus={(e) => { e.currentTarget.style.borderColor = "var(--ink)"; }}
-                  onBlur={(e) => { e.currentTarget.style.borderColor = "var(--hairline-strong)"; }}
+                <label style={labelStyle}>Pause (min)</label>
+                <input style={fieldStyle} type="number" min="0" value={buffer} onChange={(e) => setBuffer(e.target.value)} placeholder="0"
+                  onFocus={(e) => { e.currentTarget.style.borderColor = ds.colors.ink; }}
+                  onBlur={(e)  => { e.currentTarget.style.borderColor = ds.colors.borderStrong; }}
+                />
+              </div>
+              <div>
+                <label style={labelStyle}>Prix (MAD) <span style={{ color: ds.colors.accent }}>*</span></label>
+                <input style={fieldStyle} type="number" min="0" step="0.01" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="150"
+                  onFocus={(e) => { e.currentTarget.style.borderColor = ds.colors.ink; }}
+                  onBlur={(e)  => { e.currentTarget.style.borderColor = ds.colors.borderStrong; }}
                 />
               </div>
             </div>
 
-            {/* Error */}
-            {error && (
-              <p style={{ margin: 0, fontSize: 12, color: "var(--error)", fontWeight: 500 }}>{error}</p>
+            {/* Staff checkboxes */}
+            {allStaff.length > 0 && (
+              <div>
+                <label style={labelStyle}>Professionnels assignés</label>
+                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                  {allStaff.map((m) => {
+                    const checked = staffIds.includes(m.id);
+                    return (
+                      <label key={m.id} style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", fontSize: 13, color: ds.colors.ink }}>
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={() =>
+                            setStaffIds((prev) =>
+                              checked ? prev.filter((id) => id !== m.id) : [...prev, m.id],
+                            )
+                          }
+                          style={{ width: 14, height: 14, accentColor: ds.colors.ink, cursor: "pointer" }}
+                        />
+                        {m.name}
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
             )}
+
+            {error && <p style={{ margin: 0, fontSize: 12, color: ds.colors.error, fontWeight: 500 }}>{error}</p>}
           </div>
 
-          {/* Footer actions */}
-          <div style={{
-            display: "flex", alignItems: "center", justifyContent: "space-between",
-            marginTop: 24, gap: 10,
-          }}>
-            {/* Delete (edit only) */}
+          {/* Footer */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 24, gap: 10 }}>
             {isEdit ? (
-              <button
-                type="button"
-                onClick={() => remove.mutate()}
-                disabled={remove.isPending}
-                style={{
-                  display: "inline-flex", alignItems: "center", gap: 5,
-                  height: 34, paddingInline: 14,
-                  backgroundColor: "var(--error-bg)",
-                  color: "var(--error)",
-                  border: "1px solid var(--error-border)",
-                  borderRadius: 8, fontSize: 12, fontWeight: 500,
-                  cursor: remove.isPending ? "not-allowed" : "pointer",
-                  fontFamily: "var(--font)", opacity: remove.isPending ? 0.6 : 1,
-                  transition: "opacity 140ms ease",
-                }}
+              <button type="button" onClick={() => remove.mutate()} disabled={remove.isPending}
+                style={{ display: "inline-flex", alignItems: "center", gap: 5, height: 34, paddingInline: 14, backgroundColor: ds.colors.errorBg, color: ds.colors.error, border: `1px solid ${ds.colors.errorBorder}`, borderRadius: 8, fontSize: 12, fontWeight: 500, cursor: remove.isPending ? "not-allowed" : "pointer", fontFamily: "var(--font)", opacity: remove.isPending ? 0.6 : 1, transition: "opacity 140ms ease" }}
               >
-                <Trash2 size={12} />
-                {remove.isPending ? "Suppression…" : "Supprimer"}
+                <Trash2 size={12} />{remove.isPending ? "Suppression…" : "Supprimer"}
               </button>
             ) : <span />}
-
             <div style={{ display: "flex", gap: 8 }}>
-              <button
-                type="button"
-                onClick={onClose}
-                style={{
-                  height: 34, paddingInline: 16,
-                  backgroundColor: "transparent",
-                  color: "var(--ink-secondary)",
-                  border: "1px solid var(--hairline-strong)",
-                  borderRadius: 8, fontSize: 13, fontWeight: 500,
-                  cursor: "pointer", fontFamily: "var(--font)",
-                }}
-              >
-                Annuler
-              </button>
-              <button
-                type="submit"
-                disabled={save.isPending}
-                style={{
-                  height: 34, paddingInline: 18,
-                  backgroundColor: save.isPending ? "rgba(12,12,14,0.5)" : "var(--ink)",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: 8, fontSize: 13, fontWeight: 500,
-                  cursor: save.isPending ? "not-allowed" : "pointer",
-                  fontFamily: "var(--font)",
-                  transition: "background-color 140ms ease",
-                }}
-              >
+              <button type="button" onClick={onClose} style={{ height: 34, paddingInline: 16, backgroundColor: "transparent", color: ds.colors.inkSecondary, border: `1px solid ${ds.colors.borderStrong}`, borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: "pointer", fontFamily: "var(--font)" }}>Annuler</button>
+              <button type="submit" disabled={save.isPending} style={{ height: 34, paddingInline: 18, backgroundColor: save.isPending ? ds.colors.inkDisabled : ds.colors.ink, color: "#fff", border: "none", borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: save.isPending ? "not-allowed" : "pointer", fontFamily: "var(--font)", transition: "background-color 140ms ease" }}>
                 {save.isPending ? "Enregistrement…" : isEdit ? "Enregistrer" : "Ajouter"}
               </button>
             </div>
@@ -277,201 +397,20 @@ function ServiceForm({ slug, service, onClose }: ServiceFormProps) {
   );
 }
 
-/* ── Service Card ──────────────────────────────────────────── */
-function ServiceCard({
-  service,
-  index,
-  onEdit,
-}: {
-  service: Service;
-  index: number;
-  onEdit: (s: Service) => void;
-}) {
-  return (
-    <motion.div
-      layout
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0 }}
-      transition={{ delay: index * 0.03, duration: 0.2, ease: [0, 0, 0.2, 1] }}
-      whileHover={{ backgroundColor: "rgba(12,12,14,0.015)" }}
-      style={{
-        borderRadius: 12,
-        border: "1px solid var(--hairline)",
-        backgroundColor: "var(--surface-1)",
-        display: "flex",
-        flexDirection: "column",
-        padding: "18px 20px 16px",
-        gap: 10,
-        transition: "border-color 150ms ease, background-color 150ms ease",
-        cursor: "default",
-      }}
-    >
-      {/* Name + duration */}
-      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
-        <p
-          style={{
-            fontSize: 14,
-            fontWeight: 600,
-            color: "var(--ink)",
-            letterSpacing: "-0.015em",
-            lineHeight: 1.3,
-            margin: 0,
-            flex: 1,
-          }}
-        >
-          {service.name}
-        </p>
-        <span
-          style={{
-            flexShrink: 0,
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 4,
-            fontSize: 11,
-            fontWeight: 500,
-            color: "var(--ink-tertiary)",
-            backgroundColor: "rgba(12,12,14,0.05)",
-            borderRadius: 9999,
-            padding: "3px 8px",
-            whiteSpace: "nowrap",
-            lineHeight: 1,
-            marginTop: 1,
-          }}
-        >
-          <ClockIcon size={10} style={{ flexShrink: 0 }} />
-          {service.durationMinutes} min
-        </span>
-      </div>
-
-      {/* Description */}
-      <p
-        style={{
-          fontSize: 12,
-          color: "var(--ink-tertiary)",
-          lineHeight: 1.55,
-          margin: 0,
-          flex: 1,
-          display: "-webkit-box",
-          WebkitLineClamp: 2,
-          WebkitBoxOrient: "vertical",
-          overflow: "hidden",
-          minHeight: 37,
-        }}
-      >
-        {service.description || (
-          <span style={{ opacity: 0.5, fontStyle: "italic" }}>Pas de description</span>
-        )}
-      </p>
-
-      {/* Footer */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          paddingTop: 12,
-          borderTop: "1px solid var(--hairline)",
-          gap: 8,
-        }}
-      >
-        <span
-          style={{
-            fontSize: 17,
-            fontWeight: 700,
-            color: "var(--ink)",
-            letterSpacing: "-0.025em",
-            lineHeight: 1,
-          }}
-        >
-          {Math.round(service.priceCents / 100)}{" "}
-          <span style={{ fontSize: 11, fontWeight: 400, color: "var(--ink-tertiary)", letterSpacing: 0 }}>
-            MAD
-          </span>
-        </span>
-
-        <button
-          onClick={() => onEdit(service)}
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 5,
-            height: 28,
-            paddingInline: 12,
-            backgroundColor: "var(--ink)",
-            color: "#fff",
-            border: "none",
-            borderRadius: 7,
-            fontSize: 12,
-            fontWeight: 500,
-            letterSpacing: "-0.01em",
-            cursor: "pointer",
-            fontFamily: "var(--font)",
-            flexShrink: 0,
-            transition: "opacity 140ms ease",
-          }}
-          onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.opacity = "0.75"; }}
-          onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.opacity = "1"; }}
-        >
-          <Pencil size={10} strokeWidth={2} />
-          Modifier
-        </button>
-      </div>
-    </motion.div>
-  );
-}
-
-/* ── Skeleton ───────────────────────────────────────────────── */
-function SkeletonCard() {
-  return (
-    <div
-      style={{
-        borderRadius: 12,
-        border: "1px solid var(--hairline)",
-        padding: "18px 20px 16px",
-        display: "flex",
-        flexDirection: "column",
-        gap: 10,
-      }}
-    >
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
-        <div style={{ height: 14, width: "52%", borderRadius: 5, backgroundColor: "var(--hairline)", animation: "pulse 1.4s ease-in-out infinite" }} />
-        <div style={{ height: 20, width: 60, borderRadius: 9999, backgroundColor: "var(--hairline)", animation: "pulse 1.4s ease-in-out infinite", flexShrink: 0 }} />
-      </div>
-      <div style={{ display: "flex", flexDirection: "column", gap: 5, flex: 1 }}>
-        <div style={{ height: 12, width: "82%", borderRadius: 4, backgroundColor: "var(--hairline)", animation: "pulse 1.4s ease-in-out infinite" }} />
-        <div style={{ height: 12, width: "62%", borderRadius: 4, backgroundColor: "var(--hairline)", animation: "pulse 1.4s ease-in-out infinite" }} />
-      </div>
-      <div style={{ paddingTop: 12, borderTop: "1px solid var(--hairline)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <div style={{ height: 17, width: 72, borderRadius: 5, backgroundColor: "var(--hairline)", animation: "pulse 1.4s ease-in-out infinite" }} />
-        <div style={{ height: 28, width: 76, borderRadius: 7, backgroundColor: "var(--hairline)", animation: "pulse 1.4s ease-in-out infinite" }} />
-      </div>
-    </div>
-  );
-}
-
 /* ── Page ─────────────────────────────────────────────────── */
 export default function ServicesPage() {
-  const [editing, setEditing] = useState<Service | null | undefined>(undefined);
-  // undefined = closed, null = create mode, Service = edit mode
+  const [editing, setEditing] = useState<ApiService | null | undefined>(undefined);
 
   const { data: providerData, isLoading } = useQuery({
     queryKey: ["dashboard", "provider"],
-    queryFn: () => api.getDashboardProvider(),
+    queryFn:  () => api.getDashboardProvider(),
     staleTime: 300_000,
     retry: false,
   });
 
   const slug: string = providerData?.slug ?? "";
-
-  const raw: any[] = providerData?.services ?? [];
-  const services: Service[] = raw.map((s) => ({
-    id: s.id,
-    name: s.name,
-    description: s.description ?? "",
-    durationMinutes: s.durationMinutes ?? 0,
-    priceCents: s.priceCents ?? 0,
-  }));
+  const services: ApiService[] = providerData?.services ?? [];
+  const allStaff: ApiStaff[]   = providerData?.staff    ?? [];
 
   return (
     <>
@@ -479,77 +418,40 @@ export default function ServicesPage() {
         title="Prestations"
         breadcrumb="Prestations"
         actions={
-          <Button
-            variant="primary"
-            size="sm"
-            icon={<PlusIcon size={13} />}
-            onClick={() => setEditing(null)}
-          >
+          <Button variant="primary" size="sm" icon={<Plus size={13} />} onClick={() => setEditing(null)}>
             Ajouter
           </Button>
         }
       >
-        {/* Cards grid */}
         {isLoading ? (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 12 }}>
             {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}
           </div>
         ) : services.length === 0 ? (
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 14,
-              padding: "80px 24px",
-              border: "1px dashed var(--hairline-strong)",
-              borderRadius: 12,
-              textAlign: "center",
-            }}
-          >
-            <div style={{ width: 40, height: 40, borderRadius: 10, backgroundColor: "rgba(12,12,14,0.04)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <Tag size={18} color="var(--ink-tertiary)" strokeWidth={1.5} />
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 14, padding: "80px 24px", border: `1px dashed ${ds.colors.borderStrong}`, borderRadius: 12, textAlign: "center" }}>
+            <div style={{ width: 40, height: 40, borderRadius: 10, backgroundColor: ds.colors.canvasMuted, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <Tag size={18} color={ds.colors.inkTertiary} strokeWidth={1.5} />
             </div>
             <div>
-              <p style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)", margin: "0 0 4px", letterSpacing: "-0.01em" }}>
-                Aucune prestation
-              </p>
-              <p style={{ fontSize: 13, color: "var(--ink-tertiary)", margin: 0 }}>
-                Ajoutez votre première prestation pour qu'elle apparaisse ici.
-              </p>
+              <p style={{ fontSize: 14, fontWeight: 600, color: ds.colors.ink, margin: "0 0 4px", letterSpacing: "-0.01em" }}>Aucune prestation</p>
+              <p style={{ fontSize: 13, color: ds.colors.inkTertiary, margin: 0 }}>Ajoutez votre première prestation pour qu'elle apparaisse ici.</p>
             </div>
-            <Button variant="primary" size="sm" icon={<PlusIcon size={13} />} onClick={() => setEditing(null)}>
-              Ajouter une prestation
-            </Button>
+            <Button variant="primary" size="sm" icon={<Plus size={13} />} onClick={() => setEditing(null)}>Ajouter une prestation</Button>
           </div>
         ) : (
-          <motion.div
-            layout
-            style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 12 }}
-          >
+          <motion.div layout style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 12 }}>
             <AnimatePresence mode="popLayout">
               {services.map((service, i) => (
-                <ServiceCard
-                  key={service.id}
-                  service={service}
-                  index={i}
-                  onEdit={(s) => setEditing(s)}
-                />
+                <ServiceCard key={service.id} service={service} staff={allStaff} slug={slug} index={i} onEdit={(s) => setEditing(s)} />
               ))}
             </AnimatePresence>
           </motion.div>
         )}
       </DashboardLayout>
 
-      {/* Modal */}
       <AnimatePresence>
         {editing !== undefined && (
-          <ServiceForm
-            slug={slug}
-            service={editing}
-            onClose={() => setEditing(undefined)}
-          />
+          <ServiceForm slug={slug} service={editing} allStaff={allStaff} onClose={() => setEditing(undefined)} />
         )}
       </AnimatePresence>
     </>
