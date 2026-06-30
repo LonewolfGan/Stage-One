@@ -1,9 +1,11 @@
 import { useState, useRef, useEffect, type ReactNode } from "react";
 import { Link, useLocation } from "wouter";
-import {
-  Calendar, Scissors, Users, BarChart2,
-  Settings, Home, Menu, Bell,
-} from "lucide-react";
+import { Calendar, Scissors, BarChart2 } from "lucide-react";
+import { BellIcon }     from "@/components/ui/bell";
+import { UsersIcon }    from "@/components/ui/users";
+import { SettingsIcon } from "@/components/ui/settings";
+import { HomeIcon }     from "@/components/ui/home";
+import { MenuIcon }     from "@/components/ui/menu";
 import { motion, AnimatePresence } from "framer-motion";
 import { useBreakpoint } from "@/hooks/use-mobile";
 import { useNotifications } from "@/hooks/useNotifications";
@@ -11,12 +13,26 @@ import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
 
 const NAV_ITEMS = [
-  { name: "Agenda",       href: "/dashboard/agenda",    icon: Calendar   },
-  { name: "Prestations",  href: "/dashboard/services",  icon: Scissors   },
-  { name: "Équipe",       href: "/dashboard/staff",     icon: Users      },
-  { name: "Statistiques", href: "/dashboard/analytics", icon: BarChart2  },
-  { name: "Paramètres",   href: "/dashboard/settings",  icon: Settings   },
+  { name: "Agenda",       href: "/dashboard/agenda"    },
+  { name: "Prestations",  href: "/dashboard/services"  },
+  { name: "Équipe",       href: "/dashboard/staff"     },
+  { name: "Statistiques", href: "/dashboard/analytics" },
+  { name: "Paramètres",   href: "/dashboard/settings"  },
 ];
+
+function NavIcon({ name, isActive }: { name: string; isActive: boolean }) {
+  const color  = isActive ? "#FFFFFF" : "rgba(255,255,255,0.70)";
+  const sw     = isActive ? 2.2 : 1.6;
+  const style  = { color };
+  switch (name) {
+    case "Agenda":       return <Calendar size={18} strokeWidth={sw} color={color} />;
+    case "Prestations":  return <Scissors size={18} strokeWidth={sw} color={color} />;
+    case "Équipe":       return <UsersIcon    size={18} style={style} />;
+    case "Statistiques": return <BarChart2 size={18} strokeWidth={sw} color={color} />;
+    case "Paramètres":   return <SettingsIcon size={18} style={style} />;
+    default:             return null;
+  }
+}
 
 /* Rail geometry */
 const RAIL_W   = 72;
@@ -78,7 +94,7 @@ function NotificationPanel({ open, onClose }: { open: boolean; onClose: () => vo
           <div style={{ maxHeight: 380, overflowY: "auto" }}>
             {notifications.length === 0 ? (
               <div style={{ padding: "32px 16px", textAlign: "center", color: "var(--ink-tertiary)", fontSize: 13 }}>
-                <Bell size={28} style={{ margin: "0 auto 10px", opacity: 0.3, display: "block" }} />
+                <BellIcon size={28} style={{ margin: "0 auto 10px", opacity: 0.3, display: "block" }} />
                 Aucune notification
               </div>
             ) : notifications.map((n) => (
@@ -138,11 +154,7 @@ function Rail({ onClose }: { onClose?: () => void }) {
             <Link key={item.name} href={item.href} style={{ textDecoration: "none", display: "block", width: "100%" }} onClick={onClose}>
               <div className={`drl-item${isActive ? " drl-item--active" : ""}`} data-tip={item.name}>
                 {isActive && <span className="drl-pip" />}
-                <item.icon
-                  size={18}
-                  strokeWidth={isActive ? 2.2 : 1.6}
-                  color={isActive ? "#FFFFFF" : "rgba(255,255,255,0.70)"}
-                />
+                <NavIcon name={item.name} isActive={isActive} />
               </div>
             </Link>
           );
@@ -155,7 +167,7 @@ function Rail({ onClose }: { onClose?: () => void }) {
 
         <Link href="/" style={{ textDecoration: "none", display: "block", width: "100%", marginBottom: 10 }}>
           <div className="drl-item" data-tip="Voir le site">
-            <Home size={16} strokeWidth={1.6} color="rgba(255,255,255,0.70)" />
+            <HomeIcon size={16} style={{ color: "rgba(255,255,255,0.70)" }} />
           </div>
         </Link>
 
@@ -299,7 +311,7 @@ export function DashboardLayout({ children, title, actions, breadcrumb, noPaddin
                 whileTap={{ scale: 0.92 }}
                 style={{ width: 34, height: 34, display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "rgba(12,12,14,0.04)", border: "1px solid var(--hairline)", borderRadius: "var(--radius-control)", cursor: "pointer", color: "var(--ink-secondary)", flexShrink: 0 }}
               >
-                <Menu size={15} />
+                <MenuIcon size={15} />
               </motion.button>
             )}
             <div>
@@ -324,7 +336,7 @@ export function DashboardLayout({ children, title, actions, breadcrumb, noPaddin
                 whileTap={{ scale: 0.91 }}
                 style={{ width: 34, height: 34, display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: notifOpen ? "rgba(12,12,14,0.06)" : "rgba(12,12,14,0.04)", border: "1px solid var(--hairline)", borderRadius: "var(--radius-control)", cursor: "pointer", color: "var(--ink-secondary)", position: "relative" }}
               >
-                <Bell size={15} />
+                <BellIcon size={15} />
                 {unreadCount > 0 && (
                   <motion.span
                     key={unreadCount}

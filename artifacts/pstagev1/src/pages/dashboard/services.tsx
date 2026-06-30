@@ -4,7 +4,10 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/DSButton";
 import { api } from "@/lib/api";
-import { Plus, Clock, Pencil, Tag, X, Trash2 } from "lucide-react";
+import { Pencil, Tag, Trash2 } from "lucide-react";
+import { PlusIcon }  from "@/components/ui/plus";
+import { ClockIcon } from "@/components/ui/clock";
+import { XIcon }     from "@/components/ui/x";
 
 interface Service {
   id: string;
@@ -135,7 +138,7 @@ function ServiceForm({ slug, service, onClose }: ServiceFormProps) {
             onClick={onClose}
             style={{ background: "none", border: "none", cursor: "pointer", color: "var(--ink-tertiary)", padding: 4, display: "flex", borderRadius: 6 }}
           >
-            <X size={16} />
+            <XIcon size={16} />
           </button>
         </div>
 
@@ -336,7 +339,7 @@ function ServiceCard({
             marginTop: 1,
           }}
         >
-          <Clock size={10} strokeWidth={2} style={{ flexShrink: 0 }} />
+          <ClockIcon size={10} style={{ flexShrink: 0 }} />
           {service.durationMinutes} min
         </span>
       </div>
@@ -479,7 +482,7 @@ export default function ServicesPage() {
           <Button
             variant="primary"
             size="sm"
-            icon={<Plus size={13} />}
+            icon={<PlusIcon size={13} />}
             onClick={() => setEditing(null)}
           >
             Ajouter
@@ -516,7 +519,7 @@ export default function ServicesPage() {
                 Ajoutez votre première prestation pour qu'elle apparaisse ici.
               </p>
             </div>
-            <Button variant="primary" size="sm" icon={<Plus size={13} />} onClick={() => setEditing(null)}>
+            <Button variant="primary" size="sm" icon={<PlusIcon size={13} />} onClick={() => setEditing(null)}>
               Ajouter une prestation
             </Button>
           </div>

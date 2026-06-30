@@ -4,7 +4,14 @@ import { useLocation } from "wouter";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/DSButton";
 import { api } from "@/lib/api";
-import { ChevronLeft, ChevronRight, Plus, ArrowUpRight, X, Lock, Scissors, User } from "lucide-react";
+import { Scissors } from "lucide-react";
+import { ChevronLeftIcon }  from "@/components/ui/chevron-left";
+import { ChevronRightIcon } from "@/components/ui/chevron-right";
+import { PlusIcon }         from "@/components/ui/plus";
+import { ArrowUpRightIcon } from "@/components/ui/arrow-up-right";
+import { XIcon }            from "@/components/ui/x";
+import { LockIcon }         from "@/components/ui/lock";
+import { UserIcon }         from "@/components/ui/user";
 import { useBreakpoint } from "@/hooks/use-mobile";
 import { useSlotSync } from "@/hooks/useSlotSync";
 import { useBookingNotifications } from "@/hooks/useBookingNotifications";
@@ -96,7 +103,7 @@ function MonthCalendar({
           onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-2)")}
           onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
         >
-          <ChevronLeft size={16} />
+          <ChevronLeftIcon size={16} />
         </button>
         <span style={{ fontSize: 17, fontWeight: 700, color: "var(--ink)", letterSpacing: "-0.02em" }}>
           {format(viewMonth, "MMMM", { locale: fr }).replace(/^\w/, (c) => c.toUpperCase())}
@@ -109,7 +116,7 @@ function MonthCalendar({
           onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-2)")}
           onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
         >
-          <ChevronRight size={16} />
+          <ChevronRightIcon size={16} />
         </button>
       </div>
 
@@ -398,7 +405,7 @@ export default function AgendaPage() {
           <Button
             variant="ghost"
             size="sm"
-            icon={<Plus size={13} />}
+            icon={<PlusIcon size={13} />}
             style={{ backgroundColor: "var(--accent-tint)", color: "var(--accent)", border: "1px solid rgba(212,70,110,0.2)" }}
             onClick={() => {
               const firstStaff = staffList[0];
@@ -430,7 +437,7 @@ export default function AgendaPage() {
                 onClick={() => setCurrentDate((d) => { const nd = new Date(d); nd.setDate(nd.getDate() - 1); return nd; })}
                 style={{ width: 30, height: 30, borderRadius: 8, border: "1px solid var(--hairline)", background: "var(--surface-1)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--ink-secondary)" }}
               >
-                <ChevronLeft size={15} />
+                <ChevronLeftIcon size={15} />
               </button>
               <button
                 onClick={() => setCurrentDate(new Date())}
@@ -442,7 +449,7 @@ export default function AgendaPage() {
                 onClick={() => setCurrentDate((d) => { const nd = new Date(d); nd.setDate(nd.getDate() + 1); return nd; })}
                 style={{ width: 30, height: 30, borderRadius: 8, border: "1px solid var(--hairline)", background: "var(--surface-1)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--ink-secondary)" }}
               >
-                <ChevronRight size={15} />
+                <ChevronRightIcon size={15} />
               </button>
             </div>
           </div>
@@ -485,7 +492,7 @@ export default function AgendaPage() {
               onClick={() => navigate("/dashboard/agenda/bookings")}
               style={{ fontSize: 12, color: "var(--accent)", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 3, background: "none", border: "none", padding: 0 }}
             >
-              Tout voir <ArrowUpRight size={12} />
+              Tout voir <ArrowUpRightIcon size={12} />
             </button>
           </div>
 
@@ -555,7 +562,7 @@ export default function AgendaPage() {
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
               <h3 style={{ fontSize: 17, fontWeight: 600, color: "var(--ink)" }}>Bloquer ce créneau</h3>
               <button onClick={() => setBlockModal(null)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--ink-tertiary)", display: "flex" }}>
-                <X size={18} />
+                <XIcon size={18} />
               </button>
             </div>
             <p style={{ fontSize: 13, color: "var(--ink-tertiary)", marginBottom: 16 }}>
