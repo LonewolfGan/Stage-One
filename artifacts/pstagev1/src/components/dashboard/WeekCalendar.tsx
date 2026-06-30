@@ -2,6 +2,7 @@ import { useMemo, useState, useRef, useCallback, useEffect } from "react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { X, Clock, User, Scissors, CreditCard, CheckCircle, XCircle, AlertCircle } from "lucide-react";
+import { ds } from "@/lib/design-system";
 
 // ────────────────────────────────────────────────
 // TYPES
@@ -112,12 +113,12 @@ function computeStack(bookings: WeekCalendarBooking[]): Stacked[] {
 
 function getStatusLabel(status?: string): { label: string; color: string; bg: string } {
   switch (status) {
-    case "CONFIRMED":  return { label: "Confirmé",  color: "#059669", bg: "rgba(5,150,105,0.10)" };
-    case "PENDING":    return { label: "En attente", color: "#D97706", bg: "rgba(217,119,6,0.10)"  };
-    case "CANCELLED":  return { label: "Annulé",    color: "#DC2626", bg: "rgba(220,38,38,0.10)"  };
-    case "COMPLETED":  return { label: "Terminé",   color: "#6B7280", bg: "rgba(107,114,128,0.10)" };
-    case "EXPIRED":    return { label: "Expiré",    color: "#9CA3AF", bg: "rgba(156,163,175,0.10)" };
-    default:           return { label: status ?? "—", color: "#6B7280", bg: "rgba(107,114,128,0.10)" };
+    case "CONFIRMED":  return { label: "Confirmé",   color: ds.colors.success,     bg: ds.colors.successBg  };
+    case "PENDING":    return { label: "En attente", color: ds.colors.accent,      bg: ds.colors.accentLight };
+    case "CANCELLED":  return { label: "Annulé",     color: ds.colors.error,       bg: ds.colors.errorBg    };
+    case "COMPLETED":  return { label: "Terminé",    color: ds.colors.inkTertiary, bg: ds.colors.canvasMuted };
+    case "EXPIRED":    return { label: "Expiré",     color: ds.colors.inkDisabled, bg: ds.colors.canvasMuted };
+    default:           return { label: status ?? "—", color: ds.colors.inkTertiary, bg: ds.colors.canvasMuted };
   }
 }
 
@@ -185,7 +186,7 @@ function BookingPopup({
         top:             position.top,
         left,
         width:           POPUP_W,
-        backgroundColor: "#0E0E12",
+        backgroundColor: ds.colors.ink,
         borderRadius:    10,
         overflow:        "hidden",
         zIndex:          300,
@@ -197,7 +198,7 @@ function BookingPopup({
         <p style={{
           fontSize:      13,
           fontWeight:    600,
-          color:         "#FFFFFF",
+          color:         ds.colors.canvas,
           margin:        "0 0 10px",
           lineHeight:    1.3,
           letterSpacing: "-0.01em",
@@ -218,7 +219,7 @@ function BookingPopup({
             backgroundColor: color,
             flexShrink:      0,
           }} />
-          <span style={{ fontSize: 12, fontWeight: 600, color: "#FFFFFF", letterSpacing: "-0.01em" }}>
+          <span style={{ fontSize: 12, fontWeight: 600, color: ds.colors.canvas, letterSpacing: "-0.01em" }}>
             {timeLabel}
           </span>
           <span style={{

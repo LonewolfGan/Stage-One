@@ -26,6 +26,9 @@ export const ds = {
     error:         "#E11D32",
     errorBg:       "#FDEBEE",
     errorBorder:   "rgba(225, 29, 50, 0.24)",
+    info:          "#3B6FE0",
+    infoBg:        "#EEF4FF",
+    infoBorder:    "rgba(59, 111, 224, 0.20)",
   },
   radius: {
     xs:   "4px",

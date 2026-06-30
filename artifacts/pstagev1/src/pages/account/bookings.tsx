@@ -232,7 +232,7 @@ export default function AccountBookingsPage() {
                 style={{
                   flex: 1, padding: "10px 16px", border: "none", borderRadius: 8,
                   background: ds.colors.error, fontSize: 14, fontWeight: 500,
-                  color: "#fff", cursor: cancelMutation.isPending ? "not-allowed" : "pointer",
+                  color: ds.colors.canvas, cursor: cancelMutation.isPending ? "not-allowed" : "pointer",
                   opacity: cancelMutation.isPending ? 0.65 : 1, transition: "opacity 140ms",
                 }}
               >

@@ -1,4 +1,5 @@
 import { type ReactNode } from "react";
+import { ds } from "@/lib/design-system";
 
 type BadgeVariant =
   | "success"
@@ -14,7 +15,7 @@ const STYLES: Record<BadgeVariant, { bg: string; color: string; border: string }
   warning:   { bg: "var(--warning-bg)",   color: "var(--warning)",   border: "var(--warning-border)"   },
   error:     { bg: "var(--error-bg)",     color: "var(--error)",     border: "var(--error-border)"     },
   completed: { bg: "var(--completed-bg)", color: "var(--completed)", border: "var(--completed-border)" },
-  info:      { bg: "#EEF4FF",             color: "#3B6FE0",          border: "rgba(59,111,224,0.20)"   },
+  info:      { bg: ds.colors.infoBg,       color: ds.colors.info,     border: ds.colors.infoBorder      },
   accent:    { bg: "var(--accent-tint)",  color: "var(--accent)",    border: "var(--accent-hairline)"  },
   neutral:   { bg: "rgba(12,12,14,0.04)", color: "var(--ink-secondary)", border: "var(--hairline)"    },
 };

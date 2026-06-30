@@ -4,6 +4,7 @@ import { useLocation } from "wouter";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/DSButton";
 import { api } from "@/lib/api";
+import { ds } from "@/lib/design-system";
 import { Scissors } from "lucide-react";
 import { ChevronLeftIcon }  from "@/components/ui/chevron-left";
 import { ChevronRightIcon } from "@/components/ui/chevron-right";
@@ -35,10 +36,10 @@ interface BlockModal {
 
 /* ── Status system — single source of truth ── */
 const STATUS_CONFIG = {
-  confirmed:  { color: "#33CA7F", bg: "rgba(51,202,127,0.10)",  border: "rgba(51,202,127,0.22)",  label: "Confirmé"   },
-  pending:    { color: "#EC8932", bg: "rgba(236,137,50,0.10)",  border: "rgba(236,137,50,0.22)",  label: "En attente" },
-  cancelled:  { color: "#DC0470", bg: "rgba(220,4,112,0.10)",   border: "rgba(220,4,112,0.22)",   label: "Annulé"     },
-  completed:  { color: "#0C0C0E", bg: "rgba(12,12,14,0.06)",    border: "rgba(12,12,14,0.16)",    label: "Terminé"    },
+  confirmed:  { color: ds.colors.success,     bg: ds.colors.successBg,   border: ds.colors.successBorder,  label: "Confirmé"   },
+  pending:    { color: ds.colors.accent,       bg: ds.colors.accentLight, border: ds.colors.accentBorder,   label: "En attente" },
+  cancelled:  { color: ds.colors.error,        bg: ds.colors.errorBg,     border: ds.colors.errorBorder,    label: "Annulé"     },
+  completed:  { color: ds.colors.ink,          bg: ds.colors.canvasMuted, border: ds.colors.border,         label: "Terminé"    },
 } as const;
 
 type BookingStatus = keyof typeof STATUS_CONFIG;
@@ -58,7 +59,7 @@ function avatarInitials(name: string) {
 }
 
 function avatarColor(name: string) {
-  const colors = ["#33CA7F", "#EC8932", "#DC0470", "#0C0C0E", "#6B8CFF", "#B06DCC"];
+  const colors = [ds.colors.success, ds.colors.accent, ds.colors.error, ds.colors.ink, "#6B8CFF", "#B06DCC"];
   let hash = 0;
   for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
   return colors[Math.abs(hash) % colors.length];

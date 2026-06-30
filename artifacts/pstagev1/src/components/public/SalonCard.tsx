@@ -2,6 +2,7 @@ import { useLocation } from "wouter";
 import { Star } from "lucide-react";
 import { motion } from "framer-motion";
 import { Provider, generateSlots, getNextAvailable } from "@/lib/types";
+import { ds } from "@/lib/design-system";
 
 interface SalonCardProps {
   provider: Provider;
@@ -18,8 +19,8 @@ export function SalonCard({ provider, featured = false }: SalonCardProps) {
     <motion.div
       className="group"
       style={{
-        background: "#FFFFFF",
-        border: "1px solid rgba(12, 12, 14, 0.08)",
+        background: ds.colors.canvas,
+        border: `1px solid ${ds.colors.border}`,
         borderRadius: 12,
         overflow: "hidden",
         cursor: "pointer",
@@ -61,8 +62,8 @@ export function SalonCard({ provider, featured = false }: SalonCardProps) {
               left: 12,
               height: 22,
               padding: "0 8px",
-              backgroundColor: "#FFFFFF",
-              color: "#0C0C0E",
+              backgroundColor: ds.colors.canvas,
+              color: ds.colors.ink,
               fontSize: 11,
               fontWeight: 500,
               borderRadius: 9999,
@@ -83,7 +84,7 @@ export function SalonCard({ provider, featured = false }: SalonCardProps) {
               style={{
                 fontSize: 15,
                 fontWeight: 600,
-                color: "#0C0C0E",
+                color: ds.colors.ink,
                 letterSpacing: "-0.01em",
                 overflow: "hidden",
                 textOverflow: "ellipsis",
@@ -111,8 +112,8 @@ export function SalonCard({ provider, featured = false }: SalonCardProps) {
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 8 }}>
-          <Star size={13} color="#E8A33D" fill="#E8A33D" />
-          <span style={{ fontSize: 13, fontWeight: 500, color: "#0C0C0E" }}>
+          <Star size={13} color={ds.colors.rating} fill={ds.colors.rating} />
+          <span style={{ fontSize: 13, fontWeight: 500, color: ds.colors.ink }}>
             {provider.rating.toFixed(1)}
           </span>
           <span style={{ fontSize: 13, color: "var(--ink-tertiary)" }}>
@@ -120,7 +121,7 @@ export function SalonCard({ provider, featured = false }: SalonCardProps) {
           </span>
         </div>
 
-        <hr style={{ border: "none", borderTop: "1px solid rgba(12, 12, 14, 0.08)", margin: "12px 0" }} />
+        <hr style={{ border: "none", borderTop: `1px solid ${ds.colors.border}`, margin: "12px 0" }} />
 
         <p style={{ fontSize: 12, fontWeight: 500, color: "var(--ink-tertiary)", marginBottom: 8 }}>
           {nextAvailableText}
@@ -137,11 +138,11 @@ export function SalonCard({ provider, featured = false }: SalonCardProps) {
               style={{
                 height: 32,
                 padding: "0 12px",
-                border: "1px solid rgba(12, 12, 14, 0.10)",
+                border: `1px solid ${ds.colors.border}`,
                 borderRadius: 9999,
                 fontSize: 12,
                 fontWeight: 500,
-                color: "#0C0C0E",
+                color: ds.colors.ink,
                 background: "transparent",
                 cursor: "pointer",
               }}

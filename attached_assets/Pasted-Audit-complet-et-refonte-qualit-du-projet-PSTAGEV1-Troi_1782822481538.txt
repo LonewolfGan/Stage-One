@@ -1,0 +1,422 @@
+Audit complet et refonte qualité du projet PSTAGEV1.
+Trois objectifs : conformité PRD, excellence UI/UX, propreté du code.
+Ne rien implémenter de nouveau. Corriger ce qui existe.
+
+---
+PHASE 1 — AUDIT PRD vs UI
+
+Pour chaque page, vérifie que TOUTES les exigences
+fonctionnelles du PRD sont représentées dans l'UI.
+Pas seulement côté API — dans l'interface visible.
+
+Voici les écarts connus à corriger immédiatement :
+
+PAGE : Settings / Profil prestataire
+PRD : les providers ont des photos (logoUrl + galerie)
+UI actuelle : upload désactivé "Phase 2"
+Correction : implémenter l'upload réel via :
+  - Input file HTML natif
+  - POST /api/dashboard/provider/upload-logo
+    → recevoir le fichier, stocker sur Cloudflare R2
+      (ou filesystem local si R2 non configuré),
+      retourner l'URL, UPDATE providers SET logo_url
+  - Même chose pour la galerie photos :
+    POST /api/dashboard/provider/upload-photo
+    → stocker, retourner URL, INSERT dans provider_photos
+  - Afficher les photos uploadées en grille avec
+    possibilité de supprimer chacune
+  - Si R2 non configuré → stocker en base64 ou
+    dans /public/uploads/ en dev
+
+PAGE : Provider Profile (fiche publique)
+PRD : afficher photos, services, staff, avis, horaires
+UI actuelle : horaires d'ouverture absents de la fiche
+Correction : ajouter une section "Horaires" sur la fiche :
+  Lundi–Vendredi : 09h00 – 19h00
+  Samedi : 10h00 – 18h00
+  Dimanche : Fermé
+  Données depuis GET /api/providers/:slug
+  (business_hours déjà en DB, juste pas affiché)
+
+PAGE : Booking
+PRD R-FUNC-024 : le client peut changer de staff
+parmi ceux disponibles au même créneau
+UI actuelle : vérifier que le StaffSelector
+montre uniquement les staff disponibles
+sur le créneau sélectionné, pas tous les staff.
+Si ce n'est pas le cas → filtrer par slot sélectionné.
+
+PAGE : Account / Bookings (mes réservations)
+PRD R-FUNC-028 : annulation uniquement si
+startDatetime > now + 2h
+UI actuelle : vérifier que la condition est bien
+appliquée visuellement (bouton grisé ou absent
+si dans moins de 2h)
+
+PAGE : Dashboard Agenda
+PRD R-FUNC-013 : congés staff via ScheduleBlock
+UI actuelle : pas d'UI pour déclarer un congé staff
+Correction : dans la page agenda ou settings,
+ajouter un bouton "Déclarer une absence" par staff :
+  Modal avec : staff concerné, date début, date fin, motif
+  → POST /api/dashboard/blocks
+    { staffId, type: 'ABSENCE', startDatetime, endDatetime }
+
+PAGE : Dashboard Staff
+PRD : chaque staff a photo, nom, bio, spécialités
+UI actuelle : vérifier que le formulaire d'ajout/edit staff
+contient bien tous ces champs ET que les spécialités
+correspondent aux services assignés (serviceStaff)
+Pas juste un champ texte libre — une liste de checkboxes
+des services disponibles du provider.
+
+Pour chaque page de l'app, réponds à ces questions :
+1. Tous les champs du modèle de données sont-ils
+   représentés quelque part dans l'UI ?
+2. Toutes les actions possibles (PRD) sont-elles
+   accessibles depuis cette page ?
+3. Y a-t-il des éléments UI qui n'ont aucune
+   correspondance dans le PRD ? (à supprimer)
+
+---
+PHASE 2 — DESIGN SYSTEM CENTRALISÉ
+
+Problème : les styles sont probablement dispersés
+dans chaque composant avec des valeurs hardcodées.
+Il faut centraliser en un seul endroit.
+
+⚠️ CORRECTION IMPORTANTE PAR RAPPORT À TOUTE VERSION
+ANTÉRIEURE DE CE FICHIER : les couleurs ci-dessous sont les
+SEULES valides. Si un design-system.ts existe déjà avec
+d'autres valeurs (notamment accent: '#D4547A' ou
+ink: '#0A0A0A' ou success/error différents), ÉCRASE-le
+entièrement avec la version ci-dessous — ne fusionne pas,
+ne garde aucune ancienne valeur.
+
+Crée ou remplace apps/web/src/lib/design-system.ts :
+
+export const ds = {
+  colors: {
+    canvas: '#FFFFFF',
+    canvasSubtle: '#FAFAFA',
+    canvasMuted: '#F5F5F5',
+    ink: '#0C0C0E',
+    inkSecondary: 'rgba(12, 12, 14, 0.65)',
+    inkTertiary: 'rgba(12, 12, 14, 0.45)',
+    inkDisabled: 'rgba(12, 12, 14, 0.28)',
+    border: 'rgba(12, 12, 14, 0.10)',
+    borderMedium: 'rgba(12, 12, 14, 0.16)',
+    borderStrong: 'rgba(12, 12, 14, 0.24)',
+    accent: '#D4466E',
+    accentHover: '#B8345B',
+    accentLight: '#FBEEF1',
+    accentBorder: 'rgba(212, 70, 110, 0.22)',
+    rating: '#F59E0B',
+    success: '#33CA7F',
+    successBg: '#EAFAF1',
+    error: '#E11D32',
+    errorBg: '#FDEBEE',
+  },
+  radius: {
+    xs: '4px',
+    sm: '6px',
+    md: '8px',
+    lg: '12px',
+    xl: '16px',
+    full: '9999px',
+  },
+  font: {
+    display: 'text-[48px] font-semibold leading-[1.10] tracking-[-0.03em]',
+    headingL: 'text-[32px] font-semibold leading-[1.20] tracking-[-0.02em]',
+    headingM: 'text-[24px] font-semibold leading-[1.25] tracking-[-0.01em]',
+    headingS: 'text-[18px] font-medium leading-[1.35] tracking-[-0.01em]',
+    bodyL: 'text-[17px] font-normal leading-relaxed',
+    body: 'text-[15px] font-normal leading-relaxed',
+    bodyS: 'text-[13px] font-normal leading-[1.50]',
+    label: 'text-[14px] font-medium leading-none',
+    caption: 'text-[12px] font-normal leading-[1.40]',
+  }
+} as const
+
+RÈGLE ANTI-GRIS-DÉGUISÉ (critique, ne pas ignorer) :
+Toute valeur "ink" utilisée avec une opacité inférieure à
+0.28 devient visuellement indiscernable d'un gris, peu
+importe que la couleur de départ soit #0C0C0E. C'est
+interdit. Cherche et corrige tout pattern de ce type :
+  - style={{ backgroundColor: "var(--ink)", opacity: 0.1X }}
+    avec X < 28 → remplacer par ds.colors.canvasMuted si
+    c'est un fond, ou par ds.colors.inkTertiary si c'est
+    du texte.
+  - className="bg-ink/5" à "bg-ink/27" → interdit.
+  - Tout hack du type opacity: 1 / 0.12 sur un enfant pour
+    "annuler" l'opacité du parent → signe que la technique
+    d'origine est fragile, remplacer par une vraie couleur
+    de surface (canvasMuted) au lieu d'un noir dilué.
+Plancher absolu : 0.28. En dessous, ce n'est plus "notre
+noir de marque", c'est un gris qui contourne la règle.
+
+Crée apps/web/src/components/ui/index.ts
+qui exporte TOUS les composants réutilisables
+depuis un seul endroit :
+
+export { Button } from './button'
+export { Input } from './input'
+export { Card } from './card'
+export { Badge } from './badge'
+export { Avatar } from './avatar'
+export { Skeleton } from './skeleton'
+export { EmptyState } from './empty-state'
+export { LoadingSpinner } from './loading-spinner'
+export { PageHeader } from './page-header'
+export { SectionTitle } from './section-title'
+export { StatusBadge } from './status-badge'
+
+Crée ces composants manquants s'ils n'existent pas.
+IMPORTANT : aucun de ces composants ne doit contenir de
+couleur hexadécimale en dur — chaque couleur référence
+ds.colors.xxx, jamais une valeur littérale recopiée.
+
+EmptyState (apps/web/src/components/ui/empty-state.tsx) :
+  interface EmptyStateProps {
+    icon: LucideIcon
+    title: string
+    description: string
+    action?: { label: string; onClick: () => void }
+  }
+  Rendu (couleurs via ds, pas en dur) :
+  <div className="flex flex-col items-center justify-center
+                  py-16 text-center">
+    <div className="w-10 h-10 rounded-full flex items-center
+                    justify-center mb-4"
+         style={{ backgroundColor: ds.colors.canvasMuted }}>
+      <Icon className="w-5 h-5"
+            style={{ color: ds.colors.inkTertiary }} />
+    </div>
+    <h3 className="text-[15px] font-medium tracking-[-0.01em] mb-1"
+        style={{ color: ds.colors.ink }}>{title}</h3>
+    <p className="text-[13px] max-w-[220px]"
+       style={{ color: ds.colors.inkTertiary }}>{description}</p>
+    {action && <Button onClick={action.onClick}
+                       className="mt-4">{action.label}</Button>}
+  </div>
+
+StatusBadge (apps/web/src/components/ui/status-badge.tsx) :
+  type Status = 'PENDING'|'CONFIRMED'|'CANCELLED'|
+                'COMPLETED'|'EXPIRED'
+  Mapping couleurs — UNIQUEMENT via ds.colors, pas de hex
+  en dur dans ce composant :
+    PENDING   → couleur ds.colors.accent (rose, "en attente"
+                d'action), fond ds.colors.accentLight
+    CONFIRMED → couleur ds.colors.success, fond ds.colors.successBg
+    CANCELLED → couleur ds.colors.error, fond ds.colors.errorBg
+    COMPLETED → couleur ds.colors.ink, fond ds.colors.canvasMuted
+    EXPIRED   → couleur ds.colors.inkTertiary, fond ds.colors.canvasMuted
+  Labels FR :
+    PENDING   → "En attente"
+    CONFIRMED → "Confirmé"
+    CANCELLED → "Annulé"
+    COMPLETED → "Terminé"
+    EXPIRED   → "Expiré"
+
+PageHeader (apps/web/src/components/ui/page-header.tsx) :
+  interface PageHeaderProps {
+    title: string
+    description?: string
+    action?: ReactNode
+  }
+  Rendu (couleurs via ds) :
+  <div className="flex items-start justify-between mb-8">
+    <div>
+      <h1 className="text-[24px] font-semibold tracking-[-0.02em]"
+          style={{ color: ds.colors.ink }}>{title}</h1>
+      {description && (
+        <p className="text-[14px] mt-1"
+           style={{ color: ds.colors.inkSecondary }}>
+          {description}
+        </p>
+      )}
+    </div>
+    {action && <div>{action}</div>}
+  </div>
+
+---
+PHASE 3 — AUDIT COMPOSANT PAR COMPOSANT
+
+Pour chaque composant existant, vérifie :
+
+1. PERTINENCE : ce composant a-t-il sa place ici ?
+   Affiche-t-il des informations utiles ou juste du remplissage ?
+
+2. COMPLÉTUDE : affiche-t-il TOUTES les données
+   disponibles en base (selon le schéma Prisma/Drizzle) ?
+   Exemples à vérifier :
+   - BookingBlock dans l'agenda : affiche-t-il le prix ?
+     La durée ? Le statut ?
+   - SalonCard : affiche-t-il le type (establishment/individual) ?
+   - ServiceCard : affiche-t-il le bufferMinutes ?
+     (utile pour que le client comprenne la durée totale)
+   - StaffCard : affiche-t-il les services qu'il réalise ?
+   - ReviewCard : affiche-t-il la réponse du prestataire
+     si elle existe ?
+
+3. HIÉRARCHIE VISUELLE : l'information la plus importante
+   est-elle visuellement dominante ?
+   L'information secondaire est-elle bien dans les tons
+   secondaires (ds.colors.inkSecondary, ds.colors.inkTertiary —
+   jamais une valeur grise codée en dur) ?
+
+4. ACTIONS MANQUANTES : y a-t-il des actions possibles
+   selon le PRD qui ne sont pas accessibles depuis
+   ce composant ?
+
+Corrections spécifiques attendues :
+
+BookingBlock (agenda) :
+  Doit afficher : serviceName, clientName, heure début-fin,
+  durée, prix en MAD, statut avec StatusBadge
+  Doit permettre : clic pour voir détails,
+  bouton annuler si CONFIRMED et dans le futur
+
+ServiceCard (dashboard/services) :
+  Doit afficher : nom, durée, prix MAD, buffer,
+  liste des staff assignés (chips avec initiales),
+  badge actif/inactif
+  Doit permettre : toggle actif/inactif inline,
+  éditer, supprimer avec confirmation
+  (bouton supprimer en ds.colors.error — voir Phase 2)
+
+StaffCard (dashboard/staff) :
+  Doit afficher : photo ou avatar initiales,
+  nom, bio, liste des services qu'il réalise (chips),
+  statut actif/inactif
+  Doit permettre : éditer, désactiver,
+  déclarer une absence (bouton secondaire)
+
+ReviewCard (provider profile) :
+  Doit afficher : étoiles, commentaire, nom client,
+  date, ET la réponse du prestataire si elle existe
+  (encadrée différemment, préfixée "Réponse du salon :")
+
+---
+PHASE 4 — NETTOYAGE CODE MORT
+
+Lance ces commandes et corrige tout ce qui remonte :
+
+1. Imports inutilisés :
+   npx eslint . --rule '{"no-unused-vars": "error"}' --fix
+
+2. Variables inutilisées :
+   npx tsc --noEmit 2>&1 | grep "is declared but"
+
+3. Fichiers jamais importés nulle part :
+   find apps/web/src -name "*.tsx" -o -name "*.ts" | \
+   xargs grep -L "import\|export default" | \
+   grep -v "index\|main\|vite-env"
+
+4. console.log restants :
+   grep -r "console\." apps/web/src apps/api/src \
+   --include="*.ts" --include="*.tsx" \
+   | grep -v "console.error\|logger\."
+   → Supprimer tous les console.log de debug
+   → Garder uniquement console.error wrappés dans logger
+
+5. Commentaires de code mort :
+   grep -r "\/\/ TODO\|\/\/ FIXME\|\/\/ HACK\|\/\/ Phase\|\/\/ mock\|\/\/ temp" \
+   apps/web/src apps/api/src \
+   --include="*.ts" --include="*.tsx"
+   → Pour chaque ligne : soit l'implémenter, soit la supprimer
+
+6. Vérifier qu'il n'y a pas de fichiers dupliqués :
+   find . -name "*.tsx" | sed 's/.*\///' | sort | uniq -d
+   → Si des noms de fichiers apparaissent deux fois,
+     vérifier lequel est utilisé et supprimer l'autre
+
+7. Couleurs codées en dur hors du design system :
+   grep -rnE "#[0-9A-Fa-f]{3,6}" --include="*.tsx" --include="*.ts" \
+   apps/web/src | grep -v "design-system.ts"
+   → Toute couleur hex trouvée hors de design-system.ts
+     doit être remplacée par une référence ds.colors.xxx.
+     Si la couleur n'a pas d'équivalent dans ds, ne pas
+     l'inventer — demander l'extension de design-system.ts.
+
+8. Noir dilué en gris déguisé :
+   grep -rnE "opacity:\s*0\.(0[0-9]|1[0-9]|2[0-7])" \
+   --include="*.tsx" apps/web/src
+   grep -rnE "bg-ink/(0?[1-9]|1[0-9]|2[0-7])\b" \
+   --include="*.tsx" apps/web/src
+   → Tout résultat est une violation de la règle anti-gris-
+     déguisé de la Phase 2. Corriger selon cette règle.
+
+---
+PHASE 5 — BONNES PRATIQUES REACT/NEXT.JS
+
+Vérifie et corrige ces patterns dans tout le codebase :
+
+1. Pas de fetch direct dans les composants :
+   Tout appel API passe par useQuery ou dans un
+   Server Component Next.js, jamais dans un useEffect
+   avec fetch manuel sauf exception justifiée.
+
+2. Gestion d'erreur sur toutes les queries :
+   const { data, isLoading, error } = useQuery(...)
+   if (isLoading) return <SkeletonComponent />
+   if (error) return <EmptyState ... />
+   Ces trois états doivent être gérés partout.
+
+3. Typage strict :
+   Toutes les réponses API doivent avoir un type défini
+   dans packages/shared/src/types/
+   Aucun any dans le code des composants.
+
+4. Mutations avec feedback :
+   Toute mutation (create/update/delete) doit avoir :
+   onSuccess: () => toast.success('...')
+   onError: () => toast.error('...')
+   isPending sur le bouton : disabled + spinner visible
+
+5. Composants atomiques :
+   Si un composant dépasse 200 lignes → le découper.
+   Chaque composant fait une seule chose.
+
+6. Keys dans les listes :
+   Chaque .map() utilise une key unique (jamais l'index)
+   key={item.id} toujours, jamais key={index}
+
+---
+CHECKLIST FINALE
+
+Après toutes les corrections :
+
+  [ ] Toutes les pages du PRD ont une UI complète
+  [ ] Upload photo fonctionne (logo + galerie)
+  [ ] Horaires affichés sur la fiche publique
+  [ ] Congés staff déclarables depuis le dashboard
+  [ ] Staff spécialités = services assignés (pas texte libre)
+  [ ] design-system.ts contient EXACTEMENT les couleurs de
+      la Phase 2 (accent #D4466E, ink #0C0C0E, success #33CA7F,
+      error #E11D32) — aucune ancienne valeur résiduelle
+  [ ] Zéro couleur hex en dur en dehors de design-system.ts
+  [ ] Zéro noir dilué en dessous de 0.28 d'opacité (gris déguisé)
+  [ ] Tous les composants UI exportés depuis components/ui/index.ts
+  [ ] EmptyState, StatusBadge, PageHeader créés et utilisés,
+      tous via ds.colors (aucune couleur en dur dans ces 3 fichiers)
+  [ ] BookingBlock affiche prix + durée + statut + actions
+  [ ] ServiceCard toggle actif/inactif inline
+  [ ] StaffCard bouton "Déclarer absence"
+  [ ] ReviewCard affiche réponse prestataire
+  [ ] Zéro console.log dans le code
+  [ ] Zéro any TypeScript dans les composants
+  [ ] Zéro commentaire TODO/FIXME/Phase 2
+  [ ] Toutes les mutations ont onSuccess + onError + isPending
+  [ ] npx tsc --noEmit → zéro erreur
+  [ ] npm run build → build réussit
+
+---
+ORDRE D'EXÉCUTION
+
+Phase 1 (écarts PRD) → Phase 2 (design system) →
+Phase 3 (audit composants) → Phase 4 (code mort) →
+Phase 5 (bonnes pratiques)
+
+Pour chaque correction : un seul fichier à la fois,
+vérifier que le build passe avant de passer au suivant.
