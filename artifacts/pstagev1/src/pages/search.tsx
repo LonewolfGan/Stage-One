@@ -1457,14 +1457,6 @@ export default function SearchPage() {
         <div style={{ flex: 1, padding: "12px 20px 100px" }}>
           {resultsContent}
         </div>
-        {/* Extra sections */}
-        <div>
-          <ExtraSections
-            onCitySelect={city => { setCityId(city); window.scrollTo({ top: 0, behavior: "smooth" }); }}
-            onCategorySelect={cat => { setCategoryId(cat); window.scrollTo({ top: 0, behavior: "smooth" }); }}
-          />
-        </div>
-
         {/* FAQ + Pro CTA */}
         <FAQ />
 
