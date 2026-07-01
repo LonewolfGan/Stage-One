@@ -8,6 +8,7 @@ import { signToken, verifyToken } from "../lib/auth";
 import { requireAuth } from "../middlewares/auth";
 import { adminAuth } from "../lib/firebase";
 import { logger } from "../lib/logger";
+import { redis } from "../lib/redis";
 
 const router = Router();
 
@@ -94,7 +95,30 @@ router.post("/login", async (req, res) => {
   });
 });
 
-// Verify phone — uses Firebase idToken when available, mock otherwise
+// POST /auth/send-phone-otp — génère un code OTP 6 chiffres, stocké dans Redis 10 min
+router.post("/send-phone-otp", requireAuth, async (req, res) => {
+  const userId = req.user!.sub;
+  const user = await db.query.usersTable.findFirst({ where: eq(usersTable.id, userId) });
+  if (!user) { res.status(404).json({ code: "ERR-004", message: "Utilisateur introuvable" }); return; }
+  if (user.phoneVerified) { res.json({ message: "Téléphone déjà vérifié" }); return; }
+
+  const code = String(Math.floor(100000 + Math.random() * 900000));
+  const key = `otp:${userId}`;
+
+  if (redis) {
+    await redis.set(key, code, "EX", 600); // 10 minutes
+  }
+
+  // En production : envoyer par SMS (Twilio, etc.)
+  // En dev : logguer le code
+  logger.info({ phone: user.phone, code }, "OTP téléphone généré");
+
+  // Pour le dev : on retourne le code dans la réponse (à supprimer en production)
+  const isDev = process.env.NODE_ENV !== "production";
+  res.json({ message: "Code envoyé", ...(isDev ? { _devCode: code } : {}) });
+});
+
+// POST /auth/verify-phone — vérifie OTP Redis OU idToken Firebase
 router.post("/verify-phone", requireAuth, async (req, res) => {
   const { idToken, code } = req.body as { idToken?: string; code?: string };
 
@@ -103,7 +127,7 @@ router.post("/verify-phone", requireAuth, async (req, res) => {
   if (!user) { res.status(404).json({ code: "ERR-004", message: "Utilisateur introuvable" }); return; }
 
   if (adminAuth && idToken) {
-    // Real Firebase verification
+    // Vérification Firebase (pour intégration future Firebase Phone Auth)
     try {
       const decoded = await adminAuth.verifyIdToken(idToken);
       if (!decoded.phone_number || decoded.phone_number !== user.phone) {
@@ -114,12 +138,22 @@ router.post("/verify-phone", requireAuth, async (req, res) => {
       res.status(400).json({ code: "AUTH-003", message: "idToken Firebase invalide" });
       return;
     }
-  } else {
-    // Mock path — only accepts any non-empty code (development only)
-    if (!code) {
-      res.status(400).json({ code: "ERR-001", message: "code requis (mode développement)" });
-      return;
+  } else if (code) {
+    // Vérification par code OTP généré côté backend (Redis)
+    if (redis) {
+      const stored = await redis.get(`otp:${userId}`);
+      if (!stored || stored !== code) {
+        res.status(400).json({ code: "AUTH-004", message: "Code incorrect ou expiré" });
+        return;
+      }
+      await redis.del(`otp:${userId}`);
+    } else {
+      // Fallback sans Redis (dev sans Redis)
+      logger.warn("Redis absent — vérification OTP ignorée (dev only)");
     }
+  } else {
+    res.status(400).json({ code: "ERR-001", message: "code ou idToken requis" });
+    return;
   }
 
   await db.update(usersTable).set({ phoneVerified: true, updatedAt: new Date() }).where(eq(usersTable.id, userId));

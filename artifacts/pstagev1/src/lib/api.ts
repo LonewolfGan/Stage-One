@@ -243,6 +243,12 @@ export const api = {
   register: (data: { email: string; phone: string; password: string; name: string; role?: "CLIENT" | "OWNER" }) =>
     apiFetch<RegisterResponse>("/auth/register", { method: "POST", body: JSON.stringify(data) }),
 
+  sendPhoneOtp: () =>
+    apiFetch<{ message: string; _devCode?: string }>("/auth/send-phone-otp", { method: "POST" }),
+
+  verifyPhone: (code: string) =>
+    apiFetch<{ message: string }>("/auth/verify-phone", { method: "POST", body: JSON.stringify({ code }) }),
+
   me: () => apiFetch<AuthUser>("/auth/me"),
 
   // Providers
