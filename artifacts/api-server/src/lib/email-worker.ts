@@ -103,8 +103,10 @@ export async function startEmailWorker(): Promise<void> {
   try {
     const { Queue, Worker } = await import("bullmq");
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     emailQueue = new Queue("email-notifications", {
-      connection: redis,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      connection: redis as any,
       defaultJobOptions: { attempts: 3, backoff: { type: "exponential", delay: 5000 } },
     });
 
@@ -114,7 +116,8 @@ export async function startEmailWorker(): Promise<void> {
         await processEmailJob(job.data);
       },
       {
-        connection: redis,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        connection: redis as any,
         concurrency: 5,
         removeOnComplete: { count: 100 },
         removeOnFail: { count: 50 },

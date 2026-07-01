@@ -7,6 +7,9 @@ import { requireOwner } from "../middlewares/auth";
 
 const router = Router({ mergeParams: true });
 
+// req.params includes merged params from parent router (e.g. :slug)
+type MergedParams = Record<string, string>;
+
 async function getProviderForOwner(slug: string, ownerId: string) {
   return db.query.providersTable.findFirst({
     where: and(eq(providersTable.slug, slug), eq(providersTable.ownerId, ownerId)),
@@ -24,8 +27,9 @@ const serviceSchema = z.object({
 });
 
 router.get("/", async (req, res) => {
+  const { slug } = req.params as MergedParams;
   const provider = await db.query.providersTable.findFirst({
-    where: eq(providersTable.slug, req.params.slug),
+    where: eq(providersTable.slug, slug),
   });
   if (!provider) { res.status(404).json({ code: "ERR-004", message: "Prestataire introuvable" }); return; }
 
@@ -36,7 +40,8 @@ router.get("/", async (req, res) => {
 });
 
 router.post("/", requireOwner, async (req, res) => {
-  const provider = await getProviderForOwner(req.params.slug, req.user!.sub);
+  const { slug } = req.params as MergedParams;
+  const provider = await getProviderForOwner(slug, req.user!.sub);
   if (!provider) { res.status(404).json({ code: "ERR-004", message: "Prestataire introuvable" }); return; }
 
   const parse = serviceSchema.safeParse(req.body);
@@ -58,7 +63,8 @@ router.post("/", requireOwner, async (req, res) => {
 });
 
 router.put("/:serviceId", requireOwner, async (req, res) => {
-  const provider = await getProviderForOwner(req.params.slug, req.user!.sub);
+  const { slug, serviceId } = req.params as MergedParams;
+  const provider = await getProviderForOwner(slug, req.user!.sub);
   if (!provider) { res.status(404).json({ code: "ERR-004", message: "Prestataire introuvable" }); return; }
 
   const parse = serviceSchema.partial().safeParse(req.body);
@@ -69,14 +75,14 @@ router.put("/:serviceId", requireOwner, async (req, res) => {
   const [updated] = await db
     .update(servicesTable)
     .set({ ...serviceData, updatedAt: new Date() })
-    .where(and(eq(servicesTable.id, req.params.serviceId), eq(servicesTable.providerId, provider.id)))
+    .where(and(eq(servicesTable.id, serviceId), eq(servicesTable.providerId, provider.id)))
     .returning();
   if (!updated) { res.status(404).json({ code: "ERR-004", message: "Prestation introuvable" }); return; }
 
   if (staffIds !== undefined) {
-    await db.delete(serviceStaffTable).where(eq(serviceStaffTable.serviceId, req.params.serviceId));
+    await db.delete(serviceStaffTable).where(eq(serviceStaffTable.serviceId, serviceId));
     if (staffIds.length > 0) {
-      await db.insert(serviceStaffTable).values(staffIds.map((sid) => ({ serviceId: req.params.serviceId, staffId: sid })));
+      await db.insert(serviceStaffTable).values(staffIds.map((sid) => ({ serviceId, staffId: sid })));
     }
   }
 
@@ -84,13 +90,14 @@ router.put("/:serviceId", requireOwner, async (req, res) => {
 });
 
 router.delete("/:serviceId", requireOwner, async (req, res) => {
-  const provider = await getProviderForOwner(req.params.slug, req.user!.sub);
+  const { slug, serviceId } = req.params as MergedParams;
+  const provider = await getProviderForOwner(slug, req.user!.sub);
   if (!provider) { res.status(404).json({ code: "ERR-004", message: "Prestataire introuvable" }); return; }
 
   await db
     .update(servicesTable)
     .set({ isActive: false, updatedAt: new Date() })
-    .where(and(eq(servicesTable.id, req.params.serviceId), eq(servicesTable.providerId, provider.id)));
+    .where(and(eq(servicesTable.id, serviceId), eq(servicesTable.providerId, provider.id)));
   res.status(204).send();
 });
 

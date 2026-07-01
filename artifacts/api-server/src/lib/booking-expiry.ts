@@ -39,12 +39,14 @@ export async function startBookingExpiryJob() {
       const { Queue, Worker } = await import("bullmq");
 
       new Worker("booking-expiry", expireBookings, {
-        connection: redis,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        connection: redis as any,
         removeOnComplete: { count: 0 },
         removeOnFail: { count: 10 },
       });
 
-      const queue = new Queue("booking-expiry", { connection: redis });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const queue = new Queue("booking-expiry", { connection: redis as any });
       // Remove old repeatable jobs to avoid duplicates on restart
       const repeatable = await queue.getRepeatableJobs();
       for (const job of repeatable) {

@@ -148,7 +148,7 @@ router.post("/:id/reply", requireOwner, async (req, res) => {
 
   const review = await db.query.reviewsTable.findFirst({
     where: and(
-      eq(reviewsTable.id, req.params.id),
+      eq(reviewsTable.id, req.params.id as string),
       eq(reviewsTable.providerId, provider.id),
     ),
   });
@@ -160,7 +160,7 @@ router.post("/:id/reply", requireOwner, async (req, res) => {
   const [updated] = await db
     .update(reviewsTable)
     .set({ reply: parse.data.reply })
-    .where(eq(reviewsTable.id, req.params.id))
+    .where(eq(reviewsTable.id, req.params.id as string))
     .returning();
 
   res.json(updated);

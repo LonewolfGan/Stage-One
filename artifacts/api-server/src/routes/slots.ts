@@ -20,7 +20,7 @@ router.get("/", async (req, res) => {
   }
 
   const provider = await db.query.providersTable.findFirst({
-    where: eq(providersTable.slug, req.params.slug),
+    where: eq(providersTable.slug, (req.params as Record<string, string>).slug as string),
   });
   if (!provider) {
     res.status(404).json({ code: "ERR-004", message: "Prestataire introuvable" });

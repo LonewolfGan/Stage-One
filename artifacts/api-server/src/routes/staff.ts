@@ -21,7 +21,7 @@ const staffSchema = z.object({
 });
 
 router.get("/", requireOwner, async (req, res) => {
-  const provider = await getProviderForOwner(req.params.slug, req.user!.sub);
+  const provider = await getProviderForOwner(req.params.slug as string, req.user!.sub);
   if (!provider) { res.status(404).json({ code: "ERR-004", message: "Prestataire introuvable" }); return; }
 
   const list = await db.query.staffTable.findMany({ where: eq(staffTable.providerId, provider.id) });
@@ -29,7 +29,7 @@ router.get("/", requireOwner, async (req, res) => {
 });
 
 router.post("/", requireOwner, async (req, res) => {
-  const provider = await getProviderForOwner(req.params.slug, req.user!.sub);
+  const provider = await getProviderForOwner(req.params.slug as string, req.user!.sub);
   if (!provider) { res.status(404).json({ code: "ERR-004", message: "Prestataire introuvable" }); return; }
 
   const parse = staffSchema.safeParse(req.body);
@@ -44,7 +44,7 @@ router.post("/", requireOwner, async (req, res) => {
 });
 
 router.put("/:staffId", requireOwner, async (req, res) => {
-  const provider = await getProviderForOwner(req.params.slug, req.user!.sub);
+  const provider = await getProviderForOwner(req.params.slug as string, req.user!.sub);
   if (!provider) { res.status(404).json({ code: "ERR-004", message: "Prestataire introuvable" }); return; }
 
   const parse = staffSchema.partial().safeParse(req.body);
@@ -53,20 +53,20 @@ router.put("/:staffId", requireOwner, async (req, res) => {
   const [updated] = await db
     .update(staffTable)
     .set({ ...parse.data, updatedAt: new Date() })
-    .where(and(eq(staffTable.id, req.params.staffId), eq(staffTable.providerId, provider.id)))
+    .where(and(eq(staffTable.id, req.params.staffId as string), eq(staffTable.providerId, provider.id)))
     .returning();
   if (!updated) { res.status(404).json({ code: "ERR-004", message: "Staff introuvable" }); return; }
   res.json(updated);
 });
 
 router.delete("/:staffId", requireOwner, async (req, res) => {
-  const provider = await getProviderForOwner(req.params.slug, req.user!.sub);
+  const provider = await getProviderForOwner(req.params.slug as string, req.user!.sub);
   if (!provider) { res.status(404).json({ code: "ERR-004", message: "Prestataire introuvable" }); return; }
 
   await db
     .update(staffTable)
     .set({ isActive: false, updatedAt: new Date() })
-    .where(and(eq(staffTable.id, req.params.staffId), eq(staffTable.providerId, provider.id)));
+    .where(and(eq(staffTable.id, req.params.staffId as string), eq(staffTable.providerId, provider.id)));
   res.status(204).send();
 });
 

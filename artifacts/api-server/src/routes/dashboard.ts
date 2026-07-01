@@ -150,11 +150,11 @@ router.delete("/blocks/:blockId", requireOwner, async (req, res) => {
   if (!provider) { res.status(404).json({ code: "ERR-004", message: "Espace prestataire introuvable" }); return; }
 
   const block = await db.query.scheduleBlocksTable.findFirst({
-    where: and(eq(scheduleBlocksTable.id, req.params.blockId), eq(scheduleBlocksTable.providerId, provider.id)),
+    where: and(eq(scheduleBlocksTable.id, req.params.blockId as string), eq(scheduleBlocksTable.providerId, provider.id)),
   });
   if (!block) { res.status(404).json({ code: "ERR-004", message: "Blocage introuvable" }); return; }
 
-  await db.delete(scheduleBlocksTable).where(eq(scheduleBlocksTable.id, req.params.blockId));
+  await db.delete(scheduleBlocksTable).where(eq(scheduleBlocksTable.id, req.params.blockId as string));
 
   emitSlotUpdate(provider.id, {
     slotStart: block.startDatetime.toISOString(),
@@ -365,7 +365,7 @@ router.post("/notifications/:id/read", requireOwner, async (req, res) => {
     .set({ isRead: true })
     .where(
       and(
-        eq(notificationsTable.id, req.params.id),
+        eq(notificationsTable.id, req.params.id as string),
         eq(notificationsTable.providerId, provider.id),
       ),
     );

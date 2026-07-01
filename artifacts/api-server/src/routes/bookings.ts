@@ -58,7 +58,7 @@ router.post("/", requireAuth, async (req, res) => {
   // Redis distributed lock (30s TTL) — prevents concurrent requests for the same slot
   const lockKey = `lock:staff:${staffId}:${startDatetime.toISOString()}`;
   if (redis) {
-    const locked = await redis.set(lockKey, "1", "NX", "EX", 30);
+    const locked = await redis.set(lockKey, "1", "EX", 30, "NX");
     if (!locked) {
       res.status(409).json({ code: "ERR-005", message: "Ce créneau est en cours de réservation, réessayez dans quelques secondes." });
       return;
@@ -210,7 +210,7 @@ router.get("/:bookingId", requireAuth, async (req, res) => {
     .leftJoin(servicesTable, eq(bookingsTable.serviceId, servicesTable.id))
     .leftJoin(staffTable, eq(bookingsTable.staffId, staffTable.id))
     .leftJoin(providersTable, eq(bookingsTable.providerId, providersTable.id))
-    .where(eq(bookingsTable.id, req.params.bookingId))
+    .where(eq(bookingsTable.id, req.params.bookingId as string))
     .limit(1);
 
   if (!row) { res.status(404).json({ code: "ERR-004", message: "Réservation introuvable" }); return; }
@@ -223,7 +223,7 @@ router.get("/:bookingId", requireAuth, async (req, res) => {
 // POST /bookings/:bookingId/cancel — client cancellation (2h window)
 router.post("/:bookingId/cancel", requireAuth, async (req, res) => {
   const booking = await db.query.bookingsTable.findFirst({
-    where: and(eq(bookingsTable.id, req.params.bookingId), eq(bookingsTable.clientId, req.user!.sub)),
+    where: and(eq(bookingsTable.id, req.params.bookingId as string), eq(bookingsTable.clientId, req.user!.sub)),
   });
   if (!booking) { res.status(404).json({ code: "ERR-004", message: "Réservation introuvable" }); return; }
   if (booking.status === "CANCELLED" || booking.status === "EXPIRED") {
@@ -239,7 +239,7 @@ router.post("/:bookingId/cancel", requireAuth, async (req, res) => {
   await db
     .update(bookingsTable)
     .set({ status: "CANCELLED", updatedAt: new Date() })
-    .where(eq(bookingsTable.id, req.params.bookingId));
+    .where(eq(bookingsTable.id, req.params.bookingId as string));
 
   notifySlotReleased(booking);
 

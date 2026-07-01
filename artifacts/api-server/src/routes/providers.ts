@@ -292,7 +292,7 @@ const hoursSchema = z.object({
 
 router.put("/:slug/hours", requireOwner, async (req, res) => {
   const provider = await db.query.providersTable.findFirst({
-    where: and(eq(providersTable.slug, req.params.slug), eq(providersTable.ownerId, req.user!.sub)),
+    where: and(eq(providersTable.slug, req.params.slug as string), eq(providersTable.ownerId, req.user!.sub)),
   });
   if (!provider) {
     res.status(404).json({ code: "ERR-004", message: "Prestataire introuvable" });
