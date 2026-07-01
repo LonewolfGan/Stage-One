@@ -384,76 +384,197 @@ function TopBarSearch({ onCommencer }: { onCommencer: () => void }) {
 ───────────────────────────────────────────────────────── */
 function TopBarPill({ onCommencer }: { onCommencer: () => void }) {
   const isMobile = useIsMobile();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [, setLocation] = useLocation();
 
   return (
-    /* Outer sticky wrapper — takes 72px in flow (16px top gap + 52px pill + 4px bottom) */
-    <div
-      style={{
-        position: "sticky",
-        top: 0,
-        zIndex: 200,
-        paddingTop: 16,
-        paddingInline: isMobile ? 12 : 20,
-        paddingBottom: 4,
-        background: "transparent",
-        pointerEvents: "none",
-      }}
-    >
-      {/* Pill */}
+    <>
+      {/* Outer sticky wrapper */}
       <div
         style={{
-          maxWidth: 860,
-          marginInline: "auto",
-          height: 52,
-          borderRadius: 9999,
-          backgroundColor: "rgba(251,251,252,0.96)",
-          backdropFilter: "blur(24px)",
-          WebkitBackdropFilter: "blur(24px)",
-          border: "1px solid rgba(12,12,14,0.10)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          paddingInline: isMobile ? 14 : 20,
-          gap: 16,
-          pointerEvents: "auto",
+          position: "sticky",
+          top: 0,
+          zIndex: 200,
+          paddingTop: 16,
+          paddingInline: isMobile ? 12 : 20,
+          paddingBottom: 4,
+          background: "transparent",
+          pointerEvents: "none",
         }}
       >
-        {/* Left: logo */}
-        <Link href="/" className="no-underline shrink-0">
-          <Logo size="md" />
-        </Link>
+        {/* Pill */}
+        <div
+          style={{
+            maxWidth: 860,
+            marginInline: "auto",
+            height: 52,
+            borderRadius: 9999,
+            backgroundColor: "rgba(251,251,252,0.96)",
+            backdropFilter: "blur(24px)",
+            WebkitBackdropFilter: "blur(24px)",
+            border: "1px solid rgba(12,12,14,0.10)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            paddingInline: isMobile ? 14 : 20,
+            gap: 16,
+            pointerEvents: "auto",
+          }}
+        >
+          {/* Left: logo */}
+          <Link href="/" className="no-underline shrink-0">
+            <Logo size="md" />
+          </Link>
 
-        {/* Center: nav links */}
-        {!isMobile && (
-          <nav style={{ display: "flex", alignItems: "center", gap: 28 }}>
-            {NAV_LINKS.map((item) => (
-              <Link
-                key={item.label}
-                href={item.href}
-                className="no-underline whitespace-nowrap"
+          {/* Center: nav links (desktop only) */}
+          {!isMobile && (
+            <nav style={{ display: "flex", alignItems: "center", gap: 28 }}>
+              {NAV_LINKS.map((item) => (
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  className="no-underline whitespace-nowrap"
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 600,
+                    letterSpacing: "0.04em",
+                    color: "var(--ink-secondary)",
+                    textTransform: "uppercase",
+                    transition: "color 180ms ease",
+                  }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.color = "var(--ink)"; }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.color = "var(--ink-secondary)"; }}
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </nav>
+          )}
+
+          {/* Right: hamburger (mobile) + auth actions */}
+          <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
+            {isMobile && (
+              <motion.button
+                onClick={() => setMenuOpen(!menuOpen)}
                 style={{
-                  fontSize: 11,
-                  fontWeight: 600,
-                  letterSpacing: "0.04em",
-                  color: "var(--ink-secondary)",
-                  textTransform: "uppercase",
-                  transition: "color 180ms ease",
+                  width: 34, height: 34,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  backgroundColor: "transparent",
+                  border: "1px solid rgba(12,12,14,0.14)",
+                  borderRadius: 9999,
+                  color: "var(--ink)",
+                  cursor: "pointer",
                 }}
-                onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.color = "var(--ink)"; }}
-                onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.color = "var(--ink-secondary)"; }}
+                whileTap={{ scale: 0.92 }}
               >
-                {item.label}
-              </Link>
-            ))}
-          </nav>
-        )}
-
-        {/* Right: auth actions */}
-        <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
-          <AuthActions onCommencer={onCommencer} compact={isMobile} />
+                <AnimatePresence mode="wait" initial={false}>
+                  <motion.span
+                    key={menuOpen ? "x" : "menu"}
+                    initial={{ opacity: 0, rotate: -90, scale: 0.7 }}
+                    animate={{ opacity: 1, rotate: 0, scale: 1 }}
+                    exit={{ opacity: 0, rotate: 90, scale: 0.7 }}
+                    transition={{ duration: 0.18 }}
+                    style={{ display: "flex" }}
+                  >
+                    {menuOpen ? <XIcon size={16} /> : <MenuIcon size={16} />}
+                  </motion.span>
+                </AnimatePresence>
+              </motion.button>
+            )}
+            <AuthActions onCommencer={onCommencer} compact={isMobile} />
+          </div>
         </div>
       </div>
-    </div>
+
+      {/* Mobile dropdown menu */}
+      <AnimatePresence>
+        {isMobile && menuOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ type: "spring", stiffness: 420, damping: 34 }}
+            style={{
+              position: "fixed",
+              top: 72,
+              left: 12,
+              right: 12,
+              zIndex: 199,
+              backgroundColor: "rgba(251,251,252,0.98)",
+              backdropFilter: "blur(24px)",
+              WebkitBackdropFilter: "blur(24px)",
+              border: "1px solid rgba(12,12,14,0.10)",
+              borderRadius: 16,
+              padding: "6px 0",
+              overflow: "hidden",
+            }}
+          >
+            {NAV_LINKS.map((item, i) => (
+              <motion.div
+                key={item.label}
+                initial={{ opacity: 0, x: -8 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: i * 0.04, duration: 0.2 }}
+              >
+                <Link
+                  href={item.href}
+                  className="no-underline"
+                  style={{ display: "block" }}
+                  onClick={() => setMenuOpen(false)}
+                >
+                  <div
+                    style={{
+                      padding: "13px 20px",
+                      fontSize: 13, fontWeight: 600,
+                      letterSpacing: "0.04em", textTransform: "uppercase",
+                      color: "var(--ink-secondary)",
+                      transition: "color 140ms ease, background-color 140ms ease",
+                      cursor: "pointer",
+                    }}
+                    onMouseEnter={e => {
+                      (e.currentTarget as HTMLDivElement).style.color = "var(--ink)";
+                      (e.currentTarget as HTMLDivElement).style.backgroundColor = "rgba(12,12,14,0.04)";
+                    }}
+                    onMouseLeave={e => {
+                      (e.currentTarget as HTMLDivElement).style.color = "var(--ink-secondary)";
+                      (e.currentTarget as HTMLDivElement).style.backgroundColor = "transparent";
+                    }}
+                  >
+                    {item.label}
+                  </div>
+                </Link>
+              </motion.div>
+            ))}
+
+            {/* Divider + search CTA */}
+            <div style={{ height: 1, backgroundColor: "rgba(12,12,14,0.08)", margin: "6px 0" }} />
+            <motion.div
+              initial={{ opacity: 0, x: -8 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: NAV_LINKS.length * 0.04, duration: 0.2 }}
+            >
+              <button
+                onClick={() => { setMenuOpen(false); setLocation("/search"); }}
+                style={{
+                  width: "100%", textAlign: "left",
+                  padding: "13px 20px",
+                  fontSize: 13, fontWeight: 600,
+                  letterSpacing: "0.04em", textTransform: "uppercase",
+                  color: "var(--accent)",
+                  background: "none", border: "none", cursor: "pointer",
+                  fontFamily: "var(--font)",
+                  transition: "background-color 140ms ease",
+                }}
+                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = "var(--accent-tint)"; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = "transparent"; }}
+              >
+                Rechercher un salon →
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   );
 }
 
