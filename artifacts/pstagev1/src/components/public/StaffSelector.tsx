@@ -1,6 +1,7 @@
 import { UserIcon } from "@/components/ui/user";
 import { StaffMember } from "@/lib/types";
 import { ds } from "@/lib/design-system";
+import { Avatar } from "@/components/ui/Avatar";
 
 interface StaffSelectorProps {
   staff: StaffMember[];
@@ -92,38 +93,13 @@ export function StaffSelector({ staff, selectedStaffId, onSelectStaff }: StaffSe
               }
             }}
           >
-            {member.photoUrl ? (
-              <img
-                src={member.photoUrl}
-                alt={member.name}
-                style={{
-                  width: 28,
-                  height: 28,
-                  borderRadius: "50%",
-                  objectFit: "cover",
-                  opacity: isSelected ? 0.9 : 1,
-                }}
-              />
-            ) : (
-              <div
-                style={{
-                  width: 28,
-                  height: 28,
-                  borderRadius: "50%",
-                  backgroundColor: isSelected ? "rgba(255,255,255,0.20)" : ds.colors.canvasMuted,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: 11,
-                  fontWeight: 600,
-                  color: isSelected ? "#FFFFFF" : ds.colors.inkTertiary,
-                  letterSpacing: "-0.01em",
-                  flexShrink: 0,
-                }}
-              >
-                {member.initials}
-              </div>
-            )}
+            <Avatar
+              name={member.name}
+              photoUrl={member.photoUrl || undefined}
+              size={28}
+              onAccent={isSelected}
+              style={{ opacity: isSelected ? 0.9 : 1 }}
+            />
             <span style={{ fontSize: 14, fontWeight: 500 }}>{member.firstName}</span>
           </button>
         );

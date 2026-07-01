@@ -658,18 +658,20 @@ function MapView({
    EXTRA SECTIONS (below two-column, above footer)
 ───────────────────────────────────────────── */
 
-/* Popular cities */
+/* Popular cities — images: mosquée Hassan II Casablanca, souk Marrakech,
+   kasbah des Oudayas Rabat, médina Tanger, corniche Agadir, tanneries Fès */
 const POPULAR_CITIES = [
-  { name: "Casablanca",   img: "https://images.unsplash.com/photo-1553603227-2c0a8c8e5f89?w=600&q=80", count: 142 },
-  { name: "Marrakech",   img: "https://images.unsplash.com/photo-1587974928442-77dc3e0dba72?w=600&q=80", count: 98  },
-  { name: "Rabat",       img: "https://images.unsplash.com/photo-1539768942893-daf53e448371?w=600&q=80", count: 76  },
-  { name: "Tanger",      img: "https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=600&q=80", count: 54  },
-  { name: "Agadir",      img: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&q=80", count: 43  },
-  { name: "Fès",         img: "https://images.unsplash.com/photo-1539650116574-75c0c6d73f6e?w=600&q=80", count: 38  },
+  { name: "Casablanca", img: "https://images.pexels.com/photos/9677615/pexels-photo-9677615.jpeg?auto=compress&cs=tinysrgb&w=800", count: 142 },
+  { name: "Marrakech",  img: "https://images.unsplash.com/photo-1597212618440-806262de4f9b?w=800&q=80", count: 98 },
+  { name: "Rabat",      img: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80", count: 76 },
+  { name: "Tanger",     img: "https://images.unsplash.com/photo-1539650116574-75c0c6d73f6e?w=800&q=80", count: 54 },
+  { name: "Agadir",     img: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800&q=80", count: 43 },
+  { name: "Fès",        img: "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&q=80", count: 38 },
 ];
 
 function CityCard({ city, onClick }: { city: typeof POPULAR_CITIES[0]; onClick: () => void }) {
   const [hov, setHov] = useState(false);
+  const [imgFailed, setImgFailed] = useState(false);
   return (
     <motion.button
       onClick={onClick}
@@ -681,18 +683,22 @@ function CityCard({ city, onClick }: { city: typeof POPULAR_CITIES[0]; onClick: 
         position: "relative", overflow: "hidden",
         borderRadius: 14, border: "1px solid rgba(12,12,14,0.08)",
         aspectRatio: "3/2", cursor: "pointer",
-        background: "none", padding: 0, display: "block", width: "100%",
+        background: imgFailed ? "rgba(12,12,14,0.18)" : "none",
+        padding: 0, display: "block", width: "100%",
         flexShrink: 0,
       }}
     >
-      <img
-        src={city.img} alt={city.name}
-        style={{
-          width: "100%", height: "100%", objectFit: "cover", display: "block",
-          transform: hov ? "scale(1.05)" : "scale(1)",
-          transition: "transform 500ms cubic-bezier(0.16,1,0.3,1)",
-        }}
-      />
+      {!imgFailed && (
+        <img
+          src={city.img} alt={city.name}
+          onError={() => setImgFailed(true)}
+          style={{
+            width: "100%", height: "100%", objectFit: "cover", display: "block",
+            transform: hov ? "scale(1.05)" : "scale(1)",
+            transition: "transform 500ms cubic-bezier(0.16,1,0.3,1)",
+          }}
+        />
+      )}
       <div style={{
         position: "absolute", inset: 0,
         background: "linear-gradient(180deg, rgba(10,10,15,0.1) 0%, rgba(10,10,15,0.7) 100%)",

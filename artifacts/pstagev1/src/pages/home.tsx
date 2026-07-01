@@ -801,6 +801,7 @@ export default function HomePage() {
                     <motion.img
                       src={provider.photos[0] || undefined}
                       alt={provider.name}
+                      onError={(e) => { e.currentTarget.style.display = "none"; }}
                       style={{
                         width: "100%",
                         height: "100%",

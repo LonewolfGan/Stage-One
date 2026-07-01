@@ -8,6 +8,7 @@ import { getNextAvailable } from "@/lib/types";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { adaptProvider } from "@/lib/provider-adapter";
+import { Avatar } from "@/components/ui/Avatar";
 import {
   Star, Heart, MapPin, Phone,
   ChevronLeft, ChevronRight, ChevronDown,
@@ -16,6 +17,28 @@ import {
 import { ReviewCard } from "@/components/public/ReviewCard";
 import { useBreakpoint } from "@/hooks/use-mobile";
 import { ds } from "@/lib/design-system";
+
+/* ─── StaffPortrait — with onError → initials fallback ─────── */
+function StaffPortrait({ member }: { member: { name: string; firstName: string; initials: string; photoUrl: string } }) {
+  const [failed, setFailed] = useState(false);
+  if (member.photoUrl && !failed) {
+    return (
+      <img
+        src={member.photoUrl}
+        alt={member.name}
+        onError={() => setFailed(true)}
+        style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", transition: "transform 400ms ease" }}
+        onMouseEnter={e => { (e.currentTarget as HTMLImageElement).style.transform = "scale(1.04)"; }}
+        onMouseLeave={e => { (e.currentTarget as HTMLImageElement).style.transform = "scale(1)"; }}
+      />
+    );
+  }
+  return (
+    <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, fontWeight: 600, color: ds.colors.inkTertiary, letterSpacing: "-0.02em" }}>
+      {member.initials}
+    </div>
+  );
+}
 
 /* ─── constants ─────────────────────────────────────── */
 const SIDEBAR_TOP = 24;
@@ -286,22 +309,7 @@ function StaffCard({ member, providerSlug }: { member: any; providerSlug: string
         borderRadius: ds.radius.md, overflow: "hidden",
         background: ds.colors.canvasMuted,
       }}>
-        {member.photoUrl ? (
-          <img src={member.photoUrl} alt={member.name}
-            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", transition: "transform 400ms ease" }}
-            onMouseEnter={e => { (e.currentTarget as HTMLImageElement).style.transform = "scale(1.04)"; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLImageElement).style.transform = "scale(1)"; }}
-          />
-        ) : (
-          <div style={{
-            width: "100%", height: "100%",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: 22, fontWeight: 600, color: ds.colors.inkTertiary,
-            letterSpacing: "-0.02em",
-          }}>
-            {member.initials}
-          </div>
-        )}
+        <StaffPortrait member={member} />
       </div>
       {/* Name + speciality */}
       <div>

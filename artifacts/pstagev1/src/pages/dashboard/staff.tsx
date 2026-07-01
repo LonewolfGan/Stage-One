@@ -7,6 +7,7 @@ import { api, type ApiStaff, type ApiService } from "@/lib/api";
 import { Plus, Pencil, X, Trash2, Scissors, CalendarOff } from "lucide-react";
 import { ds } from "@/lib/design-system";
 import { toast } from "sonner";
+import { Avatar } from "@/components/ui/Avatar";
 
 /* ─── helpers ─────────────────────────────────────────────── */
 function initials(name: string) {
@@ -195,15 +196,12 @@ function StaffCard({
       {/* Top: avatar + status toggle */}
       <div style={{ padding: "18px 16px 14px", display: "flex", flexDirection: "column", alignItems: "center", gap: 12, flex: 1 }}>
         {/* Avatar */}
-        {member.photoUrl ? (
-          <img src={member.photoUrl} alt={member.name}
-            style={{ width: 64, height: 64, borderRadius: "50%", objectFit: "cover", border: `1px solid ${ds.colors.border}` }}
-          />
-        ) : (
-          <div style={{ width: 64, height: 64, borderRadius: "50%", backgroundColor: ds.colors.canvasMuted, border: `1px solid ${ds.colors.border}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, fontWeight: 600, color: ds.colors.inkSecondary, letterSpacing: "-0.01em" }}>
-            {initials(member.name)}
-          </div>
-        )}
+        <Avatar
+          name={member.name}
+          photoUrl={member.photoUrl || undefined}
+          size={64}
+          style={{ border: `1px solid ${ds.colors.border}` }}
+        />
 
         {/* Name + bio */}
         <div style={{ textAlign: "center", minWidth: 0, width: "100%" }}>

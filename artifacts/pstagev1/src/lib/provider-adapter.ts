@@ -8,6 +8,10 @@ const CATEGORY_BY_SLUG: Record<string, string> = {
   "institut-elegance": "beaute",
   "sara-domicile": "coiffeur",
   "hammam-zitoun": "bien-etre",
+  "coiffure-wafa": "coiffeur",
+  "barbershop-sultan": "coiffeur",
+  "spa-palmeraie": "bien-etre",
+  "nails-factory-tanger": "beaute",
 };
 
 const PHOTOS_BY_SLUG: Record<string, string[]> = {
@@ -41,6 +45,29 @@ const PHOTOS_BY_SLUG: Record<string, string[]> = {
     "https://images.unsplash.com/photo-1519823551278-64ac92734fb1?w=800&auto=format&fit=crop&q=80",
     "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&auto=format&fit=crop&q=80",
     "https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=800&auto=format&fit=crop&q=80",
+  ],
+  "coiffure-wafa": [
+    "https://images.unsplash.com/photo-1562322140-8baeececf3df?w=1200&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1605497788044-5a32c7078486?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1519699047748-de8e457a634e?w=800&auto=format&fit=crop&q=80",
+  ],
+  "barbershop-sultan": [
+    "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=1200&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1621605815971-fbc98d665033?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1582893561942-d61cbc4f6571?w=800&auto=format&fit=crop&q=80",
+  ],
+  "spa-palmeraie": [
+    "https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=1200&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1600334129128-685c5582fd35?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1507652313519-d4e9174996dd?w=800&auto=format&fit=crop&q=80",
+  ],
+  "nails-factory-tanger": [
+    "https://images.unsplash.com/photo-1604654894610-df63bc536371?w=1200&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1610992015779-46a60c9b0b78?w=800&auto=format&fit=crop&q=80",
+    "https://images.unsplash.com/photo-1604654894610-df63bc536371?w=800&auto=format&fit=crop&q=80",
   ],
 };
 
