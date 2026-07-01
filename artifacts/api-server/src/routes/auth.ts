@@ -9,6 +9,7 @@ import { requireAuth } from "../middlewares/auth";
 import { adminAuth } from "../lib/firebase";
 import { logger } from "../lib/logger";
 import { redis } from "../lib/redis";
+import { sendSms } from "../lib/sms";
 
 const router = Router();
 
@@ -122,29 +123,8 @@ router.post("/send-phone-otp", requireAuth, async (req, res) => {
   const code = String(Math.floor(100000 + Math.random() * 900000));
   await redis.set(`otp:${userId}`, code, "EX", 600); // 10 minutes
 
-  // Send via Twilio if configured, otherwise log
-  const twilioSid = process.env.TWILIO_ACCOUNT_SID;
-  const twilioToken = process.env.TWILIO_AUTH_TOKEN;
-  const twilioFrom = process.env.TWILIO_FROM_NUMBER;
-
-  if (twilioSid && twilioToken && twilioFrom) {
-    try {
-      const twilio = (await import("twilio")).default;
-      const client = twilio(twilioSid, twilioToken);
-      await client.messages.create({
-        body: `Votre code de vérification PSTAGEV1 : ${code}`,
-        from: twilioFrom,
-        to: user.phone,
-      });
-      logger.info({ phone: user.phone }, "OTP SMS envoyé via Twilio");
-    } catch (err) {
-      logger.error({ err, phone: user.phone }, "Twilio SMS failed");
-      res.status(503).json({ code: "ERR-SERVICE", message: "Échec d'envoi du SMS. Réessayez." });
-      return;
-    }
-  } else {
-    logger.warn({ phone: user.phone, code }, "Twilio non configuré — OTP loggué uniquement");
-  }
+  // Send OTP via SMS — gracefully mocked when TWILIO_* vars are absent
+  await sendSms(user.phone, `Votre code de vérification PSTAGEV1 : ${code}`);
 
   res.json({ message: "Code envoyé" });
 });

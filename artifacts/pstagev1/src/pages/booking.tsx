@@ -206,7 +206,35 @@ export default function BookingPage() {
     );
   }
 
-  if (!provider || !selectedService) return null;
+  if (!provider || !selectedService) {
+    return (
+      <div style={{ minHeight: "100vh", backgroundColor: "var(--canvas)", display: "flex", flexDirection: "column" }}>
+        <TopBar />
+        <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "80px 24px" }}>
+          <div style={{ textAlign: "center", maxWidth: 400 }}>
+            <p style={{ fontSize: 17, fontWeight: 600, color: "var(--ink)", marginBottom: 8, letterSpacing: "-0.015em" }}>
+              Prestation introuvable
+            </p>
+            <p style={{ fontSize: 14, color: "var(--ink-tertiary)", lineHeight: 1.6, marginBottom: 24 }}>
+              Cette prestation n'existe pas ou n'est plus disponible.
+            </p>
+            <Link
+              href="/"
+              style={{
+                display: "inline-flex", alignItems: "center", gap: 6,
+                fontSize: 13, color: "var(--ink)", textDecoration: "none",
+                border: "1px solid rgba(10,10,15,0.18)", borderRadius: 8, padding: "8px 16px",
+                fontWeight: 500, letterSpacing: "-0.01em", transition: "border-color 140ms ease",
+              }}
+            >
+              Retour à l'accueil
+            </Link>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
   const DAY_NAMES = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
 
@@ -288,7 +316,7 @@ export default function BookingPage() {
               color: "var(--ink-tertiary)",
             }}
           >
-            Mode développement — paiement simulé
+            Paiement en ligne non disponible — confirmation manuelle
           </div>
           <Button
             variant="primary"
@@ -297,7 +325,7 @@ export default function BookingPage() {
             disabled={confirmMockMutation.isPending}
             onClick={() => confirmMockMutation.mutate()}
           >
-            {confirmMockMutation.isPending ? "Confirmation…" : "Simuler le paiement"}
+            {confirmMockMutation.isPending ? "Confirmation…" : "Confirmer la réservation"}
           </Button>
         </div>
       )}

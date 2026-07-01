@@ -90,7 +90,7 @@ export async function stripeWebhookHandler(req: Request, res: Response): Promise
       // ── Subscription lifecycle ───────────────────────────────────────────
       case "customer.subscription.created":
       case "customer.subscription.updated": {
-        const sub = event.data.object as {
+        const sub = event.data.object as unknown as {
           id: string;
           customer: string;
           status: string;

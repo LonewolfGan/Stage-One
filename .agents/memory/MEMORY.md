@@ -8,3 +8,4 @@
 - [Notifications system](notifications-system.md) — `notifications` table in DB; 3 routes on /dashboard/notifications; booking confirm saves notif; DashboardLayout has bell+badge+dropdown panel.
 - [Design system color audit](design-system-color-audit.md) — All status colors now go through ds.colors. PENDING=accent(#D4466E), CONFIRMED=success(#33CA7F), CANCELLED=error(#E11D32). DS gained info/infoBg/infoBorder.
 - [Design redesign plan](design-redesign-plan.md) — Full plan for component redesign session: ScrollX UI + shadcn MCP ready, audit order, priority components, rules. Read `.local/design-redesign-plan.md` to start.
+- [Production readiness fixes](prod-readiness.md) — TS errors fixed: blockSchema enum (VACATION/BREAK→ABSENCE/HOLIDAY), Stripe `as unknown as`, twilio dynamic import→sendSms. Blank page fixes on booking.tsx null guard + static-page.tsx French content.

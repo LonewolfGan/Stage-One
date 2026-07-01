@@ -799,7 +799,7 @@ export default function HomePage() {
                     }}
                   >
                     <motion.img
-                      src={provider.photos[0]}
+                      src={provider.photos[0] || undefined}
                       alt={provider.name}
                       style={{
                         width: "100%",

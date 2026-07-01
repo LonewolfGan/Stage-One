@@ -4,53 +4,61 @@ import { Footer } from "@/components/layout/Footer";
 import { ArrowLeftIcon } from "@/components/ui/arrow-left";
 import { FileTextIcon } from "@/components/ui/file-text";
 
-const PAGE_CONTENT: Record<string, { title: string; subtitle: string }> = {
+const PAGE_CONTENT: Record<string, { title: string; subtitle: string; body?: string }> = {
   "a-propos": {
     title: "À propos",
-    subtitle: "Our mission and team.",
+    subtitle: "Notre mission, notre équipe.",
+    body: "PSTAGEV1 est une plateforme de réservation en ligne dédiée aux salons de coiffure et instituts de beauté au Maroc. Notre mission est de simplifier la prise de rendez-vous pour les clients et la gestion d'agenda pour les professionnels.",
   },
   "contact": {
     title: "Nous contacter",
-    subtitle: "Questions? Get in touch.",
+    subtitle: "Une question ? Nous sommes à votre écoute.",
+    body: "Pour toute demande d'assistance, partenariat ou information commerciale, écrivez-nous à contact@pstagev1.ma. Nous vous répondrons dans les meilleurs délais.",
   },
   "presse": {
     title: "Presse",
-    subtitle: "Press releases and media resources.",
+    subtitle: "Communiqués et ressources médias.",
+    body: "Pour toute demande presse, interviews ou visuels, contactez notre équipe à presse@pstagev1.ma.",
   },
   "tarifs": {
     title: "Tarifs",
-    subtitle: "Plans for salons and independent providers.",
+    subtitle: "Des offres adaptées à chaque prestataire.",
+    body: "Découvrez nos formules FREE, PRO et BUSINESS, conçues pour accompagner votre activité à chaque étape. Consultez votre tableau de bord pour gérer votre abonnement.",
   },
   "mentions-legales": {
     title: "Mentions légales",
-    subtitle: "Legal information.",
+    subtitle: "Informations légales relatives à la plateforme.",
+    body: "Éditeur : PSTAGEV1. Hébergement : Render Inc. Pour toute question juridique, contactez legal@pstagev1.ma.",
   },
   "cgu": {
     title: "Conditions générales d'utilisation",
-    subtitle: "Terms of use for the platform.",
+    subtitle: "Règles d'utilisation de la plateforme.",
+    body: "En utilisant PSTAGEV1, vous acceptez nos conditions générales d'utilisation. Ces conditions régissent l'accès et l'utilisation des services proposés sur la plateforme. Pour toute question, contactez support@pstagev1.ma.",
   },
   "confidentialite": {
     title: "Politique de confidentialité",
-    subtitle: "How we protect your data.",
+    subtitle: "Comment nous protégeons vos données personnelles.",
+    body: "PSTAGEV1 s'engage à protéger vos données personnelles conformément à la loi marocaine 09-08 sur la protection des données. Vos informations ne sont jamais revendues à des tiers.",
   },
   "cookies": {
     title: "Gestion des cookies",
-    subtitle: "Cookie policy and preferences.",
+    subtitle: "Notre politique en matière de cookies.",
+    body: "Nous utilisons des cookies strictement nécessaires au fonctionnement de la plateforme ainsi que des cookies analytiques anonymisés. Vous pouvez gérer vos préférences depuis les paramètres de votre navigateur.",
   },
 };
 
 export default function StaticPage() {
   const { slug } = useParams<{ slug: string }>();
   const page = PAGE_CONTENT[slug ?? ""] ?? {
-    title: "Page",
-    subtitle: "Cette page sera disponible prochainement.",
+    title: "Page introuvable",
+    subtitle: "Cette page n'existe pas.",
   };
 
   return (
     <div style={{ minHeight: "100vh", backgroundColor: "var(--canvas)", display: "flex", flexDirection: "column" }}>
       <TopBar />
       <main style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "120px 24px 80px" }}>
-        <div style={{ maxWidth: 520, width: "100%", textAlign: "center" }}>
+        <div style={{ maxWidth: 560, width: "100%", textAlign: "center" }}>
           <div
             style={{
               display: "inline-flex",
@@ -77,23 +85,26 @@ export default function StaticPage() {
           >
             {page.title}
           </h1>
-          <p style={{ fontSize: 15, color: "var(--ink-tertiary)", lineHeight: 1.6, marginBottom: 32 }}>
+          <p style={{ fontSize: 15, color: "var(--ink-tertiary)", lineHeight: 1.6, marginBottom: page.body ? 32 : 40 }}>
             {page.subtitle}
           </p>
 
-          <div
-            style={{
-              padding: "20px 24px",
-              backgroundColor: "var(--surface-2)",
-              border: "1px solid var(--hairline)",
-              borderRadius: 12,
-              marginBottom: 32,
-            }}
-          >
-            <p style={{ fontSize: 14, color: "var(--ink-secondary)", lineHeight: 1.6, margin: 0 }}>
-              <strong style={{ color: "var(--ink)", fontWeight: 600 }}>Coming soon.</strong> This page will be available in Phase 3.
-            </p>
-          </div>
+          {page.body && (
+            <div
+              style={{
+                padding: "20px 24px",
+                backgroundColor: "var(--surface-2)",
+                border: "1px solid var(--hairline)",
+                borderRadius: 12,
+                marginBottom: 32,
+                textAlign: "left",
+              }}
+            >
+              <p style={{ fontSize: 14, color: "var(--ink-secondary)", lineHeight: 1.7, margin: 0 }}>
+                {page.body}
+              </p>
+            </div>
+          )}
 
           <Link
             href="/"
