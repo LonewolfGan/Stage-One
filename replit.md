@@ -4,52 +4,52 @@ Plateforme SaaS verticale de réservation en ligne pour salons de coiffure et in
 
 ---
 
-## Quickstart pour une nouvelle équipe
+## Quickstart
 
 ```bash
 # 1. Installer les dépendances
 pnpm install
 
-# 2. Démarrer le frontend (port auto-assigné par workflow Replit)
+# 2. Démarrer le frontend (port 5000)
 pnpm --filter @workspace/pstagev1 run dev
 
-# 3. Démarrer l'API (port auto-assigné)
+# 3. Démarrer l'API (port 3000)
 pnpm --filter @workspace/api-server run dev
 
-# 4. (Phase 2+) Pousser le schéma DB vers la base dev
+# 4. Pousser le schéma DB vers la base dev
 pnpm --filter @workspace/db run push
 
-# 5. (Phase 2+) Régénérer les hooks API et schémas Zod depuis l'OpenAPI spec
+# 5. Régénérer les hooks API et schémas Zod depuis l'OpenAPI spec
 pnpm --filter @workspace/api-spec run codegen
 ```
 
-**Variables d'environnement requises** (fichier `.env` à la racine) :
-- `DATABASE_URL` — chaîne de connexion PostgreSQL (Phase 2+)
-- `SESSION_SECRET` — secret session Express (Phase 2+)
-
-> Phase 1 = **UI only**. Aucune variable env n'est nécessaire pour le frontend.
+**Secrets requis** (gérés via Replit Secrets) :
+- `DATABASE_URL` — chaîne de connexion PostgreSQL (auto-provisionnée)
+- `SESSION_SECRET` — secret session Express
+- `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` — paiements (optionnel, mock si absent)
+- `REDIS_URL` — locking distribué (optionnel, mock si absent)
+- `FIREBASE_PROJECT_ID`, `FIREBASE_PRIVATE_KEY`, `FIREBASE_CLIENT_EMAIL` — OTP téléphone (optionnel, mock si absent)
 
 ---
 
 ## Architecture monorepo (pnpm workspaces)
 
 ```
-artifacts-monorepo/
+workspace/
 ├── artifacts/
-│   ├── pstagev1/         ← Frontend React + Vite (package: @workspace/pstagev1)
-│   └── api-server/       ← Backend Express 5 (package: @workspace/api-server)
+│   ├── pstagev1/         ← Frontend React + Vite (@workspace/pstagev1)
+│   └── api-server/       ← Backend Express 5 (@workspace/api-server)
 ├── lib/
-│   ├── api-spec/         ← Spec OpenAPI (source de vérité backend/frontend)
-│   ├── api-client-react/ ← React Query hooks générés par Orval
+│   ├── api-spec/         ← Spec OpenAPI (source de vérité)
+│   ├── api-client-react/ ← Hooks React Query générés par Orval
 │   ├── api-zod/          ← Schémas Zod générés par Orval
 │   └── db/               ← Drizzle ORM schema + migrations
-├── scripts/              ← Scripts utilitaires partagés
+├── scripts/              ← post-merge.sh (pnpm install + db push)
 ├── pnpm-workspace.yaml   ← Catalog de versions, overrides
-├── tsconfig.base.json    ← Config TypeScript partagée (strict)
-└── tsconfig.json         ← Solution file pour les libs composites
+└── tsconfig.json         ← Solution file TypeScript
 ```
 
-**Règle de routing** : un reverse proxy global route par path. Le frontend est sur `/`, l'API sur `/api`. Voir `.replit-artifact/artifact.toml` de chaque artifact.
+**Routing** : frontend sur `/`, API sur `/api`. Vite proxie `/api` → `localhost:3000`.
 
 ---
 
@@ -57,19 +57,19 @@ artifacts-monorepo/
 
 | Couche | Technologie |
 |--------|-------------|
-| Frontend | React 19 + Vite 7, Wouter (routing SPA), Tailwind CSS v4, shadcn/ui |
-| Animations | Framer Motion |
-| Dashboard charts | Recharts |
+| Frontend | React 19 + Vite 7, Wouter, Tailwind CSS v4, shadcn/ui |
+| Animations | Framer Motion (`lib/motion.ts`) |
+| Charts | Recharts |
 | Dates | date-fns |
 | Icônes | Lucide React |
-| API client | @tanstack/react-query + hooks générés Orval |
-| Backend | Express 5, pino (logging) |
+| API client | @tanstack/react-query |
+| Backend | Express 5, pino |
 | ORM | Drizzle ORM |
-| Base de données | PostgreSQL |
-| Validation | Zod (zod/v4), drizzle-zod |
-| Codegen | Orval (OpenAPI → React Query + Zod) |
-| Build serveur | esbuild (bundle CJS) |
-| TypeScript | 5.9, mode strict |
+| Base de données | PostgreSQL (Replit natif) |
+| Validation | Zod v4, drizzle-zod |
+| Codegen | Orval (OpenAPI → hooks + Zod) |
+| Build serveur | esbuild |
+| TypeScript | 5.9 strict |
 | Node.js | 24 |
 | Package manager | pnpm 9 |
 
@@ -77,45 +77,46 @@ artifacts-monorepo/
 
 ## Design System — tokens et règles absolues
 
-**Référence** : `attached_assets/DESIGN_SYSTEM_*.md` + `attached_assets/PSTAGEV1-PRD_*.md`
+**Référence canonique** :
+- `attached_assets/DESIGN_SYSTEM_1782420727754.md` — tokens CSS et specs composants
+- `attached_assets/PSTAGEV1-PRD_1782594133959.md` — PRD complet
+- `artifacts/pstagev1/src/lib/design-system.ts` — source de vérité couleurs en TypeScript
 
-### Palette de tokens
+### Palette de tokens CSS
 ```
---canvas:         #FBFBFC   ← fond de page (jamais #FFFFFF pur en fond)
---canvas-pure:    #FFFFFF   ← surfaces "flottantes" (cards, inputs)
---surface-1:      #FFFFFF   ← cards par défaut
---surface-2:      #F4F5F7   ← hover de card, sidebar dashboard
+--canvas:         #FBFBFC   ← fond de page (jamais #FFFFFF pur)
+--canvas-pure:    #FFFFFF   ← surfaces flottantes (cards, inputs)
+--surface-2:      #F4F5F7   ← hover de card, sidebar
 --surface-3:      #ECEDF0   ← sélectionné, zone dense
---surface-4:      #E2E4E8   ← pressed, dividers structurels
+--surface-4:      #E2E4E8   ← pressed, dividers
 
 --ink:            #0E0E12   ← headlines (jamais #000000)
 --ink-secondary:  #53565C   ← corps de texte
 --ink-tertiary:   #8A8D93   ← meta, captions
 
---accent:         #D4466E   ← CTA primaire, brand mark, liens actifs UNIQUEMENT
+--accent:         #D4466E   ← brand mark, sémantique uniquement
 --accent-hover:   #B8345B
---accent-tint:    #FBEEF1   ← fond badge actif, ligne sélectionnée
+--accent-tint:    #FBEEF1   ← fond badge actif
 
---hairline:       rgba(10,10,15,0.08)   ← bordure card par défaut
---hairline-strong:rgba(10,10,15,0.14)   ← bordure hover
+--hairline:       rgba(10,10,15,0.08)
+--hairline-strong:rgba(10,10,15,0.14)
 
 --rating:         #E8A33D   ← étoiles uniquement
 ```
 
-### Règles absolues (vérifiables par grep)
-1. **ZÉRO `box-shadow`** sur card/button/input/panel — seule exception : SearchPill
+### Règles absolues
+1. **ZÉRO `box-shadow`** sur card/button/input/panel
 2. **ZÉRO `translateY` au hover** d'une card
 3. **ZÉRO `font-bold`** — poids max 600 (font-semibold)
 4. **Tracking négatif** obligatoire sur tout texte ≥ 18px
-5. **L'accent rose** sur < 8% de la surface visible d'un écran
-6. **Skeleton loading** avec `bg-[#ECEDF0] animate-pulse` (jamais `bg-gray-200`)
+5. **Accent rose** sur < 8% de la surface visible d'un écran
+6. **Skeleton** : `bg-[#ECEDF0] animate-pulse` (jamais `bg-gray-200`)
 7. **Pas d'état vide blanc** — toujours icône + titre + sous-titre
-8. **ZÉRO `border-left` / `border-right` accent coloré** (one-side solid border) — interdit sur toute pill, card ou bloc de l'agenda et ailleurs. Interdit également les petits points colorés (color dot) à l'intérieur des pills.
-9. **Agenda — pills** : afficher uniquement le titre du service, rien de plus. Pas de dot, pas de bordure latérale colorée, pas d'icône. Toutes les infos complémentaires (client, horaire, type) apparaissent exclusivement dans un popup propre au survol (`BookingPopup`).
+8. **ZÉRO `border-left`/`border-right` coloré** (one-side border) ni color dot
 
 ### Typographie
 ```
-display   → 56px / 600 / lh:1.08 / tracking:-0.025em  (1 par page max)
+display   → 56px / 600 / lh:1.08 / tracking:-0.025em
 heading-l → 36px / 600 / lh:1.15 / tracking:-0.02em
 heading-m → 24px / 600 / lh:1.20 / tracking:-0.015em
 heading-s → 18px / 500 / lh:1.30 / tracking:-0.01em
@@ -130,39 +131,42 @@ caption   → 12px / 400 / lh:1.4 / tracking:+0.01em
 
 ## Phases du projet
 
-### Phase 1 — UI seulement (ACTUELLE)
-- Toutes les données viennent de `artifacts/pstagev1/src/lib/mock-data.ts`
-- Aucun appel API réel, aucune authentification, aucune base de données
-- 3 prestataires mock : Salon Atlas (Marrakech), Institut Élégance (Casablanca), Sara à domicile (Rabat)
-
-### Phase 2 — Backend + Auth
-- Brancher les routes API Express sur les hooks React Query générés
-- Auth : JWT sessions + middleware Express
-- DB : Drizzle ORM + PostgreSQL
-- Anti-double-booking : Redis lock → PG transaction → GIST exclusion constraint
+### Phase 2 — Backend + Auth (ACTUELLE)
+- Auth JWT via `/api/auth` (bcrypt + jose). Comptes de test dans le seed.
+- 4 prestataires seedés : Salon Atlas, Institut Élégance, Sara à domicile, Hammam Zitoun
+- Booking expiry job, email worker, socket.io (temps réel)
 
 ### Phase 3 — Paiement + Production
-- Intégration paiement (Stripe ou CMI Maroc)
-- Dashboard analytics réel
-- Notifications email/SMS
+- Stripe (code présent, mock si `STRIPE_SECRET_KEY` absent)
+- Notifications email/SMS réelles (SMTP)
 - SEO : pages statiques par ville × catégorie
 
 ---
 
 ## Routes frontend (Wouter)
 
-| Path | Composant | Description |
-|------|-----------|-------------|
-| `/` | `pages/home.tsx` | Landing page avec hero animé |
-| `/search` | `pages/search.tsx` | Résultats + carte interactive (placeholder Phase 1) |
-| `/:slug` | `pages/provider-profile.tsx` | Profil public prestataire |
-| `/booking/:slug` | `pages/booking.tsx` | Widget de réservation 3 étapes |
-| `/dashboard/agenda` | `pages/dashboard/agenda.tsx` | Agenda staff (vue jour) |
-| `/dashboard/services` | `pages/dashboard/services.tsx` | Catalogue de prestations |
-| `/dashboard/staff` | `pages/dashboard/staff.tsx` | Gestion équipe |
-| `/dashboard/analytics` | `pages/dashboard/analytics.tsx` | Stats + graphiques |
-| `/auth/register` | `pages/auth-placeholder.tsx` | Placeholder Phase 1 |
-| `/auth/login` | `pages/auth-placeholder.tsx` | Placeholder Phase 1 |
+| Path | Description |
+|------|-------------|
+| `/` | Landing page |
+| `/search` | Résultats de recherche |
+| `/categorie/:slug` | Catégorie |
+| `/:slug` | Profil prestataire |
+| `/booking/:slug` | Réservation 3 étapes |
+| `/booking-confirmation` | Confirmation |
+| `/auth/login` | Connexion |
+| `/auth/register` | Inscription |
+| `/account/bookings` | Mes réservations (client) |
+| `/account/profile` | Mon profil |
+| `/verify-email` | Vérification email |
+| `/dashboard/agenda` | Agenda (staff view) |
+| `/dashboard/reservations` | Vue semaine |
+| `/dashboard/services` | Catalogue prestations |
+| `/dashboard/staff` | Gestion équipe |
+| `/dashboard/analytics` | Stats |
+| `/dashboard/reviews` | Avis |
+| `/dashboard/settings` | Paramètres prestataire |
+| `/dashboard/subscription` | Abonnement |
+| `/page/:slug` | Pages statiques (CGU, etc.) |
 
 ---
 
@@ -171,106 +175,105 @@ caption   → 12px / 400 / lh:1.4 / tracking:+0.01em
 ```
 artifacts/pstagev1/src/
 ├── lib/
-│   └── mock-data.ts              ← données Phase 1, types TypeScript, helpers
+│   ├── api.ts              ← appels fetch centralisés
+│   ├── auth-store.ts       ← état auth (Zustand-like)
+│   ├── cities.ts           ← liste villes Maroc
+│   ├── design-system.ts    ← tokens couleurs TypeScript
+│   ├── motion.ts           ← variants Framer Motion partagés
+│   ├── provider-adapter.ts ← adaptateur API → types frontend
+│   ├── socket.ts           ← client socket.io
+│   ├── types.ts            ← types partagés
+│   └── utils.ts            ← cn(), formatPrice(), etc.
 ├── components/
 │   ├── layout/
-│   │   ├── TopBar.tsx            ← navbar sticky, modale "Commencer"
-│   │   └── Footer.tsx            ← footer light (#FBFBFC)
+│   │   ├── TopBar.tsx      ← navbar sticky
+│   │   └── Footer.tsx
 │   ├── public/
-│   │   ├── HeroSection.tsx       ← hero sombre animé + mosaïque photos
-│   │   ├── SalonCard.tsx         ← carte prestataire (composant principal)
-│   │   ├── ServiceCard.tsx
-│   │   ├── PhotoGallery.tsx      ← galerie 2×4 (profil prestataire)
-│   │   ├── TimeSlotGrid.tsx      ← grille créneaux horaires
-│   │   ├── StaffSelector.tsx     ← chips de sélection collaborateur
-│   │   └── ReviewCard.tsx
-│   └── dashboard/
-│       ├── DashboardSidebar.tsx  ← sidebar Linear-style 220px
-│       ├── AgendaView.tsx        ← timeline horaire staff
-│       ├── BookingBlock.tsx      ← bloc RDV dans l'agenda
-│       └── StatCard.tsx
+│   │   ├── HeroSection.tsx ← hero + search pill
+│   │   ├── ReviewCard.tsx
+│   │   ├── StaffSelector.tsx
+│   │   └── TimeSlotGrid.tsx
+│   ├── dashboard/
+│   │   ├── DashboardLayout.tsx ← layout + sidebar + notifs
+│   │   ├── DashboardSidebar.tsx
+│   │   └── WeekCalendar.tsx
+│   └── ui/                 ← composants atomiques (button, input, etc.)
 ├── pages/
 │   ├── home.tsx
 │   ├── search.tsx
+│   ├── category.tsx
 │   ├── provider-profile.tsx
 │   ├── booking.tsx
-│   ├── auth-placeholder.tsx
+│   ├── booking-confirmation.tsx
+│   ├── not-found.tsx
+│   ├── static-page.tsx
+│   ├── verify-email.tsx
+│   ├── auth/
+│   │   ├── login.tsx
+│   │   └── register.tsx
+│   ├── account/
+│   │   ├── bookings.tsx
+│   │   └── profile.tsx
 │   └── dashboard/
 │       ├── agenda.tsx
+│       ├── analytics.tsx
+│       ├── reservations.tsx
+│       ├── reviews.tsx
 │       ├── services.tsx
+│       ├── settings.tsx
 │       ├── staff.tsx
-│       └── analytics.tsx
-├── App.tsx                       ← routing + providers
-├── index.css                     ← tokens CSS + shadcn vars
+│       └── subscription.tsx
+├── App.tsx                 ← routing + providers
+├── index.css               ← tokens CSS + Tailwind
 └── main.tsx
 ```
 
 ---
 
-## Données mock (Phase 1)
-
-**Fichier** : `artifacts/pstagev1/src/lib/mock-data.ts`
-
-**Types exportés** : `Provider`, `StaffMember`, `Service`, `BusinessHours`, `TimeSlot`
-
-**Helpers** :
-- `generateSlots(date, provider)` → `TimeSlot[]` (~60% de remplissage)
-- `getNextAvailable(provider)` → `"Disponible à 14h30"` ou `"lun. 10:00"`
-
-**Prix** : stockés en centimes MAD (`priceCents`). Affichage : `priceCents / 100` → `"180 MAD"`
-
----
-
-## Modèle de données (Phase 2+)
+## Modèle de données
 
 Référence complète : `attached_assets/PROJECT_1782420678452.md`
 
-Tables principales :
-- `providers` (id, type, slug, name, city, category, subscription_plan)
-- `staff` (id, provider_id, first_name, speciality)
-- `business_hours` (provider_id, day_of_week, open_time, close_time)
-- `schedule_blocks` (staff_id, start_at, end_at, reason) — blocages manuels
-- `services` (id, provider_id, name, duration_minutes, price_cents)
-- `service_staff` (service_id, staff_id) — liaison N:N
-- `bookings` (id, client_id, service_id, staff_id, start_at, end_at, status)
-- `reviews` (id, booking_id, rating, comment)
-- `subscriptions` (provider_id, plan, status)
+Tables : `providers`, `staff`, `business_hours`, `schedule_blocks`, `services`, `service_staff`, `bookings`, `reviews`, `subscriptions`, `notifications`, `email_verification_tokens`, `users`
 
-**Anti-double-booking** (Phase 2, NE JAMAIS SUPPRIMER) :
+**Anti-double-booking (NE JAMAIS SUPPRIMER)** :
 ```sql
--- Contrainte GIST sur bookings (dernier filet de sécurité)
 EXCLUDE USING gist (staff_id WITH =, tsrange(start_at, end_at) WITH &&)
 WHERE (status != 'cancelled');
 ```
-3 couches de protection : Redis lock → PostgreSQL transaction → GIST constraint.
+3 couches : Redis lock → PG transaction → GIST constraint.
 
 ---
 
-## API (Phase 2+)
+## API
 
 Spec OpenAPI : `lib/api-spec/openapi.yaml` — source de vérité unique.
 
 ```bash
 # Après modification du spec :
 pnpm --filter @workspace/api-spec run codegen
-# Génère dans :
-# lib/api-client-react/src/generated/   ← hooks React Query
-# lib/api-zod/src/generated/            ← schémas Zod
 ```
 
-Logging backend : toujours `req.log` dans les routes, `logger` ailleurs. Jamais `console.log`.
+Logging backend : `req.log` dans les routes, `logger` ailleurs. Jamais `console.log`.
+
+Comptes de test (seedés automatiquement) :
+- Client : `yasmine@client.ma` / `password123`
+- Owner Salon Atlas : `atlas@salon.ma` / `password123`
+- Owner Institut Élégance : `elegance@salon.ma` / `password123`
+- Owner Sara : `sara@domicile.ma` / `password123`
+- Owner Hammam Zitoun : `zitoun@hammam.ma` / `password123`
 
 ---
 
 ## Gotchas importants
 
-- **index.css** : Le scaffold shadcn génère toutes les vars CSS en `red`. Toujours réécrire le `:root` entier avant tout composant ou tout s'affiche en rouge.
-- **Google Fonts** : Le `@import url(...)` DOIT être la toute première ligne de `index.css` — PostCSS échoue silencieusement sinon.
-- **Wouter routing** : Utiliser `useParams`, `useSearch`, `useLocation` de `wouter`. Jamais `window.location` pour la navigation SPA.
-- **pnpm** : Ne jamais `cd` dans un sous-package, toujours `pnpm --filter @workspace/<slug> run <script>`.
-- **TypeScript** : `pnpm run typecheck` = source de vérité. Ne pas se fier à l'éditeur si les deux divergent.
-- **Ports** : Toujours lire `process.env.PORT` — Replit assigne les ports dynamiquement. Ne jamais hardcoder 3000/8080/etc.
-- **BASE_PATH** : Le frontend lit `import.meta.env.BASE_URL` pour les URLs relatives (déjà configuré dans Vite).
+- **index.css** : Le `:root` entier doit être réécrit (shadcn génère tout en rouge par défaut).
+- **Google Fonts** : `@import url(...)` DOIT être la première ligne de `index.css`.
+- **Wouter** : utiliser `useParams`, `useSearch`, `useLocation`. Jamais `window.location`.
+- **pnpm** : toujours `pnpm --filter @workspace/<slug> run <script>`, jamais `cd`.
+- **TypeScript** : `pnpm run typecheck` = source de vérité.
+- **Ports** : lire `process.env.PORT`. Ne jamais hardcoder.
+- **BASE_PATH** : le frontend lit `import.meta.env.BASE_URL`.
 
 ---
 
@@ -279,23 +282,23 @@ Logging backend : toujours `req.log` dans les routes, `logger` ailleurs. Jamais 
 - Langue UI : **français** (plateforme marocaine)
 - Pas d'emojis dans l'UI — seulement icônes Lucide React
 - Design : Awwwards-level, Linear/Resend en light mode
-- Boutons primaires : **ink `#0C0C0E`** (jamais rose sur les CTAs)
-- Accent rose `#D4466E` : max 1 élément par écran, uniquement sémantique (pastille notif, cœur favori)
-- Prix en MAD : toujours `priceCents / 100` + "MAD"
+- Boutons primaires : accent `#D4466E` (var(--accent))
+- Accent rose : max 1 élément par écran, uniquement sémantique
+- Prix en MAD : `priceCents / 100` + "MAD"
 - Sections majeures : `py-24` (96px) de séparation
 
 ### Règle de processus design (obligatoire)
 
-**À chaque modification du frontend (`artifacts/pstagev1/src/`), le skill `impeccable` doit être invoqué** pour s'assurer que la qualité design est maintenue. Cela inclut : toute création ou modification de composant, page, ou token CSS. Lire `.agents/skills/impeccable/SKILL.md` avant d'implémenter, puis effectuer un audit post-implémentation.
+**À chaque modification du frontend, le skill `impeccable` doit être invoqué** pour maintenir la qualité design. Lire `.agents/skills/impeccable/SKILL.md` avant d'implémenter.
 
-Fichier contexte produit pour `impeccable` : `artifacts/pstagev1/PRODUCT.md`
+Contexte produit : `artifacts/pstagev1/PRODUCT.md`
 
 ---
 
-## Références design
+## Références
 
-- `attached_assets/PROJECT_1782420678452.md` — modèle de données complet et règles métier
-- `attached_assets/DESIGN_SYSTEM_*.md` — tokens CSS et specs composants
-- `attached_assets/REPLIT_CONTEXT_*.md` — flows UX et structure des pages
-- `attached_assets/PSTAGEV1-PRD_*.md` — PRD complet
+- `attached_assets/PROJECT_1782420678452.md` — modèle de données et règles métier
+- `attached_assets/DESIGN_SYSTEM_1782420727754.md` — tokens CSS et specs composants
+- `attached_assets/REPLIT_CONTEXT_1782420688230.md` — flows UX
+- `attached_assets/PSTAGEV1-PRD_1782594133959.md` — PRD complet
 - `.agents/skills/pstagev1-context/SKILL.md` — context rapide pour les agents

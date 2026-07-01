@@ -1,6 +1,6 @@
 ---
 name: pstagev1-context
-description: Project context for PSTAGEV1 — a SaaS beauty booking platform for Moroccan salons/institutes. Load when working on any feature of this project: UI components, booking flow, dashboard, design tokens, mock data, or backend routes. Contains design system tokens, page structure, UX conventions, and architecture decisions.
+description: Project context for PSTAGEV1 — a SaaS beauty booking platform for Moroccan salons/institutes. Load when working on any feature of this project.
 ---
 
 # PSTAGEV1 — Project Context Skill
@@ -8,139 +8,165 @@ description: Project context for PSTAGEV1 — a SaaS beauty booking platform for
 ## What this project is
 
 PSTAGEV1 is a Moroccan beauty booking SaaS platform (salons + beauty institutes), modeled after Planity (France). Two audiences:
-- **Clients**: discover providers, view profiles, book appointments online with payment
+- **Clients**: discover providers, view profiles, book appointments
 - **Providers**: manage agenda, staff, services catalog, view analytics
 
-Two provider types: `establishment` (multi-staff salon) and `individual` (solo freelancer, auto-creates 1 staff member).
+Two provider types: `establishment` (multi-staff salon) and `individual` (solo freelancer).
 
 ## Current Phase
 
-**Phase 1 = UI only** — all data mocked in `artifacts/pstagev1/src/lib/mock-data.ts`. No real API, no DB, no auth. Backend routes are stubbed.
+**Phase 2 — Backend + Auth** is active. Real API, real DB (PostgreSQL), real JWT auth.
 
-Phase 2 onward: wire up real API routes following the OpenAPI-first workflow.
+Comptes de test seedés automatiquement :
+- Client : `yasmine@client.ma` / `password123`
+- Owner Salon Atlas : `atlas@salon.ma` / `password123`
+- Owner Institut Élégance : `elegance@salon.ma` / `password123`
+- Owner Sara : `sara@domicile.ma` / `password123`
+- Owner Hammam Zitoun : `zitoun@hammam.ma` / `password123`
 
-## Design System — CSS Tokens
+## Design System
 
-### Signature color: Rose #D4547A
+**Source de vérité couleurs TypeScript** : `artifacts/pstagev1/src/lib/design-system.ts`
+
+### Tokens CSS (dans `artifacts/pstagev1/src/index.css`)
 ```
---accent-rose: #D4547A        → Primary CTAs, active states, selected slots
---accent-rose-hover: #C04268  → Hover state for rose buttons
---accent-rose-light: #FAF0F3  → Selected date/slot background
---accent-rose-border: #F0C4CF → Accent context borders
+--canvas:         #FBFBFC   ← fond de page
+--canvas-pure:    #FFFFFF   ← surfaces flottantes
+--surface-2:      #F4F5F7   ← hover, sidebar
+--surface-3:      #ECEDF0   ← sélectionné
+--surface-4:      #E2E4E8   ← pressed, dividers
+
+--ink:            #0E0E12   ← headlines
+--ink-secondary:  #53565C   ← corps de texte
+--ink-tertiary:   #8A8D93   ← captions
+
+--accent:         #D4466E   ← brand, sémantique uniquement
+--accent-hover:   #B8345B
+--accent-tint:    #FBEEF1
+
+--hairline:       rgba(10,10,15,0.08)
+--rating:         #E8A33D
 ```
 
-### Never use black for primary buttons — always use rose #D4547A.
+### Règles absolues
+1. ZÉRO `box-shadow` sur card/button/input/panel
+2. ZÉRO `translateY` au hover d'une card
+3. ZÉRO `font-bold` — poids max 600
+4. Tracking négatif obligatoire sur tout texte ≥ 18px
+5. Accent rose < 8% de la surface visible
+6. Skeleton : `bg-[#ECEDF0] animate-pulse`
+7. Pas d'état vide blanc — icône + titre + sous-titre
+8. ZÉRO `border-left`/`border-right` coloré, ni color dot
 
-### Full palette
+### Typographie (Inter, Google Fonts)
 ```
-Canvas: #FFFFFF (--canvas), #FAFAFA (--canvas-subtle), #F5F5F5 (--canvas-muted)
-Ink: #1A1A1A (primary text), #6B6B6B (secondary), #9E9E9E (tertiary)
-Borders: #F0F0F0 (light), #E0E0E0 (medium), #C4C4C4 (strong)
-Rating: #F5A623 (stars only)
-Success: #43A047 / Error: #E53935
+display   → 56px / 600 / tracking:-0.025em
+heading-l → 36px / 600 / tracking:-0.02em
+heading-m → 24px / 600 / tracking:-0.015em
+heading-s → 18px / 500 / tracking:-0.01em
+body-l    → 17px / 400
+body      → 15px / 400
+body-s    → 13px / 400
+label     → 14px / 500
+caption   → 12px / 400
 ```
 
-### Typography: Inter (Google Fonts)
-- Display hero: 40px, font-semibold, letter-spacing: -0.02em
-- Heading: 24px, font-semibold
-- Subheading: 18px, font-medium
-- Body: 15px, font-normal, color: #6B6B6B
-- Caption: 13px, color: #9E9E9E
+## Architecture
 
-### Radii: 6px, 8px, 14px, 20px, 9999px (full)
-### Shadows: sm (cards), md (elevated cards), xl (modals)
+```
+workspace/
+├── artifacts/
+│   ├── pstagev1/     ← Frontend React 19 + Vite 7 (port 5000)
+│   └── api-server/   ← Backend Express 5 (port 3000)
+├── lib/
+│   ├── db/           ← Drizzle ORM + schema PostgreSQL
+│   ├── api-spec/     ← OpenAPI source de vérité
+│   ├── api-client-react/ ← hooks générés Orval
+│   └── api-zod/      ← schémas Zod générés
+```
 
-## Critical index.css Rule
+## Structure frontend
 
-The scaffold ships all CSS variables as `red`. You MUST fully rewrite `:root` and `.dark` blocks.
-Google Fonts `@import url(...)` MUST be the VERY FIRST LINE of index.css — before all other imports.
+```
+artifacts/pstagev1/src/
+├── lib/
+│   ├── api.ts              ← appels fetch centralisés
+│   ├── auth-store.ts       ← état auth
+│   ├── cities.ts           ← villes Maroc
+│   ├── design-system.ts    ← tokens couleurs TS
+│   ├── motion.ts           ← variants Framer Motion
+│   ├── provider-adapter.ts ← API → types frontend
+│   ├── socket.ts           ← client socket.io
+│   ├── types.ts            ← types partagés
+│   └── utils.ts            ← cn(), formatPrice(), etc.
+├── components/
+│   ├── layout/TopBar.tsx
+│   ├── layout/Footer.tsx
+│   ├── public/HeroSection.tsx
+│   ├── public/ReviewCard.tsx
+│   ├── public/StaffSelector.tsx
+│   ├── public/TimeSlotGrid.tsx
+│   ├── dashboard/DashboardLayout.tsx
+│   ├── dashboard/DashboardSidebar.tsx
+│   ├── dashboard/WeekCalendar.tsx
+│   └── ui/              ← composants atomiques
+├── pages/
+│   ├── home.tsx, search.tsx, category.tsx
+│   ├── provider-profile.tsx, booking.tsx
+│   ├── booking-confirmation.tsx, not-found.tsx
+│   ├── static-page.tsx, verify-email.tsx
+│   ├── auth/ (login.tsx, register.tsx)
+│   ├── account/ (bookings.tsx, profile.tsx)
+│   └── dashboard/ (agenda, analytics, reservations,
+│                    reviews, services, settings,
+│                    staff, subscription)
+└── App.tsx, index.css, main.tsx
+```
 
-## Mock Data (Phase 1)
+## Routes API backend
 
-File: `artifacts/pstagev1/src/lib/mock-data.ts`
+```
+GET/POST /api/auth/*          ← login, register, refresh, me, verify-phone
+GET      /api/providers       ← liste prestataires
+GET      /api/providers/:slug ← profil + services + staff
+GET      /api/providers/:slug/slots ← créneaux disponibles
+GET/POST /api/bookings        ← créer/lister réservations
+GET      /api/dashboard/*     ← dashboard owner (requireOwner)
+GET      /api/reviews/*
+POST     /api/webhooks/stripe
+GET      /api/health
+```
 
-Three providers:
-1. **Salon Atlas** (establishment, Marrakech, 3 staff: Fatima/Youssef/Sara, 5 services)
-2. **Institut Élégance** (establishment, Casablanca, 3 staff: Nadia/Karima/Houda, 5 services)
-3. **Sara à domicile** (individual, Rabat, 1 staff: Sara herself, 3 services)
+## Backend lib
 
-Key helpers:
-- `generateSlots(date, provider)` — returns TimeSlot[] with ~60% fill rate
-- `getNextAvailable(provider)` — returns "Disponible à 14h30" or "lun. 10:00"
-- Prices: stored in `priceCents` (MAD centimes), display by dividing by 100: "180 MAD"
+- `lib/auth.ts` — signToken / verifyToken (jose JWT)
+- `lib/stripe.ts` — Stripe (mock si STRIPE_SECRET_KEY absent)
+- `lib/redis.ts` — Redis/ioredis (mock si REDIS_URL absent)
+- `lib/firebase.ts` — Firebase Admin (mock si creds absentes)
+- `lib/email-worker.ts` — worker email (BullMQ ou setTimeout fallback)
+- `lib/socket.ts` — socket.io serveur
+- `lib/slot-engine.ts` — calcul créneaux disponibles
+- `lib/postgis-setup.ts` — setup extension PostGIS
 
-## Pages & Routes
+## Data model key points
 
-| Route | Page | Purpose |
-|-------|------|---------|
-| `/` | HomePage | Landing with SearchPill + CategoryGrid |
-| `/search` | SearchPage | Results list + map placeholder |
-| `/:slug` | ProviderProfilePage | Public profile + services + reviews |
-| `/booking/:slug` | BookingPage | Service → staff → time → confirmation |
-| `/dashboard/agenda` | AgendaPage | Staff timeline with booking blocks |
-| `/dashboard/services` | ServicesPage | Service catalog management |
-| `/dashboard/staff` | StaffPage | Staff management |
-| `/dashboard/analytics` | AnalyticsPage | Stats + recharts bar chart |
-
-## Key UX Innovations vs Planity
-
-1. **SalonCard "Disponible à X"**: Shows next available time in rose prominently — not just an anonymous slot grid.
-2. **Booking widget 2-col desktop**: Left = selection (service → staff → date/time), Right = live summary card.
-3. **Dashboard**: Linear-inspired sidebar with rose left-border on active item.
-4. **Rose badge "Populaire"**: On the most popular service of each provider.
+- `attached_assets/PROJECT_1782420678452.md` — référence complète
+- Anti-double-booking : Redis lock → PG transaction → GIST constraint (NE JAMAIS SUPPRIMER)
+- Prix : stockés en centimes MAD (`price_cents`), afficher `price_cents / 100 + " MAD"`
 
 ## Routing (wouter)
 
 ```tsx
-// Always use wouter hooks:
 import { useParams, useSearch, useLocation } from "wouter";
-
-// Navigate programmatically:
 const [, setLocation] = useLocation();
 setLocation('/search');
-
-// Get slug:
-const { slug } = useParams();
-
-// Get query params:
-const search = useSearch(); // returns "?category=coiffeur&city=Marrakech"
 ```
-
-## Component Organization
-
-```
-src/
-├── lib/mock-data.ts          — all mock data + helpers
-├── components/
-│   ├── layout/TopBar.tsx     — sticky nav with logo + categories
-│   ├── layout/Footer.tsx
-│   ├── public/SalonCard.tsx  — core card for search results
-│   ├── public/ServiceCard.tsx
-│   ├── public/PhotoGallery.tsx
-│   ├── public/TimeSlotGrid.tsx
-│   ├── public/StaffSelector.tsx
-│   └── dashboard/
-│       ├── DashboardSidebar.tsx  — 240px Linear-style sidebar
-│       ├── AgendaView.tsx
-│       └── StatCard.tsx
-└── pages/ ...
-```
-
-## Backend (Phase 2+)
-
-Data model lives in `attached_assets/PROJECT_1782420678452.md`. Key tables:
-- `providers`, `staff`, `business_hours`, `schedule_blocks`, `services`, `service_staff`
-- `bookings` (anti-double-booking with GIST exclusion constraint — NEVER remove)
-- `reviews`, `subscriptions`
-
-Anti-double-booking: 3 layers — Redis lock → PG transaction → GIST constraint.
-Slot engine: BusinessHours − ScheduleBlocks − Bookings = available slots. Redis cache 5min TTL.
 
 ## When working on this project
 
-1. Read `attached_assets/DESIGN_SYSTEM_1782420727754.md` for pixel-perfect component specs
-2. Read `attached_assets/REPLIT_CONTEXT_1782420688230.md` for UX flows and component hierarchy
-3. Read `attached_assets/PROJECT_1782420678452.md` for data models and business rules
-4. All Phase 1 UI work goes in `artifacts/pstagev1/src/`
-5. Phase 2+ backend work goes in `artifacts/api-server/src/routes/` + `lib/db/src/schema/`
-6. Run codegen after OpenAPI spec changes: `pnpm --filter @workspace/api-spec run codegen`
+1. Lire `attached_assets/DESIGN_SYSTEM_1782420727754.md` pour les specs composants
+2. Lire `attached_assets/REPLIT_CONTEXT_1782420688230.md` pour les flows UX
+3. Lire `attached_assets/PROJECT_1782420678452.md` pour le modèle de données
+4. Invoquer le skill `impeccable` avant/après toute modification frontend
+5. Après modif OpenAPI : `pnpm --filter @workspace/api-spec run codegen`
+6. Logging backend : `req.log` dans routes, `logger` ailleurs, jamais `console.log`
