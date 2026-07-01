@@ -1,4 +1,5 @@
 import { useParams, useLocation } from "wouter";
+import { useSeoMeta } from "@/hooks/useSeoMeta";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import { TopBar } from "@/components/layout/TopBar";
@@ -340,6 +341,13 @@ export default function ProviderProfilePage() {
     comment: r.comment ?? "",
     providerReply: r.reply ?? null,
   }));
+
+  useSeoMeta({
+    title: provider ? `${provider.name} — ${provider.city}` : undefined,
+    description: provider
+      ? `Réservez en ligne chez ${provider.name} à ${provider.city}. ${provider.description ?? ""} Coiffeur, beauté, bien-être au Maroc.`.trim()
+      : undefined,
+  });
 
   const [favorited, setFavorited] = useState(false);
   const [reviewsOpen, setReviewsOpen] = useState(true);

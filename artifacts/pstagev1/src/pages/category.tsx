@@ -1,4 +1,5 @@
 import { useParams, useLocation } from "wouter";
+import { useSeoMeta } from "@/hooks/useSeoMeta";
 import { motion } from "framer-motion";
 import { useState, useRef, useEffect } from "react";
 import { TopBar } from "@/components/layout/TopBar";
@@ -109,6 +110,11 @@ export default function CategoryPage() {
 
   const cfg = CATEGORY_CONFIG[categorySlug ?? ""] ?? CATEGORY_CONFIG["coiffeur"];
   const categoryLabel = SERVICE_CATEGORIES.find(c => c.id === categorySlug)?.label ?? "Coiffeur";
+
+  useSeoMeta({
+    title: cfg.headline,
+    description: `${cfg.subtitle} Réservez en ligne les meilleurs ${cfg.plural} au Maroc. Casablanca, Rabat, Marrakech et partout au Maroc.`,
+  });
 
   const filteredCities = cityQuery
     ? MOROCCO_CITIES.filter(c => c.toLowerCase().includes(cityQuery.toLowerCase()))

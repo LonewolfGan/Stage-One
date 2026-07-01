@@ -222,7 +222,7 @@ router.get("/:bookingId", requireAuth, async (req, res) => {
   res.json(row);
 });
 
-// POST /bookings/:bookingId/cancel — client cancellation (2h window)
+// POST /bookings/:bookingId/cancel — client cancellation (2h window) with Stripe refund
 router.post("/:bookingId/cancel", requireAuth, async (req, res) => {
   const booking = await db.query.bookingsTable.findFirst({
     where: and(eq(bookingsTable.id, req.params.bookingId as string), eq(bookingsTable.clientId, req.user!.sub)),
@@ -245,7 +245,20 @@ router.post("/:bookingId/cancel", requireAuth, async (req, res) => {
 
   notifySlotReleased(booking);
 
-  res.json({ message: "Réservation annulée" });
+  // Stripe refund — only if a real PaymentIntent was charged
+  if (
+    stripe &&
+    booking.paymentIntentId &&
+    !booking.paymentIntentId.startsWith("pi_mock_") &&
+    booking.paymentStatus === "paid"
+  ) {
+    stripe.refunds
+      .create({ payment_intent: booking.paymentIntentId })
+      .then(() => req.log.info({ bookingId: booking.id }, "Stripe refund initiated"))
+      .catch((err) => req.log.error({ err, bookingId: booking.id }, "Stripe refund failed"));
+  }
+
+  res.json({ message: "Réservation annulée", refundInitiated: !!(stripe && booking.paymentStatus === "paid" && booking.paymentIntentId && !booking.paymentIntentId.startsWith("pi_mock_")) });
 });
 
 // POST /bookings/:bookingId/confirm — manual confirmation (mock / webhook fallback)

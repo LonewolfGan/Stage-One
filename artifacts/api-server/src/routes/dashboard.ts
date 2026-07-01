@@ -16,6 +16,7 @@ import {
 import { eq, and, gte, lt, sql, desc } from "drizzle-orm";
 import { requireOwner, requirePlan } from "../middlewares/auth";
 import { emitSlotUpdate } from "../lib/socket";
+import { stripe } from "../lib/stripe";
 
 const router = Router();
 
@@ -240,7 +241,10 @@ router.put("/business-hours", requireOwner, async (req, res) => {
 
 // ── Subscriptions ────────────────────────────────────────────────────────────
 
-const planSchema = z.object({ plan: z.enum(["FREE", "PRO", "BUSINESS"]) });
+const PRICE_IDS: Record<string, string | undefined> = {
+  PRO:      process.env.STRIPE_PRO_PRICE_ID,
+  BUSINESS: process.env.STRIPE_BUSINESS_PRICE_ID,
+};
 
 router.get("/subscription", requireOwner, async (req, res) => {
   const provider = await getOwnedProvider(req.user!.sub);
@@ -253,35 +257,99 @@ router.get("/subscription", requireOwner, async (req, res) => {
   res.json(sub ?? { plan: "FREE", status: "active" });
 });
 
-router.put("/subscription/plan", requireOwner, async (req, res) => {
+// POST /dashboard/subscription/checkout — create a Stripe Checkout session
+router.post("/subscription/checkout", requireOwner, async (req, res) => {
   const provider = await getOwnedProvider(req.user!.sub);
   if (!provider) { res.status(404).json({ code: "ERR-004", message: "Espace prestataire introuvable" }); return; }
 
-  const parse = planSchema.safeParse(req.body);
-  if (!parse.success) { res.status(400).json({ code: "ERR-001", message: "Données invalides", errors: parse.error.flatten() }); return; }
-
-  const existing = await db.query.subscriptionsTable.findFirst({
-    where: eq(subscriptionsTable.providerId, provider.id),
-  });
-
-  if (existing) {
-    await db
-      .update(subscriptionsTable)
-      .set({ plan: parse.data.plan, updatedAt: new Date() })
-      .where(eq(subscriptionsTable.providerId, provider.id));
-  } else {
-    await db.insert(subscriptionsTable).values({
-      id: uuidv4(),
-      providerId: provider.id,
-      plan: parse.data.plan,
-      status: "active",
-    });
+  const { plan } = req.body as { plan?: string };
+  if (!plan || !["PRO", "BUSINESS"].includes(plan)) {
+    res.status(400).json({ code: "ERR-001", message: "Plan invalide — PRO ou BUSINESS requis" });
+    return;
   }
 
-  const updated = await db.query.subscriptionsTable.findFirst({
+  const priceId = PRICE_IDS[plan];
+  if (!priceId) {
+    res.status(503).json({ code: "ERR-007", message: `STRIPE_${plan}_PRICE_ID non configuré` });
+    return;
+  }
+
+  if (!stripe) {
+    res.status(503).json({ code: "ERR-007", message: "Stripe non configuré" });
+    return;
+  }
+
+  // Retrieve or create Stripe Customer
+  let sub = await db.query.subscriptionsTable.findFirst({
     where: eq(subscriptionsTable.providerId, provider.id),
   });
-  res.json(updated);
+
+  let customerId = sub?.stripeCustomerId ?? undefined;
+
+  if (!customerId) {
+    const customer = await stripe.customers.create({
+      email: provider.email,
+      name:  provider.name,
+      phone: provider.phone,
+      metadata: { providerId: provider.id },
+    });
+    customerId = customer.id;
+
+    if (sub) {
+      await db.update(subscriptionsTable)
+        .set({ stripeCustomerId: customerId, updatedAt: new Date() })
+        .where(eq(subscriptionsTable.providerId, provider.id));
+    } else {
+      await db.insert(subscriptionsTable).values({
+        id: uuidv4(),
+        providerId: provider.id,
+        plan: "FREE",
+        status: "active",
+        stripeCustomerId: customerId,
+      });
+    }
+  }
+
+  const origin = req.headers.origin ?? process.env.FRONTEND_URL ?? "http://localhost:5000";
+  const session = await stripe.checkout.sessions.create({
+    customer: customerId,
+    mode: "subscription",
+    line_items: [{ price: priceId, quantity: 1 }],
+    success_url: `${origin}/dashboard/subscription?success=1&plan=${plan}`,
+    cancel_url:  `${origin}/dashboard/subscription?cancelled=1`,
+    metadata: { providerId: provider.id, plan },
+    subscription_data: { metadata: { providerId: provider.id, plan } },
+  });
+
+  res.json({ url: session.url });
+});
+
+// POST /dashboard/subscription/portal — create a Stripe Billing Portal session
+router.post("/subscription/portal", requireOwner, async (req, res) => {
+  const provider = await getOwnedProvider(req.user!.sub);
+  if (!provider) { res.status(404).json({ code: "ERR-004", message: "Espace prestataire introuvable" }); return; }
+
+  if (!stripe) {
+    res.status(503).json({ code: "ERR-007", message: "Stripe non configuré" });
+    return;
+  }
+
+  const sub = await db.query.subscriptionsTable.findFirst({
+    where: eq(subscriptionsTable.providerId, provider.id),
+  });
+
+  if (!sub?.stripeCustomerId) {
+    res.status(404).json({ code: "ERR-004", message: "Aucun abonnement Stripe actif trouvé" });
+    return;
+  }
+
+  const origin = req.headers.origin ?? process.env.FRONTEND_URL ?? "http://localhost:5000";
+  const portal = await stripe.billingPortal.sessions.create({
+    customer:   sub.stripeCustomerId,
+    return_url: `${origin}/dashboard/subscription`,
+  });
+
+  res.json({ url: portal.url });
 });
 
 router.get("/analytics", requireOwner, requirePlan("PRO"), async (req, res) => {

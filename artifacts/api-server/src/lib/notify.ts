@@ -1,19 +1,18 @@
 /**
- * notify.ts — deep booking notification module
+ * notify.ts — booking notification module
  *
  * Single interface for all side-effects that follow a booking status change:
  *   - Socket.io emit (real-time dashboard update)
  *   - DB notification row (owner bell icon)
  *   - Email job enqueueing (confirmation + J-1 reminder)
- *
- * Callers (routes, webhooks, workers) import from here only — not from
- * socket, email-worker, or notificationsTable directly.
+ *   - SMS via Twilio (confirmation to client)
  */
 
 import { db, bookingsTable, servicesTable, staffTable, usersTable, notificationsTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { emitBookingConfirmed, emitSlotUpdate } from "./socket";
 import { enqueueEmailJob } from "./email-worker";
+import { sendSms, formatDateFr } from "./sms";
 import { logger } from "./logger";
 
 type BookingRow = typeof bookingsTable.$inferSelect;
@@ -21,22 +20,14 @@ type BookingRow = typeof bookingsTable.$inferSelect;
 interface NotifyCtx {
   service?: { name: string } | null;
   staff?:   { name: string } | null;
-  client?:  { name: string } | null;
+  client?:  { name: string; phone?: string } | null;
 }
 
 // ── Booking confirmed ───────────────────────────────────────────────────────
-/**
- * Fire all confirmation side-effects for a booking:
- * socket emit → DB notification → confirmation email → J-1 reminder email.
- *
- * Pass pre-fetched `ctx` to avoid redundant DB queries when callers already
- * have the related rows (e.g. webhook handler).
- */
 export async function notifyBookingConfirmed(
   booking: BookingRow,
   ctx?: NotifyCtx,
 ): Promise<void> {
-  // Fetch any missing related rows in one round-trip
   const [service, staff, client] = await Promise.all([
     ctx?.service !== undefined
       ? Promise.resolve(ctx.service)
@@ -90,7 +81,7 @@ export async function notifyBookingConfirmed(
     logger.error({ err }, "Failed to enqueue confirmation email"),
   );
 
-  // 4. J-1 reminder (only when appointment is > 25h away)
+  // 4. J-1 reminder email (only when appointment is > 25h away)
   const msUntilStart  = booking.startDatetime.getTime() - Date.now();
   const reminderDelay = msUntilStart - 24 * 60 * 60 * 1_000;
   if (reminderDelay > 60_000) {
@@ -98,10 +89,18 @@ export async function notifyBookingConfirmed(
       logger.error({ err }, "Failed to enqueue reminder email"),
     );
   }
+
+  // 5. SMS confirmation to client (fire-and-forget)
+  if (client && "phone" in client && client.phone) {
+    const dateStr = formatDateFr(booking.startDatetime);
+    const smsBody = `✅ Réservation confirmée — ${service?.name ?? "Prestation"} le ${dateStr}. Merci de votre confiance !`;
+    sendSms(client.phone, smsBody).catch((err) =>
+      logger.error({ err }, "Failed to send SMS confirmation"),
+    );
+  }
 }
 
 // ── Slot events ─────────────────────────────────────────────────────────────
-/** Emit a "slot booked" socket event. */
 export function notifySlotBooked(
   providerId: string,
   staffId:    string,
@@ -114,7 +113,6 @@ export function notifySlotBooked(
   });
 }
 
-/** Emit a "slot released" socket event (cancellation or payment failure). */
 export function notifySlotReleased(
   booking: Pick<BookingRow, "providerId" | "staffId" | "startDatetime">,
 ): void {
