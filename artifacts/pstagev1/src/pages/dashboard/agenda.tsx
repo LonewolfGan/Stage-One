@@ -260,7 +260,7 @@ function TimelineSlot({
 }
 
 /* ── Booking card (left panel) ── */
-function BookingCard({ b, index }: { b: BookingEntry; index: number }) {
+function BookingCard({ b, index, onClick }: { b: BookingEntry; index: number; onClick: () => void }) {
   const st = STATUS_CONFIG[b.status as BookingStatus] ?? STATUS_CONFIG.pending;
 
   return (
@@ -269,16 +269,28 @@ function BookingCard({ b, index }: { b: BookingEntry; index: number }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.08 + index * 0.07, duration: 0.38, ease: [0, 0, 0.2, 1] }}
       className="ds-card"
+      onClick={onClick}
       style={{ padding: "14px 16px", cursor: "pointer" }}
+      onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.background = "var(--surface-2)"; }}
+      onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.background = ""; }}
     >
-      {/* Service name */}
-      <div style={{ marginBottom: 10 }}>
-        <p style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)", margin: "0 0 3px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", letterSpacing: "-0.01em" }}>
-          {b.service}
-        </p>
-        <p style={{ fontSize: 11, color: "var(--ink-tertiary)", margin: 0, fontWeight: 400, fontFeatureSettings: '"tnum"' }}>
-          {b.time} · {b.duration} min
-        </p>
+      {/* Service name + status */}
+      <div style={{ marginBottom: 10, display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
+        <div style={{ minWidth: 0 }}>
+          <p style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)", margin: "0 0 3px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", letterSpacing: "-0.01em" }}>
+            {b.service}
+          </p>
+          <p style={{ fontSize: 11, color: "var(--ink-tertiary)", margin: 0, fontWeight: 400, fontFeatureSettings: '"tnum"' }}>
+            {b.time} · {b.duration} min
+          </p>
+        </div>
+        <span style={{
+          fontSize: 10, fontWeight: 600, letterSpacing: "0.02em", textTransform: "uppercase",
+          padding: "3px 8px", borderRadius: 20, flexShrink: 0,
+          color: st.color, backgroundColor: st.bg, border: `1px solid ${st.border}`,
+        }}>
+          {st.label}
+        </span>
       </div>
 
       {/* Separator */}
@@ -306,6 +318,120 @@ function BookingCard({ b, index }: { b: BookingEntry; index: number }) {
   );
 }
 
+/* ── Booking detail modal ── */
+function BookingDetailModal({
+  booking,
+  onClose,
+  onConfirm,
+  onCancel,
+  isConfirming,
+  isCancelling,
+}: {
+  booking: BookingEntry;
+  onClose: () => void;
+  onConfirm: () => void;
+  onCancel: () => void;
+  isConfirming: boolean;
+  isCancelling: boolean;
+}) {
+  const st = STATUS_CONFIG[booking.status] ?? STATUS_CONFIG.pending;
+  const canConfirm = booking.status === "pending";
+  const canCancel  = booking.status === "pending" || booking.status === "confirmed";
+
+  return (
+    <div
+      style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.42)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: 20, backdropFilter: "blur(4px)" }}
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ opacity: 0, scale: 0.97, y: 8 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.97, y: 8 }}
+        transition={{ duration: 0.22, ease: [0, 0, 0.2, 1] }}
+        className="ds-card"
+        style={{ maxWidth: 420, width: "100%" }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20 }}>
+          <div>
+            <h3 style={{ fontSize: 17, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.015em", margin: "0 0 4px" }}>
+              {booking.service}
+            </h3>
+            <span style={{
+              fontSize: 10, fontWeight: 600, letterSpacing: "0.04em", textTransform: "uppercase",
+              padding: "3px 8px", borderRadius: 20,
+              color: st.color, backgroundColor: st.bg, border: `1px solid ${st.border}`,
+            }}>
+              {st.label}
+            </span>
+          </div>
+          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--ink-tertiary)", display: "flex", padding: 4 }}>
+            <XIcon size={18} />
+          </button>
+        </div>
+
+        {/* Info rows */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 24 }}>
+          {[
+            { label: "Client",   value: booking.clientName },
+            { label: "Horaire",  value: `${booking.time} (${booking.duration} min)` },
+            { label: "Montant",  value: `${booking.amount.toLocaleString("fr-MA")} MAD` },
+          ].map(({ label, value }) => (
+            <div key={label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0", borderBottom: "1px solid var(--hairline)" }}>
+              <span style={{ fontSize: 13, color: "var(--ink-tertiary)", fontWeight: 400 }}>{label}</span>
+              <span style={{ fontSize: 13, color: "var(--ink)", fontWeight: 500 }}>{value}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Actions */}
+        <div style={{ display: "flex", gap: 10 }}>
+          {canConfirm && (
+            <button
+              onClick={onConfirm}
+              disabled={isConfirming || isCancelling}
+              style={{
+                flex: 1, height: 40, borderRadius: "var(--radius-control)",
+                backgroundColor: "var(--accent)", color: "#fff",
+                fontSize: 13, fontWeight: 600, border: "none", cursor: isConfirming ? "wait" : "pointer",
+                opacity: isConfirming ? 0.6 : 1, transition: "opacity 150ms",
+              }}
+            >
+              {isConfirming ? "Confirmation…" : "Confirmer"}
+            </button>
+          )}
+          {canCancel && (
+            <button
+              onClick={onCancel}
+              disabled={isConfirming || isCancelling}
+              style={{
+                flex: canConfirm ? "0 0 auto" : 1,
+                padding: canConfirm ? "0 16px" : "0",
+                height: 40, borderRadius: "var(--radius-control)",
+                backgroundColor: "var(--canvas-pure)", color: "var(--ink)",
+                fontSize: 13, fontWeight: 500, border: "1px solid var(--hairline)",
+                cursor: isCancelling ? "wait" : "pointer",
+                opacity: isCancelling ? 0.6 : 1, transition: "opacity 150ms",
+              }}
+            >
+              {isCancelling ? "Annulation…" : "Annuler"}
+            </button>
+          )}
+          {!canConfirm && !canCancel && (
+            <button
+              onClick={onClose}
+              style={{ flex: 1, height: 40, borderRadius: "var(--radius-control)", backgroundColor: "var(--surface-2)", color: "var(--ink)", fontSize: 13, fontWeight: 500, border: "1px solid var(--hairline)", cursor: "pointer" }}
+            >
+              Fermer
+            </button>
+          )}
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
 function toDateStr(d: Date) { return d.toISOString().slice(0, 10); }
 
 export default function AgendaPage() {
@@ -316,6 +442,7 @@ export default function AgendaPage() {
   const [blockModal, setBlockModal] = useState<BlockModal | null>(null);
   const [blockDuration, setBlockDuration] = useState(60);
   const [blockReason, setBlockReason] = useState("");
+  const [selectedBooking, setSelectedBooking] = useState<BookingEntry | null>(null);
 
   const dateStr = toDateStr(currentDate);
 
@@ -342,6 +469,22 @@ export default function AgendaPage() {
 
   useSlotSync(providerId, dateStr);
   useBookingNotifications(providerId);
+
+  const confirmMutation = useMutation({
+    mutationFn: (bookingId: string) => api.confirmDashboardBooking(bookingId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["dashboard", "bookings"] });
+      setSelectedBooking(null);
+    },
+  });
+
+  const cancelMutation = useMutation({
+    mutationFn: (bookingId: string) => api.cancelDashboardBooking(bookingId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["dashboard", "bookings"] });
+      setSelectedBooking(null);
+    },
+  });
 
   const createBlockMutation = useMutation({
     mutationFn: () => {
@@ -500,7 +643,7 @@ export default function AgendaPage() {
           <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(2, 1fr)", gap: 12 }}>
             {adaptedBookings.length > 0 ? (
               adaptedBookings.map((b, i) => (
-                <BookingCard key={b.id} b={b} index={i} />
+                <BookingCard key={b.id} b={b} index={i} onClick={() => setSelectedBooking(b)} />
               ))
             ) : (
               <div style={{ gridColumn: "1/-1", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "48px 24px", gap: 12 }}>
@@ -552,6 +695,20 @@ export default function AgendaPage() {
           </div>
         </div>
       </div>
+
+      {/* Booking detail modal */}
+      <AnimatePresence>
+        {selectedBooking && (
+          <BookingDetailModal
+            booking={selectedBooking}
+            onClose={() => setSelectedBooking(null)}
+            onConfirm={() => confirmMutation.mutate(selectedBooking.id)}
+            onCancel={() => cancelMutation.mutate(selectedBooking.id)}
+            isConfirming={confirmMutation.isPending}
+            isCancelling={cancelMutation.isPending}
+          />
+        )}
+      </AnimatePresence>
 
       {/* Block creation modal */}
       {blockModal && (

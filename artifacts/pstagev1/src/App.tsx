@@ -25,6 +25,7 @@ const SettingsPage           = lazy(() => import("@/pages/dashboard/settings"));
 const ReviewsPage            = lazy(() => import("@/pages/dashboard/reviews"));
 const SubscriptionPage       = lazy(() => import("@/pages/dashboard/subscription"));
 const ReservationsPage       = lazy(() => import("@/pages/dashboard/reservations"));
+const ProviderSetupPage      = lazy(() => import("@/pages/dashboard/setup"));
 const RegisterPage           = lazy(() => import("@/pages/auth/register"));
 const LoginPage              = lazy(() => import("@/pages/auth/login"));
 const StaticPage             = lazy(() => import("@/pages/static-page"));
@@ -85,6 +86,7 @@ function Router() {
       <Route path="/account/profile" component={ProfilePage} />
       <Route path="/verify-email" component={VerifyEmailPage} />
       <Route path="/dashboard" component={() => <Redirect to="/dashboard/agenda" />} />
+      <Route path="/dashboard/setup" component={ProviderSetupPage} />
       <Route path="/dashboard/agenda" component={AgendaPage} />
       <Route path="/dashboard/agenda/bookings" component={ReservationsPage} />
       <Route path="/dashboard/services" component={ServicesPage} />

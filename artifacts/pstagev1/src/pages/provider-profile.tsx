@@ -370,8 +370,9 @@ export default function ProviderProfilePage() {
     );
   }
 
-  if (isError || !provider) {
-    setLocation("/404");
+  if (isError || (!isLoading && !provider)) {
+    // Use effect-free redirect: replace current history entry so back button works
+    window.location.replace("/404");
     return null;
   }
 

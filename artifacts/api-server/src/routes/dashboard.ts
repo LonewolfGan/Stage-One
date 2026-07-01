@@ -338,6 +338,68 @@ router.get("/analytics", requireOwner, requirePlan("PRO"), async (req, res) => {
 
 // ── Notifications ─────────────────────────────────────────────────────────────
 
+// ── Provider-side booking actions ──────────────────────────────────────────
+
+router.post("/bookings/:bookingId/confirm", requireOwner, async (req, res) => {
+  const provider = await getOwnedProvider(req.user!.sub);
+  if (!provider) { res.status(404).json({ code: "ERR-004", message: "Espace prestataire introuvable" }); return; }
+
+  const booking = await db.query.bookingsTable.findFirst({
+    where: and(
+      eq(bookingsTable.id, req.params.bookingId as string),
+      eq(bookingsTable.providerId, provider.id),
+    ),
+  });
+  if (!booking) { res.status(404).json({ code: "ERR-004", message: "Réservation introuvable" }); return; }
+  if (booking.status !== "PENDING") {
+    res.status(409).json({ code: "ERR-005", message: `Impossible de confirmer une réservation en statut ${booking.status}` });
+    return;
+  }
+
+  await db
+    .update(bookingsTable)
+    .set({ status: "CONFIRMED", paymentStatus: "paid" })
+    .where(eq(bookingsTable.id, booking.id));
+
+  emitSlotUpdate(provider.id, {
+    staffId: booking.staffId,
+    slotStart: booking.startDatetime.toISOString(),
+    change: "booked",
+  });
+
+  res.json({ message: "Réservation confirmée", bookingId: booking.id, status: "CONFIRMED" });
+});
+
+router.post("/bookings/:bookingId/cancel", requireOwner, async (req, res) => {
+  const provider = await getOwnedProvider(req.user!.sub);
+  if (!provider) { res.status(404).json({ code: "ERR-004", message: "Espace prestataire introuvable" }); return; }
+
+  const booking = await db.query.bookingsTable.findFirst({
+    where: and(
+      eq(bookingsTable.id, req.params.bookingId as string),
+      eq(bookingsTable.providerId, provider.id),
+    ),
+  });
+  if (!booking) { res.status(404).json({ code: "ERR-004", message: "Réservation introuvable" }); return; }
+  if (booking.status === "CANCELLED" || booking.status === "EXPIRED") {
+    res.status(409).json({ code: "ERR-005", message: `Réservation déjà ${booking.status.toLowerCase()}` });
+    return;
+  }
+
+  await db
+    .update(bookingsTable)
+    .set({ status: "CANCELLED" })
+    .where(eq(bookingsTable.id, booking.id));
+
+  emitSlotUpdate(provider.id, {
+    staffId: booking.staffId,
+    slotStart: booking.startDatetime.toISOString(),
+    change: "released",
+  });
+
+  res.json({ message: "Réservation annulée", bookingId: booking.id, status: "CANCELLED" });
+});
+
 // GET /dashboard/notifications — list last 50, unread first
 router.get("/notifications", requireOwner, async (req, res) => {
   const provider = await getOwnedProvider(req.user!.sub);

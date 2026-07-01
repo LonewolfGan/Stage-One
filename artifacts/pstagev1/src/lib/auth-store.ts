@@ -23,6 +23,10 @@ export function clearTokens() {
   window.dispatchEvent(new Event("auth_change"));
 }
 
+export function getRefreshToken(): string | null {
+  return localStorage.getItem(REFRESH_KEY);
+}
+
 export function getStoredUser(): AuthUser | null {
   try {
     const raw = localStorage.getItem(USER_KEY);

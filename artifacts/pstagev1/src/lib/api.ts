@@ -1,8 +1,38 @@
-import { getToken } from "./auth-store";
+import { getToken, getRefreshToken, setTokens, clearTokens } from "./auth-store";
 
 const BASE = "/api";
 
-async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
+// ── JWT auto-refresh ─────────────────────────────────────────────────────────
+let _refreshing: Promise<boolean> | null = null;
+
+async function tryRefresh(): Promise<boolean> {
+  if (_refreshing) return _refreshing;
+  _refreshing = (async () => {
+    const rt = getRefreshToken();
+    if (!rt) return false;
+    try {
+      const res = await fetch(`${BASE}/auth/refresh`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ refreshToken: rt }),
+      });
+      if (!res.ok) return false;
+      const data = await res.json();
+      if (data.token && data.refreshToken && data.user) {
+        setTokens(data.token, data.refreshToken, data.user);
+        return true;
+      }
+      return false;
+    } catch {
+      return false;
+    } finally {
+      _refreshing = null;
+    }
+  })();
+  return _refreshing;
+}
+
+async function apiFetch<T>(path: string, init?: RequestInit, _retry = true): Promise<T> {
   const token = getToken();
   const res = await fetch(`${BASE}${path}`, {
     ...init,
@@ -12,6 +42,14 @@ async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
       ...init?.headers,
     },
   });
+
+  if (res.status === 401 && _retry) {
+    const refreshed = await tryRefresh();
+    if (refreshed) return apiFetch<T>(path, init, false);
+    clearTokens();
+    throw Object.assign(new Error("Session expirée. Veuillez vous reconnecter."), { status: 401, data: { message: "Session expirée" } });
+  }
+
   if (!res.ok) {
     const err = await res.json().catch(() => ({ message: res.statusText }));
     throw Object.assign(new Error(err.message ?? "API error"), { status: res.status, data: err });
@@ -254,6 +292,19 @@ export const api = {
 
   confirmBooking: (bookingId: string) =>
     apiFetch<{ message: string }>(`/bookings/${bookingId}/confirm`, { method: "POST" }),
+
+  // Dashboard — provider-side booking actions
+  confirmDashboardBooking: (bookingId: string) =>
+    apiFetch<{ message: string; bookingId: string; status: string }>(
+      `/dashboard/bookings/${bookingId}/confirm`,
+      { method: "POST" },
+    ),
+
+  cancelDashboardBooking: (bookingId: string) =>
+    apiFetch<{ message: string; bookingId: string; status: string }>(
+      `/dashboard/bookings/${bookingId}/cancel`,
+      { method: "POST" },
+    ),
 
   // Dashboard
   getDashboardProvider: () => apiFetch<any>("/dashboard/provider"),

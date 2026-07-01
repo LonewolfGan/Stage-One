@@ -103,7 +103,7 @@ export default function RegisterPage() {
       });
       setTokens(res.token, res.refreshToken, res.user);
       setSuccess(true);
-      setTimeout(() => setLocation(isPro ? "/dashboard/agenda" : "/"), 900);
+      setTimeout(() => setLocation(isPro ? "/dashboard/setup" : "/"), 900);
     } catch (err: any) {
       const msg: string = err?.data?.message ?? err?.message ?? "";
       if (msg.toLowerCase().includes("email")) setFieldError({ email: "Cette adresse est déjà utilisée." });
