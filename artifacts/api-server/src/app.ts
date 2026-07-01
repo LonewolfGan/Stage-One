@@ -1,6 +1,7 @@
 import express, { type Express } from "express";
 import cors from "cors";
 import helmet from "helmet";
+import compression from "compression";
 import rateLimit from "express-rate-limit";
 import pinoHttp from "pino-http";
 import router from "./routes";
@@ -15,14 +16,33 @@ app.set("trust proxy", 1);
 // Security headers
 app.use(helmet({ contentSecurityPolicy: false }));
 
-// CORS — restrict to frontend domain in production
-const allowedOrigins = process.env.FRONTEND_URL
-  ? [process.env.FRONTEND_URL]
-  : ["*"];
+// Gzip/Brotli compression for all responses (skips already-compressed types)
+app.use(compression());
+
+// CORS — in dev and when no FRONTEND_URL is set, reflect any origin so that
+// ngrok tunnels, Replit preview proxy, and local browsers all work without
+// adding their URL to a list. In production, restrict to FRONTEND_URL.
+const rawAllowed = process.env.FRONTEND_URL;
 
 app.use(
   cors({
-    origin: allowedOrigins,
+    origin: (origin, callback) => {
+      // Same-origin requests (server-to-server, curl) have no Origin header
+      if (!origin) return callback(null, true);
+
+      // In dev with no FRONTEND_URL: reflect any origin — ngrok, Replit preview, etc.
+      if (!rawAllowed || process.env.NODE_ENV !== "production") {
+        return callback(null, true);
+      }
+
+      // Production: validate against the comma-separated FRONTEND_URL list
+      const allowed = rawAllowed.split(",").map((s) => s.trim());
+      if (allowed.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error(`CORS: origin '${origin}' not allowed`));
+      }
+    },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
@@ -61,7 +81,7 @@ const authLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   message: { code: "RATE_LIMIT", message: "Trop de tentatives, réessayez dans 15 minutes." },
-  skip: () => process.env.NODE_ENV === "test",
+  skip: () => process.env.NODE_ENV !== "production",
 });
 
 app.use("/api/auth/login", authLimiter);
