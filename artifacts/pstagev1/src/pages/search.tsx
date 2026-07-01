@@ -922,13 +922,14 @@ const FAQ_ITEMS = [
 
 function FAQ() {
   const [open, setOpen] = useState<number | null>(null);
+  const { isMobile } = useBreakpoint();
   return (
     <div style={{
       borderTop: "1px solid rgba(12,12,14,0.08)",
-      padding: "64px 48px",
+      padding: isMobile ? "48px 20px" : "64px 48px",
       display: "grid",
-      gridTemplateColumns: "1fr 1fr",
-      gap: 80,
+      gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
+      gap: isMobile ? 40 : 80,
       alignItems: "start",
     }}>
       {/* Left — accordion */}
@@ -1457,12 +1458,15 @@ export default function SearchPage() {
           {resultsContent}
         </div>
         {/* Extra sections */}
-        <div style={{ paddingInline: 20 }}>
+        <div>
           <ExtraSections
             onCitySelect={city => { setCityId(city); window.scrollTo({ top: 0, behavior: "smooth" }); }}
             onCategorySelect={cat => { setCategoryId(cat); window.scrollTo({ top: 0, behavior: "smooth" }); }}
           />
         </div>
+
+        {/* FAQ + Pro CTA */}
+        <FAQ />
 
         {/* Mobile map bottom sheet */}
         <AnimatePresence>
