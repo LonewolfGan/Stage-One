@@ -127,6 +127,49 @@ function SaveBtn({ label, onClick, loading }: { label: string; onClick: () => vo
   );
 }
 
+function PasswordSection() {
+  const [current, setCurrent] = useState("");
+  const [next, setNext]       = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [error, setError]     = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  async function handleChange() {
+    setError(null);
+    if (!current) { setError("Saisissez votre mot de passe actuel."); return; }
+    if (next.length < 8) { setError("Le nouveau mot de passe doit contenir au moins 8 caractères."); return; }
+    if (next !== confirm) { setError("Les deux mots de passe ne correspondent pas."); return; }
+    setLoading(true);
+    try {
+      await api.changePassword(current, next);
+      toast.success("Mot de passe modifié avec succès");
+      setCurrent(""); setNext(""); setConfirm("");
+    } catch (err: any) {
+      setError(err?.message ?? "Une erreur est survenue. Réessayez.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <Section title="Sécurité" icon={Shield}>
+      <div className="ds-card" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          <Field label="Mot de passe actuel"        value={current}  onChange={setCurrent}  type="password" placeholder="••••••••" />
+          <Field label="Nouveau mot de passe"        value={next}     onChange={setNext}     type="password" placeholder="8 caractères min." />
+        </div>
+        <Field label="Confirmer le nouveau mot de passe" value={confirm} onChange={setConfirm} type="password" placeholder="••••••••" />
+        {error && (
+          <p style={{ fontSize: 12, color: "var(--error)", margin: 0 }}>{error}</p>
+        )}
+        <div style={{ display: "flex", justifyContent: "flex-end" }}>
+          <SaveBtn label="Changer le mot de passe" onClick={handleChange} loading={loading} />
+        </div>
+      </div>
+    </Section>
+  );
+}
+
 function TimeInput({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   return (
     <input
@@ -804,17 +847,7 @@ export default function SettingsPage() {
         </Section>
 
         {/* ── Sécurité ── */}
-        <Section title="Sécurité" icon={Shield}>
-          <div className="ds-card" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-              <Field label="Mot de passe actuel"  value="" onChange={() => {}} type="password" placeholder="••••••••" />
-              <Field label="Nouveau mot de passe" value="" onChange={() => {}} type="password" placeholder="••••••••" />
-            </div>
-            <div style={{ display: "flex", justifyContent: "flex-end" }}>
-              <SaveBtn label="Changer le mot de passe" onClick={() => toast.success("Mot de passe modifié")} />
-            </div>
-          </div>
-        </Section>
+        <PasswordSection />
 
       </div>
     </DashboardLayout>

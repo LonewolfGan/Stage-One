@@ -164,7 +164,6 @@ export interface BookingResult {
   paymentIntentSecret: string;
   expiresAt: string;
   amountCents: number;
-  isMock?: boolean;
 }
 
 export interface MyBooking {
@@ -244,12 +243,18 @@ export const api = {
     apiFetch<RegisterResponse>("/auth/register", { method: "POST", body: JSON.stringify(data) }),
 
   sendPhoneOtp: () =>
-    apiFetch<{ message: string; _devCode?: string }>("/auth/send-phone-otp", { method: "POST" }),
+    apiFetch<{ message: string }>("/auth/send-phone-otp", { method: "POST" }),
 
   verifyPhone: (code: string) =>
     apiFetch<{ message: string }>("/auth/verify-phone", { method: "POST", body: JSON.stringify({ code }) }),
 
   me: () => apiFetch<AuthUser>("/auth/me"),
+
+  changePassword: (currentPassword: string, newPassword: string) =>
+    apiFetch<{ message: string }>("/auth/change-password", {
+      method: "POST",
+      body: JSON.stringify({ currentPassword, newPassword }),
+    }),
 
   // Providers
   searchProviders: (params: { city?: string; type?: string; q?: string; lat?: number; lng?: number; radius?: number } = {}) => {

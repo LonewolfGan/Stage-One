@@ -1,5 +1,4 @@
 import { lazy, Suspense, useEffect, useRef } from "react";
-import { getToken, setTokens } from "@/lib/auth-store";
 import { Switch, Route, Router as WouterRouter, useLocation, Redirect } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -146,28 +145,6 @@ function AnimatedRouter() {
   );
 }
 
-// ── Dev auto-login (stripped from prod builds) ────────────────────────────
-function DevAutoLogin() {
-  useEffect(() => {
-    if (!import.meta.env.DEV) return;
-    if (getToken()) return;
-    fetch("/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: "atlas@salon.ma", password: "password123" }),
-    })
-      .then((r) => r.json())
-      .then((d) => {
-        if (d.token && d.refreshToken && d.user) {
-          setTokens(d.token, d.refreshToken, d.user);
-          window.location.reload();
-        }
-      })
-      .catch((err) => console.warn("[DevAutoLogin] failed:", err));
-  }, []);
-  return null;
-}
-
 // ── App root ──────────────────────────────────────────────────────────────
 export default function App() {
   return (
@@ -176,7 +153,6 @@ export default function App() {
         <WouterRouter base={import.meta.env.BASE_URL?.replace(/\/$/, "") || ""}>
           <AnimatedRouter />
         </WouterRouter>
-        <DevAutoLogin />
         <Toaster />
         <SonnerToaster position="top-right" richColors closeButton />
       </TooltipProvider>

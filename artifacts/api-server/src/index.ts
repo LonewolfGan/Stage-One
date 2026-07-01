@@ -4,6 +4,7 @@ import { logger } from "./lib/logger";
 import { initSocket } from "./lib/socket";
 import { startBookingExpiryJob } from "./lib/booking-expiry";
 import { startEmailWorker } from "./lib/email-worker";
+import { startReminderCron } from "./lib/reminder-cron";
 import { setupPostgis } from "./lib/postgis-setup";
 import { db, providersTable } from "@workspace/db";
 import { sql } from "drizzle-orm";
@@ -49,3 +50,4 @@ autoSeedIfEmpty().then(() => {
 });
 
 startEmailWorker();
+startReminderCron().catch((err) => logger.warn({ err }, "Reminder cron start failed"));

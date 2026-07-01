@@ -298,4 +298,35 @@ router.get("/verify-email", async (req, res) => {
   res.json({ success: true, message: "Email vérifié avec succès" });
 });
 
+// POST /auth/change-password — change password for authenticated user
+router.post("/change-password", requireAuth, async (req, res) => {
+  const parse = z.object({
+    currentPassword: z.string().min(1),
+    newPassword: z.string().min(8, "Le nouveau mot de passe doit contenir au moins 8 caractères"),
+  }).safeParse(req.body);
+
+  if (!parse.success) {
+    res.status(400).json({ code: "ERR-001", message: parse.error.issues[0]?.message ?? "Données invalides" });
+    return;
+  }
+
+  const { currentPassword, newPassword } = parse.data;
+  const user = await db.query.usersTable.findFirst({ where: eq(usersTable.id, req.user!.sub) });
+  if (!user) { res.status(404).json({ code: "ERR-004", message: "Utilisateur introuvable" }); return; }
+
+  const valid = await bcrypt.compare(currentPassword, user.passwordHash);
+  if (!valid) {
+    res.status(401).json({ code: "ERR-002", message: "Mot de passe actuel incorrect" });
+    return;
+  }
+
+  const newHash = await bcrypt.hash(newPassword, 12);
+  await db.update(usersTable)
+    .set({ passwordHash: newHash, updatedAt: new Date() })
+    .where(eq(usersTable.id, user.id));
+
+  logger.info({ userId: user.id }, "Password changed");
+  res.json({ message: "Mot de passe modifié avec succès" });
+});
+
 export default router;

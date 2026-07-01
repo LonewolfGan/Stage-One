@@ -81,7 +81,7 @@ export function buildConfirmationEmail(data: BookingEmailData): { subject: strin
 <body>
 <div class="wrapper">
   <div class="header">
-    <span class="header-brand">ANUBIS</span>
+    <span class="header-brand">PSTAGEV1</span>
   </div>
   <div class="body">
     <p class="title">Votre rendez-vous est confirmé ✓</p>
@@ -139,7 +139,7 @@ export function buildConfirmationEmail(data: BookingEmailData): { subject: strin
     <p style="font-size:14px;color:#53565C;margin:0;">Téléphone du salon : <strong>${data.providerPhone}</strong></p>
   </div>
   <div class="footer">
-    <p class="footer-text">Cet email a été envoyé par ANUBIS · Plateforme de réservation beauté au Maroc.<br>Référence de réservation : ${data.bookingId.split("-")[0].toUpperCase()}</p>
+    <p class="footer-text">Cet email a été envoyé par PSTAGEV1 · Plateforme de réservation beauté au Maroc.<br>Référence de réservation : ${data.bookingId.split("-")[0].toUpperCase()}</p>
   </div>
 </div>
 </body>
@@ -154,7 +154,7 @@ export function buildReminderEmail(data: BookingEmailData): { subject: string; h
   const price = formatPrice(data.amountCents);
   const address = data.providerAddress ? `${data.providerAddress}, ${data.providerCity}` : data.providerCity;
 
-  const subject = `Rappel — Votre rendez-vous demain chez ${data.providerName}`;
+  const subject = `Rappel J-1 — Votre rendez-vous demain chez ${data.providerName}`;
 
   const html = `<!DOCTYPE html>
 <html lang="fr">
@@ -167,11 +167,11 @@ export function buildReminderEmail(data: BookingEmailData): { subject: string; h
 <body>
 <div class="wrapper">
   <div class="header">
-    <span class="header-brand">ANUBIS</span>
+    <span class="header-brand">PSTAGEV1</span>
   </div>
   <div class="body">
     <div class="reminder-banner">
-      <p class="reminder-banner-text">Rappel — Votre rendez-vous est demain</p>
+      <p class="reminder-banner-text">Rappel J-1 — Votre rendez-vous est demain</p>
     </div>
 
     <p class="title">On se voit demain !</p>
@@ -216,7 +216,73 @@ export function buildReminderEmail(data: BookingEmailData): { subject: string; h
     <p style="font-size:13px;color:#8A8D93;margin:0;">Annulation possible jusqu'à 2h avant le rendez-vous · Référence : ${data.bookingId.split("-")[0].toUpperCase()}</p>
   </div>
   <div class="footer">
-    <p class="footer-text">Cet email a été envoyé par ANUBIS · Plateforme de réservation beauté au Maroc.</p>
+    <p class="footer-text">Cet email a été envoyé par PSTAGEV1 · Plateforme de réservation beauté au Maroc.</p>
+  </div>
+</div>
+</body>
+</html>`;
+
+  return { subject, html };
+}
+
+export function buildReminder2hEmail(data: BookingEmailData): { subject: string; html: string } {
+  const dateFr = formatDateFr(data.startDatetime);
+  const dateAr = formatDateAr(data.startDatetime);
+  const address = data.providerAddress ? `${data.providerAddress}, ${data.providerCity}` : data.providerCity;
+
+  const subject = `Rappel H-2 — Votre rendez-vous dans 2h chez ${data.providerName}`;
+
+  const html = `<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>${subject}</title>
+<style>${baseStyle}</style>
+</head>
+<body>
+<div class="wrapper">
+  <div class="header">
+    <span class="header-brand">PSTAGEV1</span>
+  </div>
+  <div class="body">
+    <div class="reminder-banner">
+      <p class="reminder-banner-text">Rappel H-2 — Votre rendez-vous est dans 2 heures</p>
+    </div>
+    <p class="title">C'est bientôt !</p>
+    <p class="subtitle">Bonjour ${data.clientName}, votre rendez-vous <strong>${dateFr}</strong> approche.</p>
+    <div class="card">
+      <div class="card-row">
+        <span class="card-label">Prestation</span>
+        <span class="card-value">${data.serviceName} · ${data.durationMinutes} min</span>
+      </div>
+      <div class="card-row">
+        <span class="card-label">Professionnel·le</span>
+        <span class="card-value">${data.staffName}</span>
+      </div>
+      <div class="card-row">
+        <span class="card-label">Adresse</span>
+        <span class="card-value">${address}</span>
+      </div>
+      <div class="card-row">
+        <span class="card-label">Téléphone</span>
+        <span class="card-value">${data.providerPhone}</span>
+      </div>
+    </div>
+    <hr class="divider">
+    <div class="ar-section">
+      <p class="ar-title">تذكير — موعدك بعد ساعتين</p>
+      <p class="ar-text">مرحباً ${data.clientName}،<br>موعدك <strong>${dateAr}</strong> على وشك الحلول.</p>
+      <p class="ar-text" style="margin-top:12px;">
+        <strong>الخدمة:</strong> ${data.serviceName}<br>
+        <strong>المكان:</strong> ${data.providerName}<br>
+        <strong>العنوان:</strong> ${address}
+      </p>
+    </div>
+    <p style="font-size:13px;color:#8A8D93;margin:0;">Référence : ${data.bookingId.split("-")[0].toUpperCase()}</p>
+  </div>
+  <div class="footer">
+    <p class="footer-text">Cet email a été envoyé par PSTAGEV1 · Plateforme de réservation beauté au Maroc.</p>
   </div>
 </div>
 </body>
