@@ -28,7 +28,7 @@ router.get("/provider", requireOwner, async (req, res) => {
   if (!provider) { res.status(404).json({ code: "ERR-004", message: "Espace prestataire introuvable" }); return; }
   const [staff, services] = await Promise.all([
     db.query.staffTable.findMany({ where: and(eq(staffTable.providerId, provider.id), eq(staffTable.isActive, true)) }),
-    db.query.servicesTable.findMany({ where: and(eq(servicesTable.providerId, provider.id), eq(servicesTable.isActive, true)) }),
+    db.query.servicesTable.findMany({ where: eq(servicesTable.providerId, provider.id) }),
   ]);
   res.json({ ...provider, staff, services });
 });

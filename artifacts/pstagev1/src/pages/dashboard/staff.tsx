@@ -155,7 +155,7 @@ function AbsenceModal({
   );
 }
 
-/* ─── Staff Row Card ──────────────────────────────────────── */
+/* ─── Staff Grid Card ─────────────────────────────────────── */
 function StaffCard({
   member, services, slug, index, onEdit, onAbsence,
 }: {
@@ -184,36 +184,45 @@ function StaffCard({
       exit={{ opacity: 0 }}
       transition={{ delay: index * 0.04, duration: 0.2, ease: [0, 0, 0.2, 1] }}
       style={{
-        display: "flex", alignItems: "center", gap: 14, padding: "14px 18px",
+        display: "flex", flexDirection: "column",
         borderRadius: 12, border: `1px solid ${ds.colors.border}`,
         backgroundColor: member.isActive ? ds.colors.canvas : ds.colors.canvasSubtle,
-        transition: "border-color 150ms ease, background-color 150ms ease",
+        opacity: member.isActive ? 1 : 0.7,
+        transition: "border-color 150ms ease, background-color 150ms ease, opacity 150ms ease",
+        overflow: "hidden",
       }}
     >
-      {/* Avatar */}
-      {member.photoUrl ? (
-        <img src={member.photoUrl} alt={member.name}
-          style={{ width: 42, height: 42, borderRadius: "50%", objectFit: "cover", flexShrink: 0, border: `1px solid ${ds.colors.border}`, opacity: member.isActive ? 1 : 0.5 }}
-        />
-      ) : (
-        <div style={{ width: 42, height: 42, borderRadius: "50%", backgroundColor: ds.colors.canvasMuted, border: `1px solid ${ds.colors.border}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, color: ds.colors.inkSecondary, flexShrink: 0, opacity: member.isActive ? 1 : 0.45, letterSpacing: "-0.01em" }}>
-          {initials(member.name)}
-        </div>
-      )}
-
-      {/* Name + bio + services */}
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <p style={{ fontSize: 14, fontWeight: 600, color: member.isActive ? ds.colors.ink : ds.colors.inkTertiary, letterSpacing: "-0.015em", margin: "0 0 2px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-          {member.name}
-        </p>
-        {member.bio && (
-          <p style={{ fontSize: 12, color: ds.colors.inkTertiary, margin: "0 0 4px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-            {member.bio}
-          </p>
+      {/* Top: avatar + status toggle */}
+      <div style={{ padding: "18px 16px 14px", display: "flex", flexDirection: "column", alignItems: "center", gap: 12, flex: 1 }}>
+        {/* Avatar */}
+        {member.photoUrl ? (
+          <img src={member.photoUrl} alt={member.name}
+            style={{ width: 64, height: 64, borderRadius: "50%", objectFit: "cover", border: `1px solid ${ds.colors.border}` }}
+          />
+        ) : (
+          <div style={{ width: 64, height: 64, borderRadius: "50%", backgroundColor: ds.colors.canvasMuted, border: `1px solid ${ds.colors.border}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, fontWeight: 600, color: ds.colors.inkSecondary, letterSpacing: "-0.01em" }}>
+            {initials(member.name)}
+          </div>
         )}
+
+        {/* Name + bio */}
+        <div style={{ textAlign: "center", minWidth: 0, width: "100%" }}>
+          <p style={{ fontSize: 14, fontWeight: 600, color: ds.colors.ink, letterSpacing: "-0.015em", margin: "0 0 3px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            {member.name}
+          </p>
+          {member.bio && (
+            <p style={{ fontSize: 12, color: ds.colors.inkTertiary, margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              {member.bio}
+            </p>
+          )}
+        </div>
+
+        {/* Status toggle */}
+        <StatusChip isActive={member.isActive} loading={toggle.isPending} onClick={() => toggle.mutate()} />
+
         {/* Service chips */}
-        {assignedServices.length > 0 && (
-          <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+        {assignedServices.length > 0 ? (
+          <div style={{ display: "flex", gap: 4, flexWrap: "wrap", justifyContent: "center" }}>
             {assignedServices.slice(0, 3).map((s) => (
               <span key={s.id} style={{ fontSize: 10, fontWeight: 500, color: ds.colors.inkTertiary, backgroundColor: ds.colors.canvasMuted, borderRadius: ds.radius.full, padding: "2px 7px", whiteSpace: "nowrap" }}>
                 {s.name}
@@ -223,55 +232,59 @@ function StaffCard({
               <span style={{ fontSize: 10, color: ds.colors.inkDisabled, padding: "2px 0" }}>+{assignedServices.length - 3}</span>
             )}
           </div>
+        ) : (
+          <span style={{ fontSize: 11, color: ds.colors.inkDisabled }}>Aucune prestation assignée</span>
         )}
       </div>
 
-      {/* Services count badge */}
-      <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 11, fontWeight: 500, color: count > 0 ? ds.colors.inkSecondary : ds.colors.inkDisabled, backgroundColor: ds.colors.canvasMuted, border: `1px solid ${ds.colors.border}`, borderRadius: ds.radius.full, padding: "3px 9px", whiteSpace: "nowrap", flexShrink: 0 }}>
-        <Scissors size={10} strokeWidth={2} />
-        {count} presta{count !== 1 ? "tions" : "tion"}
-      </span>
-
-      {/* Status toggle */}
-      <StatusChip isActive={member.isActive} loading={toggle.isPending} onClick={() => toggle.mutate()} />
-
-      {/* Absence button */}
-      <button
-        onClick={() => onAbsence(member)}
-        title="Déclarer une absence"
-        style={{ height: 30, paddingInline: 10, display: "flex", alignItems: "center", gap: 5, background: "none", border: `1px solid ${ds.colors.border}`, borderRadius: 8, cursor: "pointer", color: ds.colors.inkTertiary, flexShrink: 0, fontSize: 11, fontWeight: 500, fontFamily: "var(--font)", transition: "border-color 140ms ease, color 140ms ease" }}
-        onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = ds.colors.ink; (e.currentTarget as HTMLButtonElement).style.borderColor = ds.colors.borderStrong; }}
-        onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = ds.colors.inkTertiary; (e.currentTarget as HTMLButtonElement).style.borderColor = ds.colors.border; }}
-      >
-        <CalendarOff size={12} /> Absence
-      </button>
-
-      {/* Edit */}
-      <button
-        onClick={() => onEdit(member)}
-        style={{ height: 30, width: 30, display: "flex", alignItems: "center", justifyContent: "center", background: "none", border: `1px solid ${ds.colors.border}`, borderRadius: 8, cursor: "pointer", color: ds.colors.inkTertiary, flexShrink: 0, transition: "border-color 140ms ease, color 140ms ease" }}
-        onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = ds.colors.ink; (e.currentTarget as HTMLButtonElement).style.borderColor = ds.colors.borderStrong; }}
-        onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = ds.colors.inkTertiary; (e.currentTarget as HTMLButtonElement).style.borderColor = ds.colors.border; }}
-        title="Modifier"
-      >
-        <Pencil size={13} />
-      </button>
+      {/* Footer actions */}
+      <div style={{ borderTop: `1px solid ${ds.colors.border}`, padding: "10px 12px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 6 }}>
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 500, color: count > 0 ? ds.colors.inkSecondary : ds.colors.inkDisabled }}>
+          <Scissors size={10} strokeWidth={2} />
+          {count} presta{count !== 1 ? "tions" : "tion"}
+        </span>
+        <div style={{ display: "flex", gap: 6 }}>
+          <button
+            onClick={() => onAbsence(member)}
+            title="Déclarer une absence"
+            style={{ height: 28, paddingInline: 10, display: "flex", alignItems: "center", gap: 4, background: "none", border: `1px solid ${ds.colors.border}`, borderRadius: 7, cursor: "pointer", color: ds.colors.inkTertiary, fontSize: 11, fontWeight: 500, fontFamily: "var(--font)", transition: "border-color 140ms ease, color 140ms ease" }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = ds.colors.ink; (e.currentTarget as HTMLButtonElement).style.borderColor = ds.colors.borderStrong; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = ds.colors.inkTertiary; (e.currentTarget as HTMLButtonElement).style.borderColor = ds.colors.border; }}
+          >
+            <CalendarOff size={11} /> Absence
+          </button>
+          <button
+            onClick={() => onEdit(member)}
+            style={{ height: 28, width: 28, display: "flex", alignItems: "center", justifyContent: "center", background: "none", border: `1px solid ${ds.colors.border}`, borderRadius: 7, cursor: "pointer", color: ds.colors.inkTertiary, transition: "border-color 140ms ease, color 140ms ease" }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = ds.colors.ink; (e.currentTarget as HTMLButtonElement).style.borderColor = ds.colors.borderStrong; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = ds.colors.inkTertiary; (e.currentTarget as HTMLButtonElement).style.borderColor = ds.colors.border; }}
+            title="Modifier"
+          >
+            <Pencil size={12} />
+          </button>
+        </div>
+      </div>
     </motion.div>
   );
 }
 
-/* ─── Skeleton row ────────────────────────────────────────── */
+/* ─── Skeleton card ───────────────────────────────────────── */
 function SkeletonRow() {
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 18px", borderRadius: 12, border: `1px solid ${ds.colors.border}` }}>
-      <div style={{ width: 42, height: 42, borderRadius: "50%", backgroundColor: ds.colors.canvasMuted, animation: "pulse 1.4s ease-in-out infinite", flexShrink: 0 }} />
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 6 }}>
-        <div style={{ height: 13, width: "38%", borderRadius: 5, backgroundColor: ds.colors.canvasMuted, animation: "pulse 1.4s ease-in-out infinite" }} />
-        <div style={{ height: 11, width: "55%", borderRadius: 4, backgroundColor: ds.colors.canvasMuted, animation: "pulse 1.4s ease-in-out infinite" }} />
+    <div style={{ borderRadius: 12, border: `1px solid ${ds.colors.border}`, overflow: "hidden" }}>
+      <div style={{ padding: "18px 16px 14px", display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
+        <div style={{ width: 64, height: 64, borderRadius: "50%", backgroundColor: ds.colors.canvasMuted, animation: "pulse 1.4s ease-in-out infinite" }} />
+        <div style={{ height: 13, width: "60%", borderRadius: 5, backgroundColor: ds.colors.canvasMuted, animation: "pulse 1.4s ease-in-out infinite" }} />
+        <div style={{ height: 26, width: 100, borderRadius: 9999, backgroundColor: ds.colors.canvasMuted, animation: "pulse 1.4s ease-in-out infinite" }} />
+        <div style={{ height: 20, width: "80%", borderRadius: 9999, backgroundColor: ds.colors.canvasMuted, animation: "pulse 1.4s ease-in-out infinite" }} />
       </div>
-      <div style={{ height: 24, width: 90, borderRadius: 9999, backgroundColor: ds.colors.canvasMuted, animation: "pulse 1.4s ease-in-out infinite" }} />
-      <div style={{ height: 24, width: 90, borderRadius: 9999, backgroundColor: ds.colors.canvasMuted, animation: "pulse 1.4s ease-in-out infinite" }} />
-      <div style={{ height: 30, width: 30, borderRadius: 8, backgroundColor: ds.colors.canvasMuted, animation: "pulse 1.4s ease-in-out infinite" }} />
+      <div style={{ borderTop: `1px solid ${ds.colors.border}`, padding: "10px 12px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div style={{ height: 11, width: 80, borderRadius: 4, backgroundColor: ds.colors.canvasMuted, animation: "pulse 1.4s ease-in-out infinite" }} />
+        <div style={{ display: "flex", gap: 6 }}>
+          <div style={{ height: 28, width: 72, borderRadius: 7, backgroundColor: ds.colors.canvasMuted, animation: "pulse 1.4s ease-in-out infinite" }} />
+          <div style={{ height: 28, width: 28, borderRadius: 7, backgroundColor: ds.colors.canvasMuted, animation: "pulse 1.4s ease-in-out infinite" }} />
+        </div>
+      </div>
     </div>
   );
 }
@@ -501,8 +514,8 @@ export default function StaffPage() {
         actions={<Button variant="primary" size="sm" icon={<Plus size={13} />} onClick={() => setEditing(null)}>Ajouter un membre</Button>}
       >
         {isLoading ? (
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            {[1, 2, 3].map((i) => <SkeletonRow key={i} />)}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 12 }}>
+            {[1, 2, 3, 4].map((i) => <SkeletonRow key={i} />)}
           </div>
         ) : allStaff.length === 0 ? (
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 14, padding: "80px 24px", border: `1px dashed ${ds.colors.borderStrong}`, borderRadius: 12, textAlign: "center" }}>
@@ -516,13 +529,13 @@ export default function StaffPage() {
             <Button variant="primary" size="sm" icon={<Plus size={13} />} onClick={() => setEditing(null)}>Ajouter un membre</Button>
           </div>
         ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
             {activeCount > 0 && (
               <section>
-                <p style={{ fontSize: 11, fontWeight: 600, color: ds.colors.inkTertiary, letterSpacing: "0.07em", textTransform: "uppercase", margin: "0 0 10px", paddingLeft: 2 }}>
+                <p style={{ fontSize: 11, fontWeight: 600, color: ds.colors.inkTertiary, letterSpacing: "0.07em", textTransform: "uppercase", margin: "0 0 12px", paddingLeft: 2 }}>
                   Disponibles · {activeCount}
                 </p>
-                <motion.div layout style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                <motion.div layout style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 12 }}>
                   <AnimatePresence mode="popLayout">
                     {allStaff.filter((m) => m.isActive).map((member, i) => (
                       <StaffCard key={member.id} member={member} services={services} slug={slug} index={i} onEdit={(m) => setEditing(m)} onAbsence={(m) => setAbsence(m)} />
@@ -533,10 +546,10 @@ export default function StaffPage() {
             )}
             {inactiveCount > 0 && (
               <section>
-                <p style={{ fontSize: 11, fontWeight: 600, color: ds.colors.inkDisabled, letterSpacing: "0.07em", textTransform: "uppercase", margin: "0 0 10px", paddingLeft: 2 }}>
+                <p style={{ fontSize: 11, fontWeight: 600, color: ds.colors.inkDisabled, letterSpacing: "0.07em", textTransform: "uppercase", margin: "0 0 12px", paddingLeft: 2 }}>
                   Indisponibles · {inactiveCount}
                 </p>
-                <motion.div layout style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                <motion.div layout style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 12 }}>
                   <AnimatePresence mode="popLayout">
                     {allStaff.filter((m) => !m.isActive).map((member, i) => (
                       <StaffCard key={member.id} member={member} services={services} slug={slug} index={i} onEdit={(m) => setEditing(m)} onAbsence={(m) => setAbsence(m)} />
