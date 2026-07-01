@@ -299,10 +299,8 @@ export function DashboardLayout({ children, title, actions, breadcrumb, noPaddin
         className="ds-dash-main"
         style={{ marginLeft: isLg ? RAIL_TOTAL : 0, flex: 1, minWidth: 0, width: "100%" }}
       >
-        <motion.div
+        <div
           className="ds-dash-page-header"
-          initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-          transition={{ duration: 0.22 }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
             {!isLg && (
@@ -350,17 +348,14 @@ export function DashboardLayout({ children, title, actions, breadcrumb, noPaddin
             </div>
 
           </div>
-        </motion.div>
+        </div>
 
-        <motion.div
+        <div
           className="ds-dash-content"
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.32, ease: [0.0, 0.0, 0.2, 1], delay: 0.06 }}
           style={noPadding ? { padding: 0 } : undefined}
         >
           {children}
-        </motion.div>
+        </div>
       </main>
     </div>
   );

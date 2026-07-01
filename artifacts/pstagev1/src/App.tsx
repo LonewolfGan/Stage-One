@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { Switch, Route, Router as WouterRouter, useLocation, Redirect } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -63,18 +63,23 @@ function Router() {
 
 function AnimatedRouter() {
   const [location] = useLocation();
+  const prevRef = useRef(location);
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    prevRef.current = location;
   }, [location]);
 
+  const dashToDash =
+    location.startsWith("/dashboard") && prevRef.current.startsWith("/dashboard");
+
   return (
-    <AnimatePresence mode="wait" initial={false}>
+    <AnimatePresence mode={dashToDash ? "sync" : "wait"} initial={false}>
       <motion.div
         key={location}
         initial={{ opacity: 0 }}
-        animate={{ opacity: 1, transition: { duration: 0.25, ease: [0.0, 0.0, 0.2, 1] } }}
-        exit={{ opacity: 0, transition: { duration: 0.15, ease: [0.4, 0.0, 1.0, 1] } }}
+        animate={{ opacity: 1, transition: { duration: dashToDash ? 0.14 : 0.25, ease: [0.0, 0.0, 0.2, 1] } }}
+        exit={{ opacity: 0, transition: { duration: dashToDash ? 0 : 0.15, ease: [0.4, 0.0, 1.0, 1] } }}
       >
         <Router />
       </motion.div>
