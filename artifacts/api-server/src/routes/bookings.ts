@@ -25,10 +25,12 @@ router.post("/", requireAuth, async (req, res) => {
   }
 
   const user = await db.query.usersTable.findFirst({ where: eq(usersTable.id, req.user!.sub) });
-  if (!user?.phoneVerified) {
-    res.status(403).json({ code: "ERR-003", message: "Téléphone non vérifié. Vérifiez votre numéro avant de réserver." });
+  if (!user) {
+    res.status(404).json({ code: "ERR-004", message: "Utilisateur introuvable" });
     return;
   }
+  // NOTE: phoneVerified check intentionally removed — frontend Firebase Phone Auth
+  // not yet implemented. Re-add once the OTP SMS flow is built on the client.
 
   const provider = await db.query.providersTable.findFirst({ where: eq(providersTable.slug, parse.data.providerSlug) });
   if (!provider) { res.status(404).json({ code: "ERR-004", message: "Prestataire introuvable" }); return; }
