@@ -4,6 +4,8 @@ import helmet from "helmet";
 import compression from "compression";
 import rateLimit from "express-rate-limit";
 import pinoHttp from "pino-http";
+import { fileURLToPath } from "node:url";
+import path from "node:path";
 import router from "./routes";
 import { stripeWebhookHandler } from "./routes/webhook";
 import { logger } from "./lib/logger";
@@ -89,5 +91,19 @@ app.use("/api/auth/register", authLimiter);
 app.use("/api/auth/verify-phone", authLimiter);
 
 app.use("/api", router);
+
+// ── Production: serve compiled frontend ─────────────────────────────────────
+// In production the Vite dev proxy is gone. Express takes over:
+// static assets from artifacts/pstagev1/dist/public, SPA fallback for
+// any non-/api route (client-side routing via Wouter).
+if (process.env.NODE_ENV === "production") {
+  const thisDir = path.dirname(fileURLToPath(import.meta.url));
+  const staticDir = path.resolve(thisDir, "../../pstagev1/dist/public");
+  app.use(express.static(staticDir, { maxAge: "1y", immutable: true }));
+  // SPA fallback — everything that is not /api gets index.html
+  app.get("*splat", (_req, res) => {
+    res.sendFile(path.join(staticDir, "index.html"));
+  });
+}
 
 export default app;

@@ -1,0 +1,73 @@
+services:
+  - type: web
+    name: pstagev1
+    runtime: node
+    region: frankfurt
+    plan: free
+
+    # ── Build ─────────────────────────────────────────────────────────────────
+    # 1. Install all deps (dev included — Vite is a devDep)
+    # 2. Build the React frontend (Vite → artifacts/pstagev1/dist/public)
+    # 3. Compile the Express backend (esbuild → artifacts/api-server/dist)
+    # 4. Push the Drizzle schema to the Neon database
+    buildCommand: >-
+      pnpm install --frozen-lockfile &&
+      BASE_PATH=/ PORT=3000 pnpm --filter @workspace/pstagev1 run build &&
+      node artifacts/api-server/build.mjs &&
+      pnpm --filter @workspace/db run push
+
+    # ── Start ─────────────────────────────────────────────────────────────────
+    startCommand: node --enable-source-maps artifacts/api-server/dist/index.mjs
+
+    # ── Health check ─────────────────────────────────────────────────────────
+    healthCheckPath: /api/providers/cities
+
+    # ── Environment variables ─────────────────────────────────────────────────
+    envVars:
+      - key: NODE_ENV
+        value: production
+
+      # Render sets PORT automatically — Express reads process.env.PORT
+      # (do NOT hardcode it here)
+
+      # ── Required: fill in Render dashboard ──────────────────────────────────
+      - key: DATABASE_URL
+        sync: false          # Neon connection string (postgres://...)
+
+      - key: SESSION_SECRET
+        generateValue: true  # auto-generated secure random string
+
+      # Your Render service URL, e.g. https://pstagev1.onrender.com
+      # Used in email verification links. Set AFTER first deploy.
+      - key: FRONTEND_URL
+        sync: false
+
+      # ── Optional: leave empty to use mock/log-only mode ─────────────────────
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: TWILIO_ACCOUNT_SID
+        sync: false
+      - key: TWILIO_AUTH_TOKEN
+        sync: false
+      - key: TWILIO_FROM_NUMBER
+        sync: false
+      - key: FIREBASE_PROJECT_ID
+        sync: false
+      - key: FIREBASE_PRIVATE_KEY
+        sync: false
+      - key: FIREBASE_CLIENT_EMAIL
+        sync: false
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        sync: false
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: SMTP_FROM
+        sync: false
