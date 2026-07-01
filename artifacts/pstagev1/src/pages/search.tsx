@@ -152,7 +152,7 @@ function ResultCardList({ provider, isSelected, onHover, onLeave, index }: {
     >
       {/* Photo */}
       <div style={{
-        width: isMobile ? "100%" : 220,
+        width: isMobile ? "100%" : "50%",
         height: isMobile ? 200 : "auto",
         flexShrink: 0, position: "relative", overflow: "hidden",
       }}>
@@ -997,7 +997,8 @@ function FAQ() {
 
       {/* Right — pro CTA */}
       <div style={{
-        background: "#1D1C26",
+        background: "var(--canvas-pure)",
+        border: "1px solid var(--hairline)",
         borderRadius: 16,
         padding: "40px 36px",
         display: "flex",
@@ -1005,17 +1006,17 @@ function FAQ() {
         gap: 0,
       }}>
         <p style={{
-          fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.4)",
+          fontSize: 11, fontWeight: 600, color: "var(--ink-tertiary)",
           letterSpacing: "0.08em", textTransform: "uppercase", margin: "0 0 20px",
         }}>Pour les professionnels</p>
         <h3 style={{
-          fontSize: 22, fontWeight: 600, color: "#fff",
+          fontSize: 22, fontWeight: 600, color: "var(--ink)",
           letterSpacing: "-0.02em", lineHeight: 1.25, margin: "0 0 12px",
         }}>
           Développez votre clientèle en ligne
         </h3>
         <p style={{
-          fontSize: 13, color: "rgba(255,255,255,0.55)",
+          fontSize: 13, color: "var(--ink-secondary)",
           lineHeight: 1.65, margin: "0 0 28px",
         }}>
           Rejoignez 3 400 professionnels sur la plateforme. Zéro commission.
@@ -1029,13 +1030,13 @@ function FAQ() {
             <div key={i} style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <div style={{
                 width: 18, height: 18, borderRadius: "50%",
-                background: "rgba(255,255,255,0.1)",
+                background: "var(--surface-3)",
                 display: "flex", alignItems: "center", justifyContent: "center",
                 flexShrink: 0,
               }}>
-                <CheckCircle2 size={10} color="rgba(255,255,255,0.7)" strokeWidth={2} />
+                <CheckCircle2 size={10} color="var(--ink-secondary)" strokeWidth={2} />
               </div>
-              <span style={{ fontSize: 13, color: "rgba(255,255,255,0.7)", lineHeight: 1.4 }}>{item}</span>
+              <span style={{ fontSize: 13, color: "var(--ink-secondary)", lineHeight: 1.4 }}>{item}</span>
             </div>
           ))}
         </div>
@@ -1043,14 +1044,14 @@ function FAQ() {
           onClick={() => window.location.href = "/auth/register"}
           style={{
             height: 40, paddingInline: 20,
-            background: "#fff", border: "none", borderRadius: 9999,
-            fontSize: 13, fontWeight: 600, color: "var(--ink)",
+            background: "var(--ink)", border: "none", borderRadius: 8,
+            fontSize: 13, fontWeight: 600, color: "#fff",
             letterSpacing: "-0.01em", cursor: "pointer",
             fontFamily: "var(--font)", alignSelf: "flex-start",
             display: "flex", alignItems: "center", gap: 6,
             transition: "opacity 140ms ease",
           }}
-          onMouseEnter={e => { e.currentTarget.style.opacity = "0.88"; }}
+          onMouseEnter={e => { e.currentTarget.style.opacity = "0.80"; }}
           onMouseLeave={e => { e.currentTarget.style.opacity = "1"; }}
         >
           Inscrire mon établissement
