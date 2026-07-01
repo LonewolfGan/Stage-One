@@ -3,7 +3,6 @@ import { useLocation } from "wouter";
 import { Search, MapPin, ChevronDown, Tag } from "lucide-react";
 import { MOROCCO_CITIES, SERVICE_CATEGORIES } from "@/lib/cities";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { PenWritingText } from "@/components/ui/PenWritingText";
 
 function useClickOutside(ref: React.RefObject<HTMLElement | null>, cb: () => void) {
   useEffect(() => {
@@ -54,10 +53,9 @@ export function HeroSection() {
         flexDirection: "column",
         alignItems: "center",
         textAlign: "center",
-        overflow: "hidden",
       }}
     >
-      {/* ── Headline with pen-writing animation ── */}
+      {/* ── Headline ── */}
       <h1
         style={{
           width: "100%",
@@ -74,9 +72,7 @@ export function HeroSection() {
           hyphens: "none",
         }}
       >
-        <PenWritingText duration={6} delay={0.6}>
-          {"Votre prochain rendez\u2011vous beauté sans attendre"}
-        </PenWritingText>
+        {"Votre prochain rendez\u2011vous beauté sans attendre"}
       </h1>
 
       {/* ── Search console ── */}
