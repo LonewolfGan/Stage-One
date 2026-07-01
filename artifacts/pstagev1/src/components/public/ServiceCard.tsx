@@ -1,5 +1,6 @@
 import { useLocation } from "wouter";
 import { Service } from "@/lib/types";
+import { ds } from "@/lib/design-system";
 
 interface ServiceCardProps {
   service: Service;
@@ -31,7 +32,7 @@ export function ServiceCard({ service, providerSlug }: ServiceCardProps) {
             style={{
               fontSize: 15,
               fontWeight: 500,
-              color: "#0C0C0E",
+              color: ds.colors.ink,
               letterSpacing: "-0.01em",
               margin: 0,
             }}
@@ -67,7 +68,7 @@ export function ServiceCard({ service, providerSlug }: ServiceCardProps) {
             style={{
               fontSize: 15,
               fontWeight: 600,
-              color: "#0C0C0E",
+              color: ds.colors.ink,
             }}
           >
             {(service.priceCents / 100).toFixed(0)} MAD

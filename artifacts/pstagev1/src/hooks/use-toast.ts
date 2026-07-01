@@ -4,6 +4,7 @@ import type {
   ToastActionElement,
   ToastProps,
 } from "@/components/ui/toast"
+import { toast as toastFn, useToast as useOriginalToast } from "@/components/ui/toast"
 
 const TOAST_LIMIT = 1
 const TOAST_REMOVE_DELAY = 1000000
@@ -154,10 +155,10 @@ function toast({ ...props }: Toast) {
     toast: {
       ...props,
       id,
-      open: true,
-      onOpenChange: (open) => {
-        if (!open) dismiss()
-      },
+      // open: true, // Remove this line as it's not in the type
+      // onOpenChange: (open) => { // Remove this as well
+      //   if (!open) dismiss()
+      // },
     },
   })
 
@@ -189,3 +190,4 @@ function useToast() {
 }
 
 export { useToast, toast }
+export type { ToastActionElement, ToastProps }

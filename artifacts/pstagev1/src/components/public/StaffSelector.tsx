@@ -1,5 +1,6 @@
 import { UserIcon } from "@/components/ui/user";
 import { StaffMember } from "@/lib/types";
+import { ds } from "@/lib/design-system";
 
 interface StaffSelectorProps {
   staff: StaffMember[];
@@ -20,23 +21,23 @@ export function StaffSelector({ staff, selectedStaffId, onSelectStaff }: StaffSe
           height: 44,
           paddingLeft: 16,
           paddingRight: 16,
-          border: `1px solid ${selectedStaffId === null ? "var(--accent)" : "rgba(12, 12, 14, 0.10)"}`,
-          borderRadius: 9999,
-          backgroundColor: selectedStaffId === null ? "var(--accent)" : "transparent",
-          color: selectedStaffId === null ? "#FFFFFF" : "#0C0C0E",
+          border: `1px solid ${selectedStaffId === null ? ds.colors.accent : ds.colors.border}`,
+          borderRadius: ds.radius.full,
+          backgroundColor: selectedStaffId === null ? ds.colors.accent : "transparent",
+          color: selectedStaffId === null ? "#FFFFFF" : ds.colors.ink,
           cursor: "pointer",
           transition: "border-color 140ms ease, background-color 140ms ease, color 140ms ease",
         }}
         onMouseEnter={(e) => {
           if (selectedStaffId !== null) {
             const el = e.currentTarget as HTMLButtonElement;
-            el.style.borderColor = "rgba(12,12,14,0.30)";
+            el.style.borderColor = ds.colors.borderMedium;
           }
         }}
         onMouseLeave={(e) => {
           if (selectedStaffId !== null) {
             const el = e.currentTarget as HTMLButtonElement;
-            el.style.borderColor = "rgba(12, 12, 14, 0.10)";
+            el.style.borderColor = ds.colors.border;
           }
         }}
       >
@@ -45,11 +46,11 @@ export function StaffSelector({ staff, selectedStaffId, onSelectStaff }: StaffSe
             width: 28,
             height: 28,
             borderRadius: "50%",
-            backgroundColor: selectedStaffId === null ? "rgba(255,255,255,0.20)" : "rgba(12,12,14,0.06)",
+            backgroundColor: selectedStaffId === null ? "rgba(255,255,255,0.20)" : ds.colors.canvasMuted,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            color: selectedStaffId === null ? "#FFFFFF" : "var(--ink-tertiary)",
+            color: selectedStaffId === null ? "#FFFFFF" : ds.colors.inkTertiary,
           }}
         >
           <UserIcon size={14} />
@@ -71,23 +72,23 @@ export function StaffSelector({ staff, selectedStaffId, onSelectStaff }: StaffSe
               height: 44,
               paddingLeft: 16,
               paddingRight: 16,
-              border: `1px solid ${isSelected ? "var(--accent)" : "rgba(12, 12, 14, 0.10)"}`,
-              borderRadius: 9999,
-              backgroundColor: isSelected ? "var(--accent)" : "transparent",
-              color: isSelected ? "#FFFFFF" : "#0C0C0E",
+              border: `1px solid ${isSelected ? ds.colors.accent : ds.colors.border}`,
+              borderRadius: ds.radius.full,
+              backgroundColor: isSelected ? ds.colors.accent : "transparent",
+              color: isSelected ? "#FFFFFF" : ds.colors.ink,
               cursor: "pointer",
               transition: "border-color 140ms ease, background-color 140ms ease, color 140ms ease",
             }}
             onMouseEnter={(e) => {
               if (!isSelected) {
                 const el = e.currentTarget as HTMLButtonElement;
-                el.style.borderColor = "rgba(12,12,14,0.30)";
+                el.style.borderColor = ds.colors.borderMedium;
               }
             }}
             onMouseLeave={(e) => {
               if (!isSelected) {
                 const el = e.currentTarget as HTMLButtonElement;
-                el.style.borderColor = "rgba(12, 12, 14, 0.10)";
+                el.style.borderColor = ds.colors.border;
               }
             }}
           >
@@ -109,13 +110,13 @@ export function StaffSelector({ staff, selectedStaffId, onSelectStaff }: StaffSe
                   width: 28,
                   height: 28,
                   borderRadius: "50%",
-                  backgroundColor: isSelected ? "rgba(255,255,255,0.20)" : "rgba(12,12,14,0.06)",
+                  backgroundColor: isSelected ? "rgba(255,255,255,0.20)" : ds.colors.canvasMuted,
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                   fontSize: 11,
                   fontWeight: 600,
-                  color: isSelected ? "#FFFFFF" : "var(--ink-tertiary)",
+                  color: isSelected ? "#FFFFFF" : ds.colors.inkTertiary,
                   letterSpacing: "-0.01em",
                   flexShrink: 0,
                 }}

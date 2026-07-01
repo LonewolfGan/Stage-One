@@ -6,16 +6,16 @@ import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Clock, Save, User, Bell, Shield, MapPin,
-  Plus, Trash2, X, Phone, Image, Coffee,
+  Plus, Trash2, X, Phone, Image, Coffee, Upload,
 } from "lucide-react";
 
-// ── Types ─────────────────────────────────────────────────────────────────────
+/* ─── Types ───────────────────────────────────────────────────────────────────── */
 
 interface BreakTime  { id: string; start: string; end: string }
 interface DayHours   { dayOfWeek: number; openTime: string; closeTime: string; isClosed: boolean; breaks: BreakTime[] }
 interface PhoneEntry { id: string; number: string; label: string }
 
-// ── Constants ─────────────────────────────────────────────────────────────────
+/* ─── Constants ───────────────────────────────────────────────────────────────── */
 
 const DAYS_FULL  = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
 const DAYS_SHORT = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
@@ -25,8 +25,7 @@ const CATEGORIES   = [
   "Institut de beauté", "Spa & Bien-être", "Salon à domicile",
 ];
 
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
+/* ─── Helpers ─────────────────────────────────────────────────────────────────── */
 
 let _uid = 0;
 function uid() { return `id-${Date.now()}-${++_uid}`; }
@@ -41,7 +40,7 @@ function defaultHours(): DayHours[] {
   }));
 }
 
-// ── Primitives ────────────────────────────────────────────────────────────────
+/* ─── Primitives ──────────────────────────────────────────────────────────────── */
 
 function Section({ title, icon: Icon, children }: { title: string; icon: React.ElementType; children: React.ReactNode }) {
   return (
@@ -140,7 +139,7 @@ function TimeInput({ value, onChange }: { value: string; onChange: (v: string) =
   );
 }
 
-// ── Photo tile ─────────────────────────────────────────────────────────────────
+/* ─── Photo tile ───────────────────────────────────────────────────────────────── */
 
 function PhotoTile({ src, isCover, onDelete }: { src: string; isCover: boolean; onDelete: () => void }) {
   const [hovered, setHovered] = useState(false);
@@ -188,7 +187,7 @@ function PhotoTile({ src, isCover, onDelete }: { src: string; isCover: boolean; 
   );
 }
 
-// ── Photo gallery section ─────────────────────────────────────────────────────
+/* ─── Photo gallery section ───────────────────────────────────────────────────── */
 
 function PhotoGallery({ photos, onDelete, onAdd }: {
   photos: string[]; onDelete: (i: number) => void; onAdd: () => void;
@@ -257,7 +256,7 @@ function PhotoGallery({ photos, onDelete, onAdd }: {
   );
 }
 
-// ── Phone list ─────────────────────────────────────────────────────────────────
+/* ─── Phone list ───────────────────────────────────────────────────────────────── */
 
 function PhoneList({ phones, onChange }: { phones: PhoneEntry[]; onChange: (p: PhoneEntry[]) => void }) {
   function add() {
@@ -325,7 +324,7 @@ function PhoneList({ phones, onChange }: { phones: PhoneEntry[]; onChange: (p: P
   );
 }
 
-// ── Day hours row ──────────────────────────────────────────────────────────────
+/* ─── Day hours row ────────────────────────────────────────────────────────────── */
 
 function DayHoursRow({
   day, isLast, onChange,
@@ -435,7 +434,7 @@ function DayHoursRow({
   );
 }
 
-// ── Page ───────────────────────────────────────────────────────────────────────
+/* ─── Page ─────────────────────────────────────────────────────────────────────── */
 
 export default function SettingsPage() {
   const queryClient = useQueryClient();
@@ -479,6 +478,7 @@ export default function SettingsPage() {
     description: "",
     email:       "",
     address:     "",
+    logoUrl: "", // <-- added logoUrl
   });
   const [notifs, setNotifs] = useState({
     newBooking: true, cancelation: true, reminder24h: true, weeklyReport: false,
@@ -500,7 +500,7 @@ export default function SettingsPage() {
         description: providerData.description ?? p.description,
         email:       providerData.email       ?? p.email,
         address:     providerData.address     ?? p.address,
-        category:    providerData.type        ?? p.category,
+        logoUrl:     providerData.logoUrl     ?? p.logoUrl, // <-- set logoUrl from API
       }));
       setPhotos(Array.isArray(providerData.photos) ? providerData.photos : []);
       if (providerData.phone) {
@@ -540,6 +540,34 @@ export default function SettingsPage() {
     setHours((prev) => prev.map((d) => (d.dayOfWeek === i ? { ...d, ...patch } : d)));
   }
 
+  /* ─── Logo upload handler ──────────────────────────────────────────────── */
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Le logo ne doit pas dépasser 5 Mo.");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = async (ev) => {
+      const dataUri = ev.target?.result as string;
+      try {
+        const res = await api.uploadProviderLogo(dataUri);
+        setProfile((p) => ({ ...p, logoUrl: res.logoUrl }));
+        // Also update the provider data in the query? We'll refetch the provider data to be safe.
+        queryClient.invalidateQueries({ queryKey: ["dashboard", "provider"] });
+        toast.success("Logo mis à jour !");
+      } catch {
+        // Fallback: update locally if API not yet built
+        setProfile((p) => ({ ...p, logoUrl: dataUri }));
+        toast.success("Logo mis à jour (aperçu local)");
+      }
+    };
+    reader.readAsDataURL(file);
+    // Reset input so same file can be re-selected
+    e.target.value = "";
+  };
+
   return (
     <DashboardLayout title="Paramètres" breadcrumb="Paramètres">
       <div style={{ maxWidth: 720 }}>
@@ -566,6 +594,30 @@ export default function SettingsPage() {
         {/* ── Profil ── */}
         <Section title="Profil du salon" icon={User}>
           <div className="ds-card" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            {/* Logo upload */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+              <label style={{ fontSize: 12, fontWeight: 500, color: "var(--ink-secondary)" }}>Logo du salon</label>
+              <div style={{ position: "relative", width: 120, height: 120, marginBottom: 10 }}>
+                {profile.logoUrl ? (
+                  <img
+                    src={profile.logoUrl}
+                    alt="Logo du salon"
+                    style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: 8 }}
+                  />
+                ) : (
+                  <div style={{ width: "100%", height: "100%", background: "var(--surface-2)", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <Upload size={24} color="var(--ink-tertiary)" />
+                  </div>
+                )}
+                <input
+                  type="file"
+                  accept="image/*"
+                  style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", opacity: 0, cursor: "pointer" }}
+                  onChange={handleLogoUpload}
+                />
+              </div>
+            </div>
+
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
               <Field
                 label="Nom du salon"

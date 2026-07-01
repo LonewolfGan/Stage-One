@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, type FormEvent } from "react";
+import { useState, useMemo, useCallback, type FormEvent, useEffect } from "react";
 import { useParams, useSearch, Link, useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { TopBar } from "@/components/layout/TopBar";
@@ -142,6 +142,38 @@ export default function BookingPage() {
   );
 
   useSlotSync(rawProvider?.id, dateStr, handleSlotConflict);
+
+  // --- Staff availability filtering based on selected time ---
+  const staffForService = useMemo(() => {
+    if (!provider || !selectedService) return [];
+    return provider.staff.filter((s) => selectedService.staffIds.includes(s.id));
+  }, [provider, selectedService]);
+
+  const availableStaffIds = useMemo(() => {
+    if (!selectedTime) return staffForService.map((s) => s.id);
+    return Array.from(new Set(apiSlots.filter((s) => s.startTime === selectedTime).map((s) => s.staffId)));
+  }, [apiSlots, selectedTime, staffForService]);
+
+  const availableStaff = useMemo(() => {
+    return staffForService.filter((s) => availableStaffIds.includes(s.id));
+  }, [staffForService, availableStaffIds]);
+
+  // Reset selected staff if currently selected staff is not available at the selected time
+  useEffect(() => {
+    if (selectedTime && selectedStaffId && !availableStaffIds.includes(selectedStaffId)) {
+      setSelectedStaffId(null);
+    }
+  }, [selectedTime, selectedStaffId, availableStaffIds]);
+
+  // Reset selected time if staff changes and the previously selected time is not available for the new staff
+  useEffect(() => {
+    if (selectedStaffId && selectedTime) {
+      const isTimeAvailable = apiSlots.some((s) => s.startTime === selectedTime);
+      if (!isTimeAvailable) {
+        setSelectedTime(null);
+      }
+    }
+  }, [selectedStaffId, selectedTime, apiSlots]);
 
   const createBookingMutation = useMutation({
     mutationFn: () => {
@@ -421,8 +453,9 @@ export default function BookingPage() {
                     </div>
 
                     <h3 style={{ fontSize: 15, fontWeight: 500, color: "var(--ink)", letterSpacing: "-0.01em", marginBottom: 12 }}>Avec qui ?</h3>
+                    {/* Use availableStaff to show only staff available at selected time (or all if no time selected) */}
                     <StaffSelector
-                      staff={provider.staff.filter((s) => selectedService.staffIds.includes(s.id))}
+                      staff={availableStaff}
                       selectedStaffId={selectedStaffId}
                       onSelectStaff={setSelectedStaffId}
                     />

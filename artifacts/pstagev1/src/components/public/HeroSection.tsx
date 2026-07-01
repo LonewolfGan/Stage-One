@@ -48,8 +48,8 @@ export function HeroSection() {
     <section
       style={{
         backgroundColor: "var(--canvas)",
-        paddingTop: isMobile ? 140 : 200,
-        paddingBottom: isMobile ? 80 : 160,
+        paddingTop: isMobile ? 72 : 96,
+        paddingBottom: isMobile ? 80 : 120,
         display: "flex",
         flexDirection: "column",
         alignItems: "center",

@@ -358,7 +358,7 @@ function BookingCard({
               </p>
             )}
           </div>
-          <StatusBadge status={booking.status as BookingStatus} size="md" />
+          <StatusBadge status={booking.status as BookingStatus} />
         </div>
 
         <div style={{ display: "flex", flexWrap: "wrap", gap: "6px 16px", marginBottom: 12 }}>

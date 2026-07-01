@@ -245,7 +245,7 @@ function StickyStepsSection({ isMobile }: { isMobile: boolean }) {
       <section style={{ paddingBlock: 72, backgroundColor: "var(--canvas)", borderTop: "1px solid var(--hairline)" }}>
         <div className="page-container">
           <h2 style={{ fontSize: "clamp(26px, 6vw, 36px)", fontWeight: 600, letterSpacing: "-0.025em", color: "var(--ink)", marginBottom: 48, lineHeight: 1.2 }}>
-            La plateforme de réservation pour votre beauté.
+            La plateforme de réservation pour votre beauté
           </h2>
           <div style={{ display: "flex", flexDirection: "column", gap: 48 }}>
             {STEPS.map(({ step, title, desc, img }) => (
@@ -330,7 +330,7 @@ function StickyStepsSection({ isMobile }: { isMobile: boolean }) {
               marginBottom: 56,
             }}
           >
-            La plateforme de réservation<br />pour votre beauté.
+            La plateforme de réservation<br />pour votre beauté
           </h2>
 
           {/* Progress rail */}
@@ -468,7 +468,7 @@ export default function HomePage() {
               textAlign: "center",
             }}
           >
-            Sans<br />Attendre.
+            Sans<br />Attendre
           </h2>
         </div>
 
@@ -646,7 +646,7 @@ export default function HomePage() {
                 marginBottom: 48,
               }}
             >
-              Pour tous les profils beauté.
+              Pour tous les profils beauté
             </h2>
           </Reveal>
 
@@ -689,7 +689,6 @@ export default function HomePage() {
                   />
                   <div style={{ position: "absolute", bottom: 28, left: 28, right: 28 }}>
                     <h4 style={{ fontSize: 20, fontWeight: 600, color: "var(--canvas)", letterSpacing: "-0.015em", marginBottom: 6 }}>{title}</h4>
-                    <p style={{ fontSize: 14, color: "rgba(251,251,250,0.75)", lineHeight: 1.5, margin: 0 }}>{desc}</p>
                   </div>
                 </motion.div>
               </StaggerItem>
@@ -857,9 +856,10 @@ export default function HomePage() {
             letterSpacing: "-0.03em",
             lineHeight: 1.08,
             margin: "0 0 40px",
-            maxWidth: 620,
+            maxWidth: 720,
+            textAlign: "center",
           }}>
-            Votre prochain rendez-vous<br />vous attend en ligne.
+              Votre prochain <span className="whitespace-nowrap">rendez-vous</span> <br />vous attend en ligne
           </h2>
         </Reveal>
         <Reveal delay={0.2}>

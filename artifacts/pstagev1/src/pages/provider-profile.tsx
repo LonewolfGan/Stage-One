@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { ReviewCard } from "@/components/public/ReviewCard";
 import { useBreakpoint } from "@/hooks/use-mobile";
+import { ds } from "@/lib/design-system";
 
 /* ─── constants ─────────────────────────────────────── */
 const SIDEBAR_TOP = 24;
@@ -268,20 +269,20 @@ function StaffCard({ member, providerSlug }: { member: any; providerSlug: string
     <button
       onClick={() => setLocation(`/booking/${providerSlug}?staffId=${member.id}`)}
       style={{
-        background: "#fff", border: "1px solid var(--hairline)",
-        borderRadius: 14, cursor: "pointer",
+        background: ds.colors.canvas, border: `1px solid ${ds.colors.border}`,
+        borderRadius: ds.radius.lg, cursor: "pointer",
         textAlign: "left", padding: 12, fontFamily: "var(--font)",
         display: "flex", flexDirection: "column", gap: 10,
-        width: "100%", height: "100%", transition: "border-color 140ms",
+        width: "100%", height: "100%", transition: "border-color 140ms ease",
       }}
-      onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--hairline-strong)"; }}
-      onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--hairline)"; }}
+      onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = ds.colors.borderMedium; }}
+      onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = ds.colors.border; }}
     >
       {/* Square photo */}
       <div style={{
         width: "100%", aspectRatio: "1",
-        borderRadius: 9, overflow: "hidden",
-        background: "var(--surface-2)",
+        borderRadius: ds.radius.md, overflow: "hidden",
+        background: ds.colors.canvasMuted,
       }}>
         {member.photoUrl ? (
           <img src={member.photoUrl} alt={member.name}
@@ -293,7 +294,7 @@ function StaffCard({ member, providerSlug }: { member: any; providerSlug: string
           <div style={{
             width: "100%", height: "100%",
             display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: 22, fontWeight: 600, color: "var(--ink-tertiary)",
+            fontSize: 22, fontWeight: 600, color: ds.colors.inkTertiary,
             letterSpacing: "-0.02em",
           }}>
             {member.initials}
@@ -302,10 +303,10 @@ function StaffCard({ member, providerSlug }: { member: any; providerSlug: string
       </div>
       {/* Name + speciality */}
       <div>
-        <p style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)", margin: "0 0 3px", letterSpacing: "-0.01em" }}>
+        <p style={{ fontSize: 13, fontWeight: 600, color: ds.colors.ink, margin: "0 0 3px", letterSpacing: "-0.01em" }}>
           {member.firstName}
         </p>
-        <p style={{ fontSize: 11, color: "var(--ink-tertiary)", margin: 0, lineHeight: 1.4 }}>
+        <p style={{ fontSize: 11, color: ds.colors.inkTertiary, margin: 0, lineHeight: 1.4 }}>
           {member.speciality}
         </p>
       </div>

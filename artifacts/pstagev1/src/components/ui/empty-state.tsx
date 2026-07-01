@@ -1,72 +1,42 @@
-import type { LucideIcon } from "lucide-react";
+import { LucideIcon } from "lucide-react";
 import { ds } from "@/lib/design-system";
-import { Button } from "@/components/ui/DSButton";
+import { Button } from "./button";
 
 interface EmptyStateProps {
-  icon: LucideIcon;
-  title: string;
-  description: string;
-  action?: { label: string; onClick: () => void };
+  icon: LucideIcon
+  title: string
+  description: string
+  action?: { label: string; onClick: () => void }
 }
 
 export function EmptyState({ icon: Icon, title, description, action }: EmptyStateProps) {
   return (
-    <div
-      style={{
-        display:        "flex",
-        flexDirection:  "column",
-        alignItems:     "center",
-        justifyContent: "center",
-        paddingBlock:   64,
-        textAlign:      "center",
-        gap:            0,
-      }}
-    >
+    <div className="flex flex-col items-center justify-center py-16 text-center">
       <div
-        style={{
-          width:           40,
-          height:          40,
-          borderRadius:    "50%",
-          display:         "flex",
-          alignItems:      "center",
-          justifyContent:  "center",
-          marginBottom:    16,
-          backgroundColor: ds.colors.canvasMuted,
-        }}
+        className="w-10 h-10 rounded-full flex items-center justify-center mb-4"
+        style={{ backgroundColor: ds.colors.canvasMuted }}
       >
-        <Icon size={20} style={{ color: ds.colors.inkTertiary }} />
+        <Icon className="w-5 h-5" style={{ color: ds.colors.inkTertiary }} />
       </div>
 
       <h3
-        style={{
-          fontSize:      15,
-          fontWeight:    500,
-          letterSpacing: "-0.01em",
-          marginBottom:  4,
-          color:         ds.colors.ink,
-        }}
+        className="text-[15px] font-medium tracking-[-0.01em] mb-1"
+        style={{ color: ds.colors.ink }}
       >
         {title}
       </h3>
 
       <p
-        style={{
-          fontSize:  13,
-          maxWidth:  220,
-          lineHeight: 1.55,
-          color:     ds.colors.inkTertiary,
-          margin:    "0 0 0",
-        }}
+        className="text-[13px] max-w-[220px] sm:max-w-[260px]"
+        style={{ color: ds.colors.inkTertiary }}
       >
         {description}
       </p>
 
       {action && (
         <Button
-          variant="primary"
-          size="sm"
           onClick={action.onClick}
-          style={{ marginTop: 16 }}
+          className="mt-4"
         >
           {action.label}
         </Button>
