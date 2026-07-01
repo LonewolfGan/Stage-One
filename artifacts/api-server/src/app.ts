@@ -81,7 +81,7 @@ const authLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   message: { code: "RATE_LIMIT", message: "Trop de tentatives, réessayez dans 15 minutes." },
-  skip: () => process.env.NODE_ENV !== "production",
+  skip: () => false,
 });
 
 app.use("/api/auth/login", authLimiter);

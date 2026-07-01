@@ -140,6 +140,19 @@ const blockSchema = z.object({
   startDatetime: z.string().datetime(),
   endDatetime: z.string().datetime(),
   title: z.string().optional(),
+  type: z.enum(["MANUAL_BLOCK", "VACATION", "BREAK"]).default("MANUAL_BLOCK"),
+});
+
+// GET /dashboard/blocks — list all schedule blocks for this provider
+router.get("/blocks", requireOwner, async (req, res) => {
+  const provider = await getOwnedProvider(req.user!.sub);
+  if (!provider) { res.status(404).json({ code: "ERR-004", message: "Espace prestataire introuvable" }); return; }
+
+  const blocks = await db.query.scheduleBlocksTable.findMany({
+    where: eq(scheduleBlocksTable.providerId, provider.id),
+    orderBy: (t, { asc }) => [asc(t.startDatetime)],
+  });
+  res.json(blocks);
 });
 
 router.post("/blocks", requireOwner, async (req, res) => {
@@ -154,7 +167,7 @@ router.post("/blocks", requireOwner, async (req, res) => {
     id: blockId,
     providerId: provider.id,
     staffId: parse.data.staffId ?? null,
-    type: "MANUAL_BLOCK",
+    type: parse.data.type,
     title: parse.data.title,
     startDatetime: new Date(parse.data.startDatetime),
     endDatetime: new Date(parse.data.endDatetime),

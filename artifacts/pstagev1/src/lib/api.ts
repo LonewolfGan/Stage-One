@@ -245,6 +245,9 @@ export const api = {
   sendPhoneOtp: () =>
     apiFetch<{ message: string }>("/auth/send-phone-otp", { method: "POST" }),
 
+  // Dashboard blocks
+  getBlocks: () => apiFetch<any[]>("/dashboard/blocks"),
+
   verifyPhone: (code: string) =>
     apiFetch<{ message: string }>("/auth/verify-phone", { method: "POST", body: JSON.stringify({ code }) }),
 
@@ -329,7 +332,7 @@ export const api = {
   getAnalytics: (period: "7d" | "30d" | "3m" | "1y" = "30d") =>
     apiFetch<any>(`/dashboard/analytics?period=${period}`),
 
-  createBlock: (data: { staffId?: string; startDatetime: string; endDatetime: string; title?: string }) =>
+  createBlock: (data: { staffId?: string; startDatetime: string; endDatetime: string; title?: string; type?: "MANUAL_BLOCK" | "VACATION" | "BREAK" }) =>
     apiFetch<any>("/dashboard/blocks", { method: "POST", body: JSON.stringify(data) }),
 
   deleteBlock: (blockId: string) =>

@@ -379,10 +379,11 @@ export default function ProviderProfilePage() {
   }
 
   if (isError || (!isLoading && !provider)) {
-    // Use effect-free redirect: replace current history entry so back button works
     window.location.replace("/404");
     return null;
   }
+
+  if (!provider) return null; // type narrowing — unreachable at runtime
 
   const nextSlot = getNextAvailable(provider);
   const todayDow = new Date().getDay();

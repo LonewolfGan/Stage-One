@@ -97,25 +97,56 @@ router.post("/login", async (req, res) => {
 
 // POST /auth/send-phone-otp — génère un code OTP 6 chiffres, stocké dans Redis 10 min
 router.post("/send-phone-otp", requireAuth, async (req, res) => {
+  if (!redis) {
+    res.status(503).json({
+      code: "ERR-SERVICE",
+      message: "Le service de vérification par SMS n'est pas configuré. Contactez l'administrateur.",
+    });
+    return;
+  }
+
   const userId = req.user!.sub;
   const user = await db.query.usersTable.findFirst({ where: eq(usersTable.id, userId) });
   if (!user) { res.status(404).json({ code: "ERR-004", message: "Utilisateur introuvable" }); return; }
   if (user.phoneVerified) { res.json({ message: "Téléphone déjà vérifié" }); return; }
 
-  const code = String(Math.floor(100000 + Math.random() * 900000));
-  const key = `otp:${userId}`;
-
-  if (redis) {
-    await redis.set(key, code, "EX", 600); // 10 minutes
+  // Rate-limit OTP sends: max 3 per hour per user
+  const rateLimitKey = `otp_rate:${userId}`;
+  const sends = await redis.incr(rateLimitKey);
+  if (sends === 1) await redis.expire(rateLimitKey, 3600);
+  if (sends > 3) {
+    res.status(429).json({ code: "RATE_LIMIT", message: "Trop de demandes. Réessayez dans une heure." });
+    return;
   }
 
-  // En production : envoyer par SMS (Twilio, etc.)
-  // En dev : logguer le code
-  logger.info({ phone: user.phone, code }, "OTP téléphone généré");
+  const code = String(Math.floor(100000 + Math.random() * 900000));
+  await redis.set(`otp:${userId}`, code, "EX", 600); // 10 minutes
 
-  // Pour le dev : on retourne le code dans la réponse (à supprimer en production)
-  const isDev = process.env.NODE_ENV !== "production";
-  res.json({ message: "Code envoyé", ...(isDev ? { _devCode: code } : {}) });
+  // Send via Twilio if configured, otherwise log
+  const twilioSid = process.env.TWILIO_ACCOUNT_SID;
+  const twilioToken = process.env.TWILIO_AUTH_TOKEN;
+  const twilioFrom = process.env.TWILIO_FROM_NUMBER;
+
+  if (twilioSid && twilioToken && twilioFrom) {
+    try {
+      const twilio = (await import("twilio")).default;
+      const client = twilio(twilioSid, twilioToken);
+      await client.messages.create({
+        body: `Votre code de vérification PSTAGEV1 : ${code}`,
+        from: twilioFrom,
+        to: user.phone,
+      });
+      logger.info({ phone: user.phone }, "OTP SMS envoyé via Twilio");
+    } catch (err) {
+      logger.error({ err, phone: user.phone }, "Twilio SMS failed");
+      res.status(503).json({ code: "ERR-SERVICE", message: "Échec d'envoi du SMS. Réessayez." });
+      return;
+    }
+  } else {
+    logger.warn({ phone: user.phone, code }, "Twilio non configuré — OTP loggué uniquement");
+  }
+
+  res.json({ message: "Code envoyé" });
 });
 
 // POST /auth/verify-phone — vérifie OTP Redis OU idToken Firebase
@@ -140,17 +171,16 @@ router.post("/verify-phone", requireAuth, async (req, res) => {
     }
   } else if (code) {
     // Vérification par code OTP généré côté backend (Redis)
-    if (redis) {
-      const stored = await redis.get(`otp:${userId}`);
-      if (!stored || stored !== code) {
-        res.status(400).json({ code: "AUTH-004", message: "Code incorrect ou expiré" });
-        return;
-      }
-      await redis.del(`otp:${userId}`);
-    } else {
-      // Fallback sans Redis (dev sans Redis)
-      logger.warn("Redis absent — vérification OTP ignorée (dev only)");
+    if (!redis) {
+      res.status(503).json({ code: "ERR-SERVICE", message: "Le service de vérification n'est pas configuré." });
+      return;
     }
+    const stored = await redis.get(`otp:${userId}`);
+    if (!stored || stored !== code) {
+      res.status(400).json({ code: "AUTH-004", message: "Code incorrect ou expiré" });
+      return;
+    }
+    await redis.del(`otp:${userId}`);
   } else {
     res.status(400).json({ code: "ERR-001", message: "code ou idToken requis" });
     return;
@@ -259,12 +289,20 @@ router.post("/send-email-verification", requireAuth, async (req, res) => {
 
   await db.insert(emailVerificationTokensTable).values({ userId, token, expiresAt });
 
-  const frontendUrl = process.env.FRONTEND_URL ?? "http://localhost:5000";
+  const frontendUrl = process.env.FRONTEND_URL ?? `https://${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`;
   const link = `${frontendUrl}/verify-email?token=${token}`;
 
-  logger.info({ userId, link }, "[DEV] Lien de vérification email");
+  logger.info({ userId }, "Email de vérification généré");
 
-  res.json({ message: "Email envoyé", devLink: link });
+  // Send via SMTP if configured
+  const { sendMail } = await import("../lib/email");
+  await sendMail({
+    to: user.email,
+    subject: "Vérifiez votre adresse email — PSTAGEV1",
+    html: `<p>Bonjour ${user.name},</p><p>Cliquez sur le lien ci-dessous pour vérifier votre adresse email :</p><p><a href="${link}">${link}</a></p><p>Ce lien est valable 24 heures.</p>`,
+  });
+
+  res.json({ message: "Email de vérification envoyé" });
 });
 
 router.get("/verify-email", async (req, res) => {

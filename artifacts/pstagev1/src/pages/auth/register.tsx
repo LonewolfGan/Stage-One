@@ -133,7 +133,7 @@ export default function RegisterPage() {
   const [otp, setOtp] = useState<string[]>(Array(6).fill(""));
   const [otpError, setOtpError] = useState<string | undefined>();
   const [otpLoading, setOtpLoading] = useState(false);
-  const [devCode, setDevCode] = useState<string | null>(null);
+  const [otpServiceUnavailable, setOtpServiceUnavailable] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
   const cooldownRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -150,14 +150,17 @@ export default function RegisterPage() {
 
   async function sendOtp() {
     try {
-      const res = await api.sendPhoneOtp();
-      if (res._devCode) {
-        setDevCode(res._devCode);
-        setOtp(res._devCode.split(""));
-      }
+      await api.sendPhoneOtp();
+      setOtpServiceUnavailable(false);
       startCooldown(60);
-    } catch {
-      // ignore
+    } catch (err: any) {
+      const status = err?.status;
+      const code = err?.data?.code;
+      if (status === 503 || code === "ERR-SERVICE") {
+        setOtpServiceUnavailable(true);
+      } else if (status === 429) {
+        setOtpError("Trop de demandes d'envoi. Réessayez dans une heure.");
+      }
     }
   }
 
@@ -290,26 +293,43 @@ export default function RegisterPage() {
                   <span style={{ color: "var(--ink)", fontWeight: 500 }}>{displayPhone}</span>
                 </p>
 
-                {/* Dev banner */}
-                {devCode && (
+                {/* Service unavailable banner */}
+                {otpServiceUnavailable && (
                   <motion.div
                     initial={{ opacity: 0, y: -4 }}
                     animate={{ opacity: 1, y: 0 }}
                     style={{
-                      padding: "10px 12px",
-                      backgroundColor: "#FFFBEB",
-                      border: "1px solid #FDE68A",
-                      borderRadius: 8,
+                      padding: "14px 16px",
+                      backgroundColor: "#FFF5F5",
+                      border: "1px solid #FED7D7",
+                      borderRadius: 10,
                       marginBottom: 20,
                       display: "flex",
-                      alignItems: "center",
-                      gap: 8,
+                      flexDirection: "column",
+                      gap: 6,
                     }}
                   >
-                    <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="#D97706" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                    <span style={{ fontSize: 12, color: "#92400E" }}>
-                      Mode dev — code pré-rempli : <strong>{devCode}</strong>
-                    </span>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <svg width={15} height={15} viewBox="0 0 24 24" fill="none" stroke="#E53E3E" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                      <span style={{ fontSize: 13, fontWeight: 500, color: "#C53030" }}>
+                        Vérification SMS non disponible
+                      </span>
+                    </div>
+                    <p style={{ fontSize: 12, color: "#742A2A", margin: 0, lineHeight: 1.5 }}>
+                      Le service d'envoi de SMS n'est pas configuré sur cette instance. Votre compte est créé — vous pourrez vérifier votre numéro ultérieurement depuis votre profil.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setLocation(isPro ? "/dashboard/setup" : "/")}
+                      style={{
+                        marginTop: 4, alignSelf: "flex-start",
+                        fontSize: 12, fontWeight: 500, color: "#E53E3E",
+                        background: "transparent", border: "none", cursor: "pointer",
+                        padding: 0, textDecoration: "underline",
+                      }}
+                    >
+                      Continuer sans vérification →
+                    </button>
                   </motion.div>
                 )}
 

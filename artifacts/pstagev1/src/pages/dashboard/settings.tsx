@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Clock, Save, User, Bell, Shield, MapPin,
-  Plus, Trash2, X, Phone, Image, Coffee, Upload,
+  Plus, Trash2, X, Phone, Image, Coffee, Upload, CalendarOff,
 } from "lucide-react";
 
 /* ─── Types ───────────────────────────────────────────────────────────────────── */
@@ -563,6 +563,57 @@ export default function SettingsPage() {
     retry: false,
   });
 
+  /* Load schedule blocks */
+  const { data: blocksData, isLoading: blocksLoading } = useQuery<any[]>({
+    queryKey: ["dashboard", "blocks"],
+    queryFn:  () => api.getBlocks(),
+    staleTime: 30_000,
+    retry: false,
+  });
+
+  /* Block creation form state */
+  const [blockForm, setBlockForm] = useState<{
+    type: "VACATION" | "BREAK";
+    startDate: string;
+    endDate: string;
+    title: string;
+    staffId: string;
+  }>({ type: "VACATION", startDate: "", endDate: "", title: "", staffId: "" });
+  const [showBlockForm, setShowBlockForm] = useState(false);
+
+  const createBlockMutation = useMutation({
+    mutationFn: () => {
+      if (!blockForm.startDate || !blockForm.endDate) throw new Error("Dates requises");
+      const startDatetime = `${blockForm.startDate}T00:00:00.000Z`;
+      const endDatetime   = `${blockForm.endDate}T23:59:59.000Z`;
+      return api.createBlock({
+        type: blockForm.type,
+        startDatetime,
+        endDatetime,
+        title: blockForm.title || undefined,
+        staffId: blockForm.staffId || undefined,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["dashboard", "blocks"] });
+      setBlockForm({ type: "VACATION", startDate: "", endDate: "", title: "", staffId: "" });
+      setShowBlockForm(false);
+      toast.success("Congé enregistré");
+    },
+    onError: (err: any) => toast.error(err?.data?.message ?? "Erreur lors de l'enregistrement"),
+  });
+
+  const deleteBlockMutation = useMutation({
+    mutationFn: (blockId: string) => api.deleteBlock(blockId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["dashboard", "blocks"] });
+      toast.success("Congé supprimé");
+    },
+    onError: () => toast.error("Erreur lors de la suppression"),
+  });
+
+  const staffList: { id: string; name: string }[] = Array.isArray(providerData?.staff) ? providerData.staff : [];
+
   useEffect(() => {
     if (data && data.length > 0) {
       const filled = defaultHours().map((def) => {
@@ -843,6 +894,186 @@ export default function SettingsPage() {
                 <Toggle checked={notifs[key]} onChange={(v) => setNotifs((p) => ({ ...p, [key]: v }))} />
               </div>
             ))}
+          </div>
+        </Section>
+
+        {/* ── Congés & Fermetures ── */}
+        <Section title="Congés & Fermetures" icon={CalendarOff}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+
+            {/* Existing blocks list */}
+            {blocksLoading ? (
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                {[1, 2].map((i) => (
+                  <div key={i} className="bg-[#ECEDF0] animate-pulse" style={{ height: 52, borderRadius: 8 }} />
+                ))}
+              </div>
+            ) : !blocksData || blocksData.length === 0 ? (
+              <div style={{
+                display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+                padding: "32px 20px", border: "1px dashed var(--hairline-strong)", borderRadius: 10,
+                gap: 8,
+              }}>
+                <CalendarOff size={28} color="var(--ink-tertiary)" />
+                <p style={{ fontSize: 13, color: "var(--ink-tertiary)", margin: 0, textAlign: "center" }}>
+                  Aucune période de fermeture planifiée.<br />
+                  Ajoutez congés et pauses pour bloquer automatiquement les disponibilités.
+                </p>
+              </div>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                {blocksData.map((block: any) => {
+                  const staffName = staffList.find((s) => s.id === block.staffId)?.name;
+                  const typeLabel = block.type === "VACATION" ? "Congé" : block.type === "BREAK" ? "Pause" : "Blocage";
+                  const typeBg   = block.type === "VACATION" ? "var(--accent-tint)" : block.type === "BREAK" ? "#EEF2FF" : "var(--surface-2)";
+                  const typeColor= block.type === "VACATION" ? "var(--accent)" : block.type === "BREAK" ? "#4F46E5" : "var(--ink-secondary)";
+                  const start = new Date(block.startDatetime).toLocaleDateString("fr-MA", { day: "numeric", month: "short", year: "numeric" });
+                  const end   = new Date(block.endDatetime).toLocaleDateString("fr-MA", { day: "numeric", month: "short", year: "numeric" });
+                  return (
+                    <div key={block.id} className="ds-card" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                        <div style={{ padding: "3px 8px", borderRadius: 5, background: typeBg }}>
+                          <span style={{ fontSize: 11, fontWeight: 500, color: typeColor }}>{typeLabel}</span>
+                        </div>
+                        <div>
+                          <div style={{ fontSize: 13, fontWeight: 500, color: "var(--ink)" }}>
+                            {block.title || typeLabel}
+                          </div>
+                          <div style={{ fontSize: 11, color: "var(--ink-tertiary)", marginTop: 2 }}>
+                            {start} → {end}{staffName ? ` · ${staffName}` : ""}
+                          </div>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        disabled={deleteBlockMutation.isPending}
+                        onClick={() => deleteBlockMutation.mutate(block.id)}
+                        style={{ background: "transparent", border: "none", cursor: "pointer", padding: 6, color: "var(--ink-tertiary)" }}
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Add block form */}
+            <AnimatePresence>
+              {showBlockForm && (
+                <motion.div
+                  initial={{ opacity: 0, y: -6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -6 }}
+                  className="ds-card"
+                  style={{ padding: 16, display: "flex", flexDirection: "column", gap: 12 }}
+                >
+                  <div style={{ display: "flex", gap: 10 }}>
+                    {(["VACATION", "BREAK"] as const).map((t) => (
+                      <button
+                        key={t}
+                        type="button"
+                        onClick={() => setBlockForm((f) => ({ ...f, type: t }))}
+                        style={{
+                          padding: "5px 14px", borderRadius: 6, fontSize: 12, fontWeight: 500, cursor: "pointer",
+                          border: blockForm.type === t ? "1.5px solid var(--accent)" : "1px solid var(--hairline-strong)",
+                          background: blockForm.type === t ? "var(--accent-tint)" : "var(--canvas-pure)",
+                          color: blockForm.type === t ? "var(--accent)" : "var(--ink-secondary)",
+                        }}
+                      >
+                        {t === "VACATION" ? "Congé" : "Pause / Fermeture"}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                      <label style={{ fontSize: 11, fontWeight: 500, color: "var(--ink-secondary)" }}>Date de début</label>
+                      <input
+                        type="date"
+                        value={blockForm.startDate}
+                        onChange={(e) => setBlockForm((f) => ({ ...f, startDate: e.target.value }))}
+                        style={{ padding: "8px 10px", borderRadius: 7, border: "1px solid var(--hairline-strong)", fontSize: 13, color: "var(--ink)", background: "var(--canvas-pure)" }}
+                      />
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                      <label style={{ fontSize: 11, fontWeight: 500, color: "var(--ink-secondary)" }}>Date de fin</label>
+                      <input
+                        type="date"
+                        value={blockForm.endDate}
+                        onChange={(e) => setBlockForm((f) => ({ ...f, endDate: e.target.value }))}
+                        style={{ padding: "8px 10px", borderRadius: 7, border: "1px solid var(--hairline-strong)", fontSize: 13, color: "var(--ink)", background: "var(--canvas-pure)" }}
+                      />
+                    </div>
+                  </div>
+
+                  <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                    <label style={{ fontSize: 11, fontWeight: 500, color: "var(--ink-secondary)" }}>Titre (facultatif)</label>
+                    <input
+                      type="text"
+                      value={blockForm.title}
+                      onChange={(e) => setBlockForm((f) => ({ ...f, title: e.target.value }))}
+                      placeholder="Ex : Vacances d'été, Fermeture exceptionnelle…"
+                      style={{ padding: "8px 10px", borderRadius: 7, border: "1px solid var(--hairline-strong)", fontSize: 13, color: "var(--ink)", background: "var(--canvas-pure)" }}
+                    />
+                  </div>
+
+                  {staffList.length > 0 && (
+                    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                      <label style={{ fontSize: 11, fontWeight: 500, color: "var(--ink-secondary)" }}>Membre du personnel (laisser vide = tout le salon)</label>
+                      <select
+                        value={blockForm.staffId}
+                        onChange={(e) => setBlockForm((f) => ({ ...f, staffId: e.target.value }))}
+                        style={{ padding: "8px 10px", borderRadius: 7, border: "1px solid var(--hairline-strong)", fontSize: 13, color: "var(--ink)", background: "var(--canvas-pure)" }}
+                      >
+                        <option value="">Tout le salon</option>
+                        {staffList.map((s) => (
+                          <option key={s.id} value={s.id}>{s.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
+                  <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+                    <button
+                      type="button"
+                      onClick={() => setShowBlockForm(false)}
+                      style={{ padding: "8px 16px", borderRadius: 7, fontSize: 13, fontWeight: 500, cursor: "pointer", border: "1px solid var(--hairline-strong)", background: "transparent", color: "var(--ink-secondary)" }}
+                    >
+                      Annuler
+                    </button>
+                    <button
+                      type="button"
+                      disabled={createBlockMutation.isPending || !blockForm.startDate || !blockForm.endDate}
+                      onClick={() => createBlockMutation.mutate()}
+                      style={{
+                        padding: "8px 18px", borderRadius: 7, fontSize: 13, fontWeight: 500, cursor: "pointer",
+                        border: "none", background: "var(--accent)", color: "#fff",
+                        opacity: (!blockForm.startDate || !blockForm.endDate) ? 0.5 : 1,
+                      }}
+                    >
+                      {createBlockMutation.isPending ? "Enregistrement…" : "Enregistrer"}
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {!showBlockForm && (
+              <button
+                type="button"
+                onClick={() => setShowBlockForm(true)}
+                style={{
+                  display: "flex", alignItems: "center", gap: 6, alignSelf: "flex-start",
+                  padding: "8px 14px", borderRadius: 7, fontSize: 13, fontWeight: 500,
+                  border: "1px solid var(--hairline-strong)", background: "var(--canvas-pure)",
+                  color: "var(--ink-secondary)", cursor: "pointer",
+                }}
+              >
+                <Plus size={14} />
+                Ajouter une période
+              </button>
+            )}
           </div>
         </Section>
 

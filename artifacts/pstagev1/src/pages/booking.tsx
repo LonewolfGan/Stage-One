@@ -178,7 +178,7 @@ export default function BookingPage() {
         clientSecret: result.paymentIntentSecret,
         amountCents: result.amountCents,
         expiresAt: result.expiresAt,
-        isMock: result.isMock ?? true,
+        isMock: false,
       });
       setBookingStep("payment");
       setBookingError(null);
