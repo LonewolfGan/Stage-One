@@ -136,33 +136,37 @@ export function HeroSection() {
                     border: "1px solid var(--hairline-strong)",
                     borderRadius: "var(--radius-card)",
                     overflow: "hidden",
+                    display: "flex",
+                    flexDirection: "column",
                   }}
                 >
-                  {SERVICE_CATEGORIES.map(cat => (
-                    <button
-                      key={cat.id}
-                      type="button"
-                      onClick={() => { setCategoryId(cat.id); setCatOpen(false); }}
-                      style={{
-                        display: "block",
-                        width: "100%",
-                        textAlign: "left",
-                        padding: "10px 16px",
-                        fontSize: 14,
-                        fontWeight: categoryId === cat.id ? 600 : 400,
-                        color: categoryId === cat.id ? "var(--accent)" : "var(--ink-secondary)",
-                        background: "transparent",
-                        border: "none",
-                        cursor: "pointer",
-                        fontFamily: "var(--font)",
-                        transition: "background-color var(--ease-fast)",
-                      }}
-                      onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = "rgba(12,12,14,0.04)"; }}
-                      onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = "transparent"; }}
-                    >
-                      {cat.label}
-                    </button>
-                  ))}
+                  <div style={{ maxHeight: 220, overflowY: "auto" }}>
+                    {SERVICE_CATEGORIES.map(cat => (
+                      <button
+                        key={cat.id}
+                        type="button"
+                        onClick={() => { setCategoryId(cat.id); setCatOpen(false); }}
+                        style={{
+                          display: "block",
+                          width: "100%",
+                          textAlign: "left",
+                          padding: "10px 16px",
+                          fontSize: 14,
+                          fontWeight: categoryId === cat.id ? 600 : 400,
+                          color: categoryId === cat.id ? "var(--accent)" : "var(--ink-secondary)",
+                          background: "transparent",
+                          border: "none",
+                          cursor: "pointer",
+                          fontFamily: "var(--font)",
+                          transition: "background-color var(--ease-fast)",
+                        }}
+                        onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = "rgba(12,12,14,0.04)"; }}
+                        onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = "transparent"; }}
+                      >
+                        {cat.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
@@ -360,33 +364,37 @@ export function HeroSection() {
                     border: "1px solid var(--hairline-strong)",
                     borderRadius: "var(--radius-card)",
                     overflow: "hidden",
+                    display: "flex",
+                    flexDirection: "column",
                   }}
                 >
-                  {SERVICE_CATEGORIES.map(cat => (
-                    <button
-                      key={cat.id}
-                      type="button"
-                      onClick={() => { setCategoryId(cat.id); setCatOpen(false); }}
-                      style={{
-                        display: "block",
-                        width: "100%",
-                        textAlign: "left",
-                        padding: "10px 16px",
-                        fontSize: 13,
-                        fontWeight: categoryId === cat.id ? 600 : 400,
-                        color: categoryId === cat.id ? "var(--accent)" : "var(--ink-secondary)",
-                        background: "transparent",
-                        border: "none",
-                        cursor: "pointer",
-                        fontFamily: "var(--font)",
-                        transition: "background-color var(--ease-fast)",
-                      }}
-                      onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = "rgba(12,12,14,0.04)"; }}
-                      onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = "transparent"; }}
-                    >
-                      {cat.label}
-                    </button>
-                  ))}
+                  <div style={{ maxHeight: 240, overflowY: "auto" }}>
+                    {SERVICE_CATEGORIES.map(cat => (
+                      <button
+                        key={cat.id}
+                        type="button"
+                        onClick={() => { setCategoryId(cat.id); setCatOpen(false); }}
+                        style={{
+                          display: "block",
+                          width: "100%",
+                          textAlign: "left",
+                          padding: "10px 16px",
+                          fontSize: 13,
+                          fontWeight: categoryId === cat.id ? 600 : 400,
+                          color: categoryId === cat.id ? "var(--accent)" : "var(--ink-secondary)",
+                          background: "transparent",
+                          border: "none",
+                          cursor: "pointer",
+                          fontFamily: "var(--font)",
+                          transition: "background-color var(--ease-fast)",
+                        }}
+                        onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = "rgba(12,12,14,0.04)"; }}
+                        onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = "transparent"; }}
+                      >
+                        {cat.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
