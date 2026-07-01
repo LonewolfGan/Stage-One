@@ -122,6 +122,7 @@ function ResultCardList({ provider, isSelected, onHover, onLeave, index }: {
 }) {
   const [, nav] = useLocation();
   const [hov, setHov] = useState(false);
+  const { isMobile } = useBreakpoint();
   const catLabel = SERVICE_CATEGORIES.find(c => c.id === provider.category)?.label ?? provider.category;
   const minPrice = provider.minPriceCents != null
     ? provider.minPriceCents / 100
@@ -140,15 +141,21 @@ function ResultCardList({ provider, isSelected, onHover, onLeave, index }: {
       onMouseLeave={() => { setHov(false); onLeave(); }}
       onClick={() => nav(`/${provider.slug}`)}
       style={{
-        display: "flex", borderRadius: 14, overflow: "hidden",
+        display: "flex",
+        flexDirection: isMobile ? "column" : "row",
+        borderRadius: 14, overflow: "hidden",
         border: `1px solid ${active ? "rgba(12,12,14,0.18)" : "rgba(12,12,14,0.08)"}`,
         backgroundColor: active ? "rgba(12,12,14,0.012)" : "#fff",
         cursor: "pointer", transition: "border-color 200ms ease, background-color 200ms ease",
-        minHeight: 136,
+        minHeight: isMobile ? "auto" : 136,
       }}
     >
       {/* Photo */}
-      <div style={{ width: 168, flexShrink: 0, position: "relative", overflow: "hidden" }}>
+      <div style={{
+        width: isMobile ? "100%" : 168,
+        height: isMobile ? 180 : "auto",
+        flexShrink: 0, position: "relative", overflow: "hidden",
+      }}>
         {provider.photos[0] ? (
           <img
             src={provider.photos[0]}
@@ -161,7 +168,7 @@ function ResultCardList({ provider, isSelected, onHover, onLeave, index }: {
           />
         ) : (
           <div style={{
-            width: "100%", height: "100%", minHeight: 136,
+            width: "100%", height: "100%", minHeight: isMobile ? 180 : 136,
             backgroundColor: "rgba(12,12,14,0.05)",
             display: "flex", alignItems: "center", justifyContent: "center",
           }}>
@@ -224,8 +231,8 @@ function ResultCardList({ provider, isSelected, onHover, onLeave, index }: {
           </span>
         </div>
 
-        <div style={{ display: "flex", gap: 4, marginTop: 8 }}>
-          {provider.services.slice(0, 3).map(s => (
+        <div style={{ display: "flex", gap: 4, marginTop: 8, flexWrap: "wrap" }}>
+          {provider.services.slice(0, isMobile ? 2 : 3).map(s => (
             <span key={s.id} style={{
               fontSize: 11, fontWeight: 500, color: "var(--ink-secondary)",
               background: "rgba(12,12,14,0.04)", border: "1px solid rgba(12,12,14,0.08)",
