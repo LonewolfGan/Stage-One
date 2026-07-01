@@ -63,6 +63,11 @@ function Router() {
 
 function AnimatedRouter() {
   const [location] = useLocation();
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+  }, [location]);
+
   return (
     <AnimatePresence mode="wait" initial={false}>
       <motion.div
