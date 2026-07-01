@@ -129,17 +129,17 @@ function AuthActions({
           onClick={onCommencer}
           style={{
             height: 32, paddingInline: 16,
-            backgroundColor: "#0C0C0E",
+            backgroundColor: "var(--accent)",
             color: "#FFFFFF",
             fontSize: 10, fontWeight: 700,
             letterSpacing: "0.08em",
             textTransform: "uppercase",
-            borderRadius: 7,
+            borderRadius: 9999,
             border: "none", cursor: "pointer",
             fontFamily: "var(--font)",
             transition: "background-color 160ms ease",
           }}
-          whileHover={{ backgroundColor: "rgba(12,12,14,0.80)" }}
+          whileHover={{ backgroundColor: "var(--accent-hover)" }}
           whileTap={{ scale: 0.94 }}
         >
           Commencer

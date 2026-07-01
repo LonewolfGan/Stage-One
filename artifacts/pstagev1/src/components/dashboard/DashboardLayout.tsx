@@ -40,9 +40,9 @@ const RAIL_GAP = 8;
 const RAIL_TOTAL = RAIL_W + RAIL_GAP + 8; // 88px content offset
 
 /* Colors */
-const RAIL_BG     = "#0C0C0E";
+const RAIL_BG     = "#D4466E";
 const ROSE        = "#D4466E";
-const ROSE_ACTIVE = "rgba(255,255,255,0.10)";
+const ROSE_ACTIVE = "rgba(12,12,14,0.78)";
 
 
 interface DashboardLayoutProps {
@@ -207,10 +207,10 @@ function Rail({ onClose }: { onClose?: () => void }) {
           transition: background-color 120ms ease;
           background: transparent;
         }
-        .drl-item:hover { background: rgba(255,255,255,0.08); }
+        .drl-item:hover { background: rgba(12,12,14,0.16); }
         .drl-item:hover svg { opacity: 1; }
         .drl-item--active { background: ${ROSE_ACTIVE}; }
-        .drl-item--active:hover { background: rgba(255,255,255,0.15); }
+        .drl-item--active:hover { background: rgba(12,12,14,0.86); }
 
         /* Tooltip */
         .drl-item[data-tip]::after {

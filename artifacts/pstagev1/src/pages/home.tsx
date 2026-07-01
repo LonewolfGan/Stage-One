@@ -869,17 +869,17 @@ export default function HomePage() {
               style={{
                 height: 46,
                 paddingInline: 28,
-                backgroundColor: "#0C0C0E",
+                backgroundColor: "var(--accent)",
                 color: "#FFFFFF",
                 fontSize: 13,
                 fontWeight: 600,
                 letterSpacing: "-0.01em",
-                borderRadius: 8,
+                borderRadius: 9999,
                 border: "none",
                 cursor: "pointer",
                 fontFamily: "var(--font)",
               }}
-              whileHover={{ backgroundColor: "rgba(12,12,14,0.80)", scale: 1.02 }}
+              whileHover={{ backgroundColor: "var(--accent-hover)", scale: 1.02 }}
               whileTap={{ scale: 0.97 }}
               transition={{ type: "spring", stiffness: 400, damping: 28 }}
             >

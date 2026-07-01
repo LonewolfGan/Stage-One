@@ -346,7 +346,7 @@ export default function RegisterPage() {
                     style={{
                       width: "100%",
                       height: 44,
-                      backgroundColor: loading ? "rgba(12,12,14,0.28)" : "#0C0C0E",
+                      backgroundColor: loading ? "rgba(212,70,110,0.35)" : "var(--accent)",
                       color: "#FFFFFF",
                       fontSize: 14,
                       fontWeight: 600,

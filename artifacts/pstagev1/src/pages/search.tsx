@@ -147,13 +147,13 @@ function ResultCardList({ provider, isSelected, onHover, onLeave, index }: {
         border: `1px solid ${active ? "rgba(12,12,14,0.18)" : "rgba(12,12,14,0.08)"}`,
         backgroundColor: active ? "rgba(12,12,14,0.012)" : "#fff",
         cursor: "pointer", transition: "border-color 200ms ease, background-color 200ms ease",
-        minHeight: isMobile ? "auto" : 136,
+        minHeight: isMobile ? "auto" : 160,
       }}
     >
       {/* Photo */}
       <div style={{
-        width: isMobile ? "100%" : 168,
-        height: isMobile ? 180 : "auto",
+        width: isMobile ? "100%" : 220,
+        height: isMobile ? 200 : "auto",
         flexShrink: 0, position: "relative", overflow: "hidden",
       }}>
         {provider.photos[0] ? (
@@ -217,7 +217,7 @@ function ResultCardList({ provider, isSelected, onHover, onLeave, index }: {
 
         <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
           <Stars rating={provider.rating} />
-          <span style={{ fontSize: 12, fontWeight: 600, color: "var(--ink)" }}>{Number(provider.rating).toFixed(1)}</span>
+          <span style={{ fontSize: 12, fontWeight: 600, color: "var(--ink)" }}>{provider.rating}</span>
           <span style={{ fontSize: 12, color: "var(--ink-tertiary)" }}>({provider.reviewCount})</span>
           <span style={{ width: 2, height: 2, borderRadius: "50%", background: "var(--ink-disabled)", flexShrink: 0 }} />
           <MapPin size={10} color="var(--ink-tertiary)" style={{ flexShrink: 0 }} />
@@ -250,7 +250,7 @@ function ResultCardList({ provider, isSelected, onHover, onLeave, index }: {
             onClick={e => { e.stopPropagation(); nav(`/booking/${provider.slug}`); }}
             whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
             style={{
-              height: 30, paddingInline: 14, background: "#0C0C0E", color: "#fff",
+              height: 30, paddingInline: 14, background: "var(--accent)", color: "#fff",
               fontSize: 11, fontWeight: 600, letterSpacing: "-0.01em",
               border: "none", borderRadius: 8, cursor: "pointer", fontFamily: "var(--font)",
             }}
@@ -336,7 +336,7 @@ function ResultCardGrid({ provider, isSelected, onHover, onLeave, index }: {
           }}>{provider.name}</p>
           <div style={{ display: "flex", alignItems: "center", gap: 5, marginTop: 3 }}>
             <Stars rating={provider.rating} />
-            <span style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.9)" }}>{Number(provider.rating).toFixed(1)}</span>
+            <span style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.9)" }}>{provider.rating}</span>
             <span style={{ fontSize: 11, color: "rgba(255,255,255,0.65)" }}>({provider.reviewCount})</span>
           </div>
         </div>
@@ -358,7 +358,7 @@ function ResultCardGrid({ provider, isSelected, onHover, onLeave, index }: {
             onClick={e => { e.stopPropagation(); nav(`/booking/${provider.slug}`); }}
             whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
             style={{
-              height: 28, paddingInline: 12, background: "#0C0C0E", color: "#fff",
+              height: 28, paddingInline: 12, background: "var(--accent)", color: "#fff",
               fontSize: 11, fontWeight: 600, border: "none", borderRadius: 7,
               cursor: "pointer", fontFamily: "var(--font)",
             }}
@@ -476,9 +476,9 @@ function EmptyState({ onReset }: { onReset: () => void }) {
         onClick={onReset}
         style={{
           height: 38, paddingInline: 22,
-          background: "#0C0C0E", color: "#fff",
+          background: "var(--accent)", color: "#fff",
           fontSize: 12, fontWeight: 600, letterSpacing: "-0.01em",
-          border: "none", borderRadius: 8, cursor: "pointer", fontFamily: "var(--font)",
+          border: "none", borderRadius: 9999, cursor: "pointer", fontFamily: "var(--font)",
           transition: "opacity 160ms ease",
         }}
         onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.opacity = "0.88"; }}
@@ -624,7 +624,7 @@ function MapView({
                   <p style={{ fontSize: 11, color: "var(--ink-tertiary)", margin: "0 0 6px" }}>{p.city}</p>
                   <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
                     <Stars rating={p.rating} />
-                    <span style={{ fontSize: 11, fontWeight: 600, color: "var(--ink)" }}>{Number(p.rating).toFixed(1)}</span>
+                    <span style={{ fontSize: 11, fontWeight: 600, color: "var(--ink)" }}>{p.rating}</span>
                     <span style={{ fontSize: 11, color: "var(--ink-tertiary)" }}>({p.reviewCount})</span>
                   </div>
                   {p.minPriceCents != null && (
@@ -997,7 +997,7 @@ function FAQ() {
 
       {/* Right — pro CTA */}
       <div style={{
-        background: "var(--ink)",
+        background: "#1D1C26",
         borderRadius: 16,
         padding: "40px 36px",
         display: "flex",

@@ -185,7 +185,7 @@ export default function ProfilePage() {
                 justifyContent: "center",
                 gap: 8,
                 padding: "12px 24px",
-                background: "#0C0C0E",
+                background: "var(--accent)",
                 color: "#fff",
                 border: "none",
                 borderRadius: 8,
