@@ -78,11 +78,12 @@ const tooltipStyle = {
 };
 
 function KpiCard({
-  label, value, sub, delta, positive, icon, sparkData,
+  label, value, sub, delta, positive, icon, sparkData, chartId,
 }: {
   label: string; value: string; sub?: string; delta?: string; positive?: boolean;
-  icon: React.ReactNode; sparkData: { v: number }[];
+  icon: React.ReactNode; sparkData: { v: number }[]; chartId: string;
 }) {
+  const gradId = `sk-${chartId}`;
   return (
     <motion.div
       initial={{ opacity: 0, y: 14 }}
@@ -123,12 +124,12 @@ function KpiCard({
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={sparkData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
             <defs>
-              <linearGradient id={`sk-${label}`} x1="0" y1="0" x2="0" y2="1">
+              <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor="#0C0C0E" stopOpacity={0.12} />
                 <stop offset="100%" stopColor="#0C0C0E" stopOpacity={0} />
               </linearGradient>
             </defs>
-            <Area type="monotone" dataKey="v" stroke="rgba(12,12,14,0.25)" strokeWidth={1.5} fill={`url(#sk-${label})`} dot={false} isAnimationActive={false} />
+            <Area type="monotone" dataKey="v" stroke="rgba(12,12,14,0.25)" strokeWidth={1.5} fill={`url(#${gradId})`} dot={false} isAnimationActive={false} />
           </AreaChart>
         </ResponsiveContainer>
       </div>
@@ -377,10 +378,10 @@ export default function AnalyticsPage() {
 
       {/* ── KPI cards ── */}
       <div style={{ display: "grid", gridTemplateColumns: isMd ? "repeat(4, 1fr)" : "repeat(2, 1fr)", gap: 12, marginBottom: 20 }}>
-        <KpiCard label="Réservations" value={`${totalBookings}`} icon={<TrendingUpIcon size={16} />} sparkData={sparkDays} />
-        <KpiCard label="CA estimé" value={revenueMad} sub={revenueMad !== "—" ? "MAD" : undefined} icon={<Star size={16} color="var(--ink-secondary)" />} sparkData={sparkDays} />
-        <KpiCard label="Taux de remplissage" value={fillRate === "—" ? "—" : `${fillRate}%`} icon={<Scissors size={16} color="var(--ink-secondary)" />} sparkData={sparkDays} />
-        <KpiCard label="Clients uniques" value={`${uniqueClients}`} icon={<UsersIcon size={16} />} sparkData={sparkDays} />
+        <KpiCard label="Réservations" value={`${totalBookings}`} icon={<TrendingUpIcon size={16} />} sparkData={sparkDays} chartId="a" />
+        <KpiCard label="CA estimé" value={revenueMad} sub={revenueMad !== "—" ? "MAD" : undefined} icon={<Star size={16} color="var(--ink-secondary)" />} sparkData={sparkDays} chartId="b" />
+        <KpiCard label="Taux de remplissage" value={fillRate === "—" ? "—" : `${fillRate}%`} icon={<Scissors size={16} color="var(--ink-secondary)" />} sparkData={sparkDays} chartId="c" />
+        <KpiCard label="Clients uniques" value={`${uniqueClients}`} icon={<UsersIcon size={16} />} sparkData={sparkDays} chartId="d" />
       </div>
 
       {/* ── Area chart + pill bars ── */}
