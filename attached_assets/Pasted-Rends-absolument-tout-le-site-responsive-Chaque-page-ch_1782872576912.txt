@@ -1,0 +1,151 @@
+Rends absolument tout le site responsive. Chaque page, chaque section,
+chaque composant, chaque bouton, chaque modal, chaque dropdown, chaque
+formulaire. Sans exception.
+
+---
+ÉTAPE 0 — UTILISATION DES SKILLS (obligatoire avant toute correction)
+
+impeccable, taste, minimalist, et les autres de meme que les skills web guidelines et best practices
+Ne passe pas à l'étape suivante tant que ce n'est pas confirmé.
+
+---
+ÉTAPE 1 — INVENTAIRE EXHAUSTIF PAR LE CODE
+
+Exécute et montre la sortie de chaque commande :
+
+find apps/web/app apps/web/src/components -name "*.tsx" | sort
+
+grep -rln "Dialog\|Modal\|Sheet" --include="*.tsx" apps/web
+grep -rln "DropdownMenu\|Popover\|Select" --include="*.tsx" apps/web
+grep -rln "Tooltip\|Toast" --include="*.tsx" apps/web
+
+Chaque fichier trouvé DOIT être traité. Pas d'échantillon.
+Si un fichier n'est pas traité, dis-le explicitement.
+
+---
+ÉTAPE 2 — DÉTECTION DES PROBLÈMES
+
+grep -rn "grid-cols-[3-9]\b" --include="*.tsx" apps/web \
+  | grep -v "sm:\|md:\|lg:"
+
+grep -rEn "\b(w|min-w)-\[[0-9]{3,}px\]" --include="*.tsx" apps/web
+
+grep -rn "flex-row\b" --include="*.tsx" apps/web \
+  | grep -v "flex-col\|flex-wrap\|sm:\|md:\|lg:"
+
+grep -rn "overflow-x-auto" --include="*.tsx" apps/web
+
+Montre la sortie réelle de chaque commande.
+
+---
+ÉTAPE 3 — SYSTÈME DE BREAKPOINTS UNIQUE
+
+Ces breakpoints s'appliquent partout, sans exception :
+
+Mobile (défaut, 0–639px)
+  Layout en une seule colonne. Rien ne dépasse horizontalement.
+  Tout texte a du padding. Boutons full-width si isolés.
+
+sm: 640px
+  Ajustements mineurs. Grilles passent à 2 colonnes max.
+
+md: 768px
+  Layouts à 2 colonnes. Sidebar peut apparaître en overlay.
+
+lg: 1024px
+  Layout desktop complet. Sidebar fixe visible. Grilles 3+.
+
+xl: 1280px
+  Affinages de densité uniquement.
+
+Règles fixes par type de composant :
+
+Grilles de cards :
+  grid-cols-1 sm:grid-cols-2 lg:grid-cols-3
+  Jamais grid-cols-3 sans variantes mobile.
+
+Texte display/heading :
+  text-display-hero-mobile md:text-display-hero
+  Tout titre ≥ 22px doit avoir une variante mobile.
+
+Navigation :
+  hidden lg:flex  → liens desktop
+  flex lg:hidden  → burger mobile
+  Jamais de liens compressés en minuscule sur mobile.
+
+Sidebar dashboard :
+  hidden lg:flex lg:w-[224px]  → sidebar desktop
+  Sous lg: drawer ou bottom-nav, jamais fixe par-dessus le contenu.
+
+Formulaires :
+  Tous les inputs en w-full.
+  Champs côte à côte : flex-col sm:flex-row.
+
+Images :
+  w-full h-full object-cover toujours.
+  Jamais de width fixe en px sur une image de layout.
+
+Modals/Dialogs :
+  w-full mx-4 sur mobile, max-w-md mx-auto sur md:
+  Padding interne minimum p-6 à toutes les tailles.
+
+Boutons :
+  Hauteur minimum 44px sur mobile (touch target).
+  Jamais tronqués ou coupés.
+
+---
+ÉTAPE 4 — CORRECTION FICHIER PAR FICHIER
+
+Traite chaque fichier de l'inventaire dans cet ordre :
+1. Layout racine (app/layout.tsx)
+2. TopBar et Footer
+3. Sidebar dashboard (app/dashboard/layout.tsx)
+4. Hero et page d'accueil
+5. Page recherche/résultats
+6. Fiche prestataire + booking
+7. Dashboard (agenda, prestations, staff, stats)
+8. Formulaires (auth, onboarding, paramètres)
+9. Tous les modals et dropdowns de l'inventaire
+
+Après chaque fichier : confirme que ça fonctionne
+à 375px, 768px et 1440px avant de passer au suivant.
+
+---
+ÉTAPE 5 — IMPECCABLE SUR TOUT LE SITE
+
+/impeccable audit la page d'accueil
+/impeccable audit la page recherche et résultats
+/impeccable audit la fiche prestataire et booking
+/impeccable audit l'onboarding et authentification
+/impeccable audit le dashboard complet
+/impeccable audit tous les modals et dropdowns
+
+Corrige chaque finding remonté par l'audit, puis :
+
+/impeccable polish la page d'accueil
+/impeccable polish la page recherche et résultats
+/impeccable polish la fiche prestataire et booking
+/impeccable polish l'onboarding et authentification
+/impeccable polish le dashboard complet
+/impeccable polish tous les modals et dropdowns
+
+Active la surveillance continue :
+/impeccable hooks on
+
+---
+ÉTAPE 6 — VÉRIFICATION FINALE
+
+grep -rn "grid-cols-[3-9]\b" --include="*.tsx" apps/web \
+  | grep -v "sm:\|md:\|lg:"
+
+grep -rEn "\b(w|min-w)-\[[0-9]{3,}px\]" --include="*.tsx" apps/web
+
+grep -rn "overflow-x-hidden\b" --include="*.tsx" apps/web/app
+
+Les deux premières commandes doivent retourner 0 résultat.
+Montre la sortie réelle. Pas de confirmation verbale.
+
+Montre ensuite la liste complète des fichiers de l'étape 1
+avec une coche "traité" ou une justification pour chaque
+fichier non traité. Aucun fichier ne peut être omis
+silencieusement.

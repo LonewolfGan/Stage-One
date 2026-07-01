@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useBreakpoint } from "@/hooks/use-mobile";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
@@ -69,6 +70,7 @@ const PLANS: {
 
 export default function SubscriptionPage() {
   const queryClient = useQueryClient();
+  const { isMd } = useBreakpoint();
   const [changing, setChanging] = useState<Plan | null>(null);
 
   const { data: sub } = useQuery<Subscription>({
@@ -117,7 +119,7 @@ export default function SubscriptionPage() {
           </div>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
+        <div style={{ display: "grid", gridTemplateColumns: isMd ? "repeat(3, 1fr)" : "1fr", gap: 16 }}>
           {PLANS.map(({ key, label, price, priceNote, icon: Icon, features, highlighted }) => {
             const isActive = currentPlan === key;
             return (

@@ -32,6 +32,7 @@ export function useBreakpoint() {
 
   return {
     isMobile: w < MOBILE_BREAKPOINT,
+    isMd: w >= MOBILE_BREAKPOINT,
     isLg: w >= LG_BREAKPOINT,
   }
 }

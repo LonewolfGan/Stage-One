@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { useBreakpoint } from "@/hooks/use-mobile";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
@@ -223,6 +224,7 @@ interface ServiceFormProps {
 function ServiceForm({ slug, service, allStaff, onClose }: ServiceFormProps) {
   const isEdit = !!service;
   const qc = useQueryClient();
+  const { isMd: formIsMd } = useBreakpoint();
 
   const [name, setName]         = useState(service?.name ?? "");
   const [description, setDesc]  = useState(service?.description ?? "");
@@ -334,7 +336,7 @@ function ServiceForm({ slug, service, allStaff, onClose }: ServiceFormProps) {
             </div>
 
             {/* Duration + Buffer + Price */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
+            <div style={{ display: "grid", gridTemplateColumns: formIsMd ? "1fr 1fr 1fr" : "1fr", gap: 10 }}>
               <div>
                 <label style={labelStyle}>Durée (min) <span style={{ color: ds.colors.accent }}>*</span></label>
                 <input style={fieldStyle} type="number" min="1" value={duration} onChange={(e) => setDuration(e.target.value)} placeholder="45"

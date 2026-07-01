@@ -378,11 +378,11 @@ function BookingCard({
           )}
         </div>
 
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
           <span style={{ fontSize: 15, fontWeight: 700, color: ds.colors.ink, letterSpacing: "-0.02em" }}>
             {(booking.amountCents / 100).toFixed(0)} MAD
           </span>
-          <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+          <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
             {booking.providerSlug && (
               <Link href={`/${booking.providerSlug}`} style={{ fontSize: 13, color: ds.colors.ink, textDecoration: "none", fontWeight: 500 }}>
                 Voir le salon

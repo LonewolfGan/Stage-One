@@ -6,6 +6,7 @@ import { ArrowLeftIcon } from "@/components/ui/arrow-left";
 import { motion, AnimatePresence } from "framer-motion";
 import { api } from "@/lib/api";
 import { setTokens } from "@/lib/auth-store";
+import { useBreakpoint } from "@/hooks/use-mobile";
 import heroImage from "@assets/ChatGPT_Image_Jun_27,_2026,_07_43_37_PM_(1)_1782586261262.png";
 
 const inputBase: React.CSSProperties = {
@@ -25,6 +26,7 @@ const inputBase: React.CSSProperties = {
 
 export default function LoginPage() {
   const [, setLocation] = useLocation();
+  const { isLg } = useBreakpoint();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPwd, setShowPwd] = useState(false);
@@ -65,14 +67,14 @@ export default function LoginPage() {
       className="flex overflow-hidden"
       style={{ height: "100vh", backgroundColor: "var(--canvas)" }}
     >
-      {/* ── Left column (form, 50%) ── */}
+      {/* ── Left column (form) ── */}
       <div
         style={{
-          flex: "0 0 50%",
+          flex: isLg ? "0 0 50%" : "1 1 100%",
           display: "flex",
           flexDirection: "column",
           overflowY: "auto",
-          padding: "36px 64px 32px",
+          padding: isLg ? "36px 64px 32px" : "32px 24px 24px",
           minWidth: 0,
         }}
       >

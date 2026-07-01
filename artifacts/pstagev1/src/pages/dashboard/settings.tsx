@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useBreakpoint } from "@/hooks/use-mobile";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
@@ -216,7 +217,7 @@ function PhotoGallery({ photos, onDelete, onAdd }: {
       </div>
 
       {/* Grid */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 1, background: "var(--hairline)" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))", gap: 1, background: "var(--hairline)" }}>
         {photos.map((src, i) => (
           <PhotoTile key={src + i} src={src} isCover={i === 0} onDelete={() => onDelete(i)} />
         ))}
@@ -331,6 +332,7 @@ function DayHoursRow({
 }: {
   day: DayHours; isLast: boolean; onChange: (patch: Partial<DayHours>) => void;
 }) {
+  const { isMd: rowIsMd } = useBreakpoint();
   function addBreak() {
     onChange({ breaks: [...day.breaks, { id: uid(), start: "13:00", end: "14:00" }] });
   }
@@ -346,8 +348,9 @@ function DayHoursRow({
       {/* Main row */}
       <div
         style={{
-          display: "flex", alignItems: "center", gap: 12,
-          padding: "11px 20px", minHeight: 50,
+          display: "flex", alignItems: "center", gap: rowIsMd ? 12 : 8,
+          flexWrap: rowIsMd ? "nowrap" : "wrap",
+          padding: rowIsMd ? "11px 20px" : "8px 12px", minHeight: 50,
           opacity: day.isClosed ? 0.48 : 1, transition: "opacity 160ms ease",
         }}
       >
@@ -618,7 +621,7 @@ export default function SettingsPage() {
               </div>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 12 }}>
               <Field
                 label="Nom du salon"
                 value={profile.name}

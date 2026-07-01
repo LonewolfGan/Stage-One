@@ -48,6 +48,7 @@ function Stars({ rating, size = 13 }: { rating: number; size?: number }) {
 
 /* ─── HeroGallery ───────────────────────────────────── */
 function HeroGallery({ photos, providerName }: { photos: string[]; providerName?: string }) {
+  const { isLg: heroIsLg } = useBreakpoint();
   const main = photos[0];
   const thumbs = photos.slice(1, 3);
   const totalPhotos = photos.length;
@@ -55,10 +56,10 @@ function HeroGallery({ photos, providerName }: { photos: string[]; providerName?
   return (
     <div style={{
       display: "grid",
-      gridTemplateColumns: "62% 38%",
-      gridTemplateRows: "1fr 1fr",
+      gridTemplateColumns: heroIsLg ? "62% 38%" : "1fr",
+      gridTemplateRows: heroIsLg ? "1fr 1fr" : "auto",
       gap: 6,
-      height: "clamp(460px, 58vh, 600px)",
+      height: heroIsLg ? "clamp(460px, 58vh, 600px)" : "clamp(220px, 50vw, 360px)",
       position: "relative",
       borderRadius: 16,
       overflow: "hidden",
@@ -79,8 +80,8 @@ function HeroGallery({ photos, providerName }: { photos: string[]; providerName?
         ) : <div style={{ width: "100%", height: "100%", background: "var(--surface-3)", borderRadius: 14 }} />}
       </div>
 
-      {/* 2 thumbnails */}
-      {[0, 1].map(i => (
+      {/* 2 thumbnails — desktop only */}
+      {heroIsLg && [0, 1].map(i => (
         <div key={i} style={{
           overflow: "hidden",
           position: "relative",
@@ -360,8 +361,8 @@ export default function ProviderProfilePage() {
     return (
       <div style={{ minHeight: "100vh", background: "var(--canvas)" }}>
         <TopBar />
-        <div style={{ height: "clamp(380px, 48vh, 520px)", background: "rgba(12,12,14,0.06)" }} className="animate-pulse" />
-        <div style={{ padding: "32px 48px" }}>
+        <div style={{ height: "clamp(220px, 48vw, 520px)", background: "rgba(12,12,14,0.06)" }} className="animate-pulse" />
+        <div style={{ padding: "24px 16px" }}>
           <div style={{ height: 32, width: 260, borderRadius: 8, background: "rgba(12,12,14,0.06)", marginBottom: 12 }} className="animate-pulse" />
           <div style={{ height: 16, width: 180, borderRadius: 6, background: "rgba(12,12,14,0.04)" }} className="animate-pulse" />
         </div>
@@ -386,12 +387,12 @@ export default function ProviderProfilePage() {
       <main style={{ flex: 1 }}>
 
         {/* ── Hero ── */}
-        <div style={{ padding: "20px 48px 0" }}>
+        <div style={{ padding: isLg ? "20px 48px 0" : "12px 16px 0" }}>
           <HeroGallery photos={provider.photos} providerName={provider.name} />
         </div>
 
         {/* ── Content wrapper ── */}
-        <div style={{ padding: "0 48px" }}>
+        <div style={{ padding: isLg ? "0 48px" : "0 16px" }}>
 
           {/* ── Breadcrumb + title ── */}
           <div style={{ paddingTop: 28, paddingBottom: 32, borderBottom: "1px solid var(--hairline)" }}>
@@ -484,7 +485,7 @@ export default function ProviderProfilePage() {
                   </h2>
                   <div style={{
                     display: "grid",
-                    gridTemplateColumns: `repeat(${Math.min(provider.staff.length, 4)}, 1fr)`,
+                    gridTemplateColumns: isLg ? `repeat(${Math.min(provider.staff.length, 4)}, 1fr)` : "repeat(2, 1fr)",
                     gap: 16,
                   }}>
                     {provider.staff.map((member, i) => (

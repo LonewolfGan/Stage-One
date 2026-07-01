@@ -1,5 +1,6 @@
 import { useState, FormEvent } from "react";
 import { useSearch, useLocation } from "wouter";
+import { useBreakpoint } from "@/hooks/use-mobile";
 import { Building2 } from "lucide-react";
 import { EyeIcon } from "@/components/ui/eye";
 import { EyeOffIcon } from "@/components/ui/eye-off";
@@ -62,6 +63,7 @@ function PasswordRule({ met, label }: { met: boolean; label: string }) {
 export default function RegisterPage() {
   const search = useSearch();
   const [, setLocation] = useLocation();
+  const { isLg } = useBreakpoint();
   const isPro = new URLSearchParams(search).get("role") === "pro";
 
   const [email, setEmail] = useState("");
@@ -117,14 +119,14 @@ export default function RegisterPage() {
       className="flex overflow-hidden"
       style={{ height: "100vh", backgroundColor: "var(--canvas)" }}
     >
-      {/* ── Left column (form, 50%) ── */}
+      {/* ── Left column (form) ── */}
       <div
         style={{
-          flex: "0 0 50%",
+          flex: isLg ? "0 0 50%" : "1 1 100%",
           display: "flex",
           flexDirection: "column",
           overflowY: "auto",
-          padding: "36px 64px 32px",
+          padding: isLg ? "36px 64px 32px" : "32px 24px 24px",
           minWidth: 0,
         }}
       >

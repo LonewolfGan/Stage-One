@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
+import { useBreakpoint } from "@/hooks/use-mobile";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { api } from "@/lib/api";
 import {
@@ -334,6 +335,7 @@ const PERIOD_LABELS: Record<Period, string> = {
 
 export default function AnalyticsPage() {
   const [period, setPeriod] = useState<Period>("1M");
+  const { isLg, isMd } = useBreakpoint();
 
   const { data: analytics } = useQuery({
     queryKey: ["dashboard", "analytics", period],
@@ -374,7 +376,7 @@ export default function AnalyticsPage() {
     <DashboardLayout title="Statistiques" breadcrumb="Statistiques">
 
       {/* ── KPI cards ── */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 20 }}>
+      <div style={{ display: "grid", gridTemplateColumns: isMd ? "repeat(4, 1fr)" : "repeat(2, 1fr)", gap: 12, marginBottom: 20 }}>
         <KpiCard label="Réservations" value={`${totalBookings}`} icon={<TrendingUpIcon size={16} />} sparkData={sparkDays} />
         <KpiCard label="CA estimé" value={revenueMad} sub={revenueMad !== "—" ? "MAD" : undefined} icon={<Star size={16} color="var(--ink-secondary)" />} sparkData={sparkDays} />
         <KpiCard label="Taux de remplissage" value={fillRate === "—" ? "—" : `${fillRate}%`} icon={<Scissors size={16} color="var(--ink-secondary)" />} sparkData={sparkDays} />
@@ -382,7 +384,7 @@ export default function AnalyticsPage() {
       </div>
 
       {/* ── Area chart + pill bars ── */}
-      <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 16, marginBottom: 16 }}>
+      <div style={{ display: "grid", gridTemplateColumns: isLg ? "2fr 1fr" : "1fr", gap: 16, marginBottom: 16 }}>
 
         <motion.div
           className="ds-card"
@@ -490,7 +492,7 @@ export default function AnalyticsPage() {
       </div>
 
       {/* ── Bottom row: donut + weekly bar + stat widgets ── */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
+      <div style={{ display: "grid", gridTemplateColumns: isLg ? "1fr 1fr 1fr" : isMd ? "1fr 1fr" : "1fr", gap: 16 }}>
 
         {/* Gauge circulaire — taux de remplissage du jour */}
         <motion.div
