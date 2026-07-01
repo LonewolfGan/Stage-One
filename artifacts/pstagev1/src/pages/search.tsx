@@ -152,7 +152,7 @@ function ResultCardList({ provider, isSelected, onHover, onLeave, index }: {
     >
       {/* Photo */}
       <div style={{
-        width: isMobile ? "100%" : "50%",
+        width: isMobile ? "100%" : "40%",
         height: isMobile ? 200 : "auto",
         flexShrink: 0, position: "relative", overflow: "hidden",
       }}>
@@ -201,57 +201,69 @@ function ResultCardList({ provider, isSelected, onHover, onLeave, index }: {
       </div>
 
       {/* Content */}
-      <div style={{ flex: 1, minWidth: 0, padding: "14px 16px 12px", display: "flex", flexDirection: "column" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 3 }}>
-          <h3 style={{
-            fontSize: 15, fontWeight: 600, color: "var(--ink)",
-            letterSpacing: "-0.015em", lineHeight: 1.2, margin: 0,
-            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-          }}>{provider.name}</h3>
-          {provider.isVerified && <CheckCircle2 size={12} color="var(--ink-tertiary)" style={{ flexShrink: 0 }} />}
+      <div style={{ flex: 1, minWidth: 0, padding: "18px 20px 16px", display: "flex", flexDirection: "column" }}>
+        {/* Header */}
+        <div style={{ marginBottom: 12 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 2 }}>
+            <h3 style={{
+              fontSize: 16, fontWeight: 600, color: "var(--ink)",
+              letterSpacing: "-0.02em", lineHeight: 1.2, margin: 0,
+              overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+            }}>{provider.name}</h3>
+            {provider.isVerified && <CheckCircle2 size={13} color="var(--ink-tertiary)" style={{ flexShrink: 0 }} />}
+          </div>
+          <span style={{
+            fontSize: 10, fontWeight: 600, color: "var(--ink-tertiary)",
+            letterSpacing: "0.06em", textTransform: "uppercase",
+          }}>{catLabel}</span>
         </div>
-        <span style={{
-          fontSize: 10, fontWeight: 600, color: "var(--ink-tertiary)",
-          letterSpacing: "0.05em", textTransform: "uppercase", marginBottom: 8,
-        }}>{catLabel}</span>
 
-        <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+        {/* Rating + location */}
+        <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", marginBottom: 10 }}>
           <Stars rating={provider.rating} />
-          <span style={{ fontSize: 12, fontWeight: 600, color: "var(--ink)" }}>{provider.rating}</span>
-          <span style={{ fontSize: 12, color: "var(--ink-tertiary)" }}>({provider.reviewCount})</span>
-          <span style={{ width: 2, height: 2, borderRadius: "50%", background: "var(--ink-disabled)", flexShrink: 0 }} />
-          <MapPin size={10} color="var(--ink-tertiary)" style={{ flexShrink: 0 }} />
-          <span style={{ fontSize: 12, color: "var(--ink-tertiary)" }}>
-            {provider.city}
-            {provider.distanceKm != null && (
-              <span style={{ color: "var(--ink-secondary)", fontWeight: 500 }}>
-                {" · "}{provider.distanceKm < 1 ? `${Math.round(provider.distanceKm * 1000)} m` : `${provider.distanceKm} km`}
-              </span>
-            )}
-          </span>
+          <span style={{ fontSize: 12, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.01em" }}>{Number(provider.rating).toFixed(1)}</span>
+          <span style={{ fontSize: 12, color: "var(--ink-tertiary)" }}>({provider.reviewCount} avis)</span>
+          <span style={{ width: 3, height: 3, borderRadius: "50%", background: "var(--hairline-strong)", flexShrink: 0 }} />
+          <div style={{ display: "flex", alignItems: "center", gap: 3 }}>
+            <MapPin size={10} color="var(--ink-tertiary)" style={{ flexShrink: 0 }} />
+            <span style={{ fontSize: 12, color: "var(--ink-tertiary)" }}>
+              {provider.city}
+              {provider.distanceKm != null && (
+                <span style={{ color: "var(--ink-secondary)", fontWeight: 500 }}>
+                  {" · "}{provider.distanceKm < 1 ? `${Math.round(provider.distanceKm * 1000)} m` : `${provider.distanceKm} km`}
+                </span>
+              )}
+            </span>
+          </div>
         </div>
 
-        <div style={{ display: "flex", gap: 4, marginTop: 8, flexWrap: "wrap" }}>
-          {provider.services.slice(0, isMobile ? 2 : 3).map(s => (
+        {/* Services */}
+        <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
+          {provider.services.slice(0, isMobile ? 2 : 4).map(s => (
             <span key={s.id} style={{
               fontSize: 11, fontWeight: 500, color: "var(--ink-secondary)",
-              background: "rgba(12,12,14,0.04)", border: "1px solid rgba(12,12,14,0.08)",
-              paddingInline: 7, paddingBlock: 3, borderRadius: 5, whiteSpace: "nowrap",
+              background: "var(--surface-2)", border: "1px solid var(--hairline)",
+              paddingInline: 8, paddingBlock: 3, borderRadius: 6, whiteSpace: "nowrap",
             }}>{s.name}</span>
           ))}
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: "auto", paddingTop: 10 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 3, fontSize: 11, color: "var(--ink-tertiary)", flex: 1 }}>
-            <Calendar size={10} />
+        {/* Footer */}
+        <div style={{
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+          marginTop: "auto", paddingTop: 12,
+          borderTop: "1px solid var(--hairline)",
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12, color: "var(--ink-tertiary)" }}>
+            <Calendar size={11} />
             <span>{nextSlot}</span>
           </div>
           <motion.button
             onClick={e => { e.stopPropagation(); nav(`/booking/${provider.slug}`); }}
             whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
             style={{
-              height: 30, paddingInline: 14, background: "var(--accent)", color: "#fff",
-              fontSize: 11, fontWeight: 600, letterSpacing: "-0.01em",
+              height: 32, paddingInline: 16, background: "var(--accent)", color: "#fff",
+              fontSize: 12, fontWeight: 600, letterSpacing: "-0.01em",
               border: "none", borderRadius: 8, cursor: "pointer", fontFamily: "var(--font)",
             }}
           >Réserver</motion.button>
@@ -997,8 +1009,7 @@ function FAQ() {
 
       {/* Right — pro CTA */}
       <div style={{
-        background: "var(--canvas-pure)",
-        border: "1px solid var(--hairline)",
+        background: "#1A1924",
         borderRadius: 16,
         padding: "40px 36px",
         display: "flex",
@@ -1006,17 +1017,17 @@ function FAQ() {
         gap: 0,
       }}>
         <p style={{
-          fontSize: 11, fontWeight: 600, color: "var(--ink-tertiary)",
+          fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.38)",
           letterSpacing: "0.08em", textTransform: "uppercase", margin: "0 0 20px",
         }}>Pour les professionnels</p>
         <h3 style={{
-          fontSize: 22, fontWeight: 600, color: "var(--ink)",
+          fontSize: 22, fontWeight: 600, color: "#fff",
           letterSpacing: "-0.02em", lineHeight: 1.25, margin: "0 0 12px",
         }}>
           Développez votre clientèle en ligne
         </h3>
         <p style={{
-          fontSize: 13, color: "var(--ink-secondary)",
+          fontSize: 13, color: "rgba(255,255,255,0.52)",
           lineHeight: 1.65, margin: "0 0 28px",
         }}>
           Rejoignez 3 400 professionnels sur la plateforme. Zéro commission.
@@ -1030,13 +1041,13 @@ function FAQ() {
             <div key={i} style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <div style={{
                 width: 18, height: 18, borderRadius: "50%",
-                background: "var(--surface-3)",
+                background: "rgba(255,255,255,0.09)",
                 display: "flex", alignItems: "center", justifyContent: "center",
                 flexShrink: 0,
               }}>
-                <CheckCircle2 size={10} color="var(--ink-secondary)" strokeWidth={2} />
+                <CheckCircle2 size={10} color="rgba(255,255,255,0.65)" strokeWidth={2} />
               </div>
-              <span style={{ fontSize: 13, color: "var(--ink-secondary)", lineHeight: 1.4 }}>{item}</span>
+              <span style={{ fontSize: 13, color: "rgba(255,255,255,0.62)", lineHeight: 1.4 }}>{item}</span>
             </div>
           ))}
         </div>
@@ -1044,14 +1055,14 @@ function FAQ() {
           onClick={() => window.location.href = "/auth/register"}
           style={{
             height: 40, paddingInline: 20,
-            background: "var(--ink)", border: "none", borderRadius: 8,
-            fontSize: 13, fontWeight: 600, color: "#fff",
+            background: "rgba(255,255,255,0.92)", border: "none", borderRadius: 8,
+            fontSize: 13, fontWeight: 600, color: "#1A1924",
             letterSpacing: "-0.01em", cursor: "pointer",
             fontFamily: "var(--font)", alignSelf: "flex-start",
             display: "flex", alignItems: "center", gap: 6,
             transition: "opacity 140ms ease",
           }}
-          onMouseEnter={e => { e.currentTarget.style.opacity = "0.80"; }}
+          onMouseEnter={e => { e.currentTarget.style.opacity = "0.85"; }}
           onMouseLeave={e => { e.currentTarget.style.opacity = "1"; }}
         >
           Inscrire mon établissement
