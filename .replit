@@ -3,6 +3,8 @@ modules = ["nodejs-20", "python-3.12", "web", "postgresql-16"]
 [deployment]
 router = "application"
 deploymentTarget = "autoscale"
+run = ["node", "--enable-source-maps", "artifacts/api-server/dist/index.mjs"]
+build = ["bash", "-c", "pnpm install --frozen-lockfile && BASE_PATH=/ PORT=3000 pnpm --filter @workspace/pstagev1 run build && node artifacts/api-server/build.mjs && pnpm --filter @workspace/db run push"]
 
 [deployment.postBuild]
 args = ["pnpm", "store", "prune"]
