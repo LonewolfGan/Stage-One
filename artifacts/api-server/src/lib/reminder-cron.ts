@@ -77,7 +77,7 @@ async function runReminderScan() {
     if (b.clientPhone) {
       await sendSms(
         b.clientPhone,
-        `Rappel PSTAGEV1 : votre RDV "${b.serviceName}" chez ${b.providerName} est demain. Ref : ${b.id.split("-")[0].toUpperCase()}`,
+        `Rappel ANUBIS : votre RDV "${b.serviceName}" chez ${b.providerName} est demain. Ref : ${b.id.split("-")[0].toUpperCase()}`,
       );
     }
 
@@ -108,7 +108,7 @@ async function runReminderScan() {
     if (b.clientPhone) {
       await sendSms(
         b.clientPhone,
-        `PSTAGEV1 : votre RDV "${b.serviceName}" chez ${b.providerName} est dans 2h. Adresse : ${b.providerAddress ?? b.providerCity}`,
+        `ANUBIS : votre RDV "${b.serviceName}" chez ${b.providerName} est dans 2h. Adresse : ${b.providerAddress ?? b.providerCity}`,
       );
     }
 

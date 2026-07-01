@@ -25,7 +25,7 @@ export function Logo({ size = "md", className }: LogoProps) {
         userSelect: "none",
       }}
     >
-      PSTAGEV1
+      ANUBIS
     </span>
   );
 }

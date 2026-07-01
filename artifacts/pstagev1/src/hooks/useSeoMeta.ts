@@ -5,7 +5,7 @@ interface SeoMeta {
   description?: string;
 }
 
-const DEFAULT_TITLE = "PSTAGEV1 — Réservation beauté au Maroc";
+const DEFAULT_TITLE = "ANUBIS — Réservation beauté au Maroc";
 const DEFAULT_DESC  = "Trouvez et réservez en ligne les meilleurs salons de coiffure, barbiers et instituts de beauté au Maroc.";
 
 function setMetaTag(name: string, content: string) {
@@ -30,7 +30,7 @@ function setOgTag(property: string, content: string) {
 
 export function useSeoMeta({ title, description }: SeoMeta) {
   useEffect(() => {
-    const fullTitle = title ? `${title} — PSTAGEV1` : DEFAULT_TITLE;
+    const fullTitle = title ? `${title} — ANUBIS` : DEFAULT_TITLE;
     const desc = description ?? DEFAULT_DESC;
 
     document.title = fullTitle;

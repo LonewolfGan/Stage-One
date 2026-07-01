@@ -612,7 +612,7 @@ export default function HomePage() {
                   color: "var(--ink-tertiary)",
                 }}
               >
-                PSTAGEV1
+                ANUBIS
               </span>
             </footer>
           </blockquote>

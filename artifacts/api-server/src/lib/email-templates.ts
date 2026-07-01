@@ -81,7 +81,7 @@ export function buildConfirmationEmail(data: BookingEmailData): { subject: strin
 <body>
 <div class="wrapper">
   <div class="header">
-    <span class="header-brand">PSTAGEV1</span>
+    <span class="header-brand">ANUBIS</span>
   </div>
   <div class="body">
     <p class="title">Votre rendez-vous est confirmé ✓</p>
@@ -139,7 +139,7 @@ export function buildConfirmationEmail(data: BookingEmailData): { subject: strin
     <p style="font-size:14px;color:#53565C;margin:0;">Téléphone du salon : <strong>${data.providerPhone}</strong></p>
   </div>
   <div class="footer">
-    <p class="footer-text">Cet email a été envoyé par PSTAGEV1 · Plateforme de réservation beauté au Maroc.<br>Référence de réservation : ${data.bookingId.split("-")[0].toUpperCase()}</p>
+    <p class="footer-text">Cet email a été envoyé par ANUBIS · Plateforme de réservation beauté au Maroc.<br>Référence de réservation : ${data.bookingId.split("-")[0].toUpperCase()}</p>
   </div>
 </div>
 </body>
@@ -167,7 +167,7 @@ export function buildReminderEmail(data: BookingEmailData): { subject: string; h
 <body>
 <div class="wrapper">
   <div class="header">
-    <span class="header-brand">PSTAGEV1</span>
+    <span class="header-brand">ANUBIS</span>
   </div>
   <div class="body">
     <div class="reminder-banner">
@@ -216,7 +216,7 @@ export function buildReminderEmail(data: BookingEmailData): { subject: string; h
     <p style="font-size:13px;color:#8A8D93;margin:0;">Annulation possible jusqu'à 2h avant le rendez-vous · Référence : ${data.bookingId.split("-")[0].toUpperCase()}</p>
   </div>
   <div class="footer">
-    <p class="footer-text">Cet email a été envoyé par PSTAGEV1 · Plateforme de réservation beauté au Maroc.</p>
+    <p class="footer-text">Cet email a été envoyé par ANUBIS · Plateforme de réservation beauté au Maroc.</p>
   </div>
 </div>
 </body>
@@ -243,7 +243,7 @@ export function buildReminder2hEmail(data: BookingEmailData): { subject: string;
 <body>
 <div class="wrapper">
   <div class="header">
-    <span class="header-brand">PSTAGEV1</span>
+    <span class="header-brand">ANUBIS</span>
   </div>
   <div class="body">
     <div class="reminder-banner">
@@ -282,7 +282,7 @@ export function buildReminder2hEmail(data: BookingEmailData): { subject: string;
     <p style="font-size:13px;color:#8A8D93;margin:0;">Référence : ${data.bookingId.split("-")[0].toUpperCase()}</p>
   </div>
   <div class="footer">
-    <p class="footer-text">Cet email a été envoyé par PSTAGEV1 · Plateforme de réservation beauté au Maroc.</p>
+    <p class="footer-text">Cet email a été envoyé par ANUBIS · Plateforme de réservation beauté au Maroc.</p>
   </div>
 </div>
 </body>
