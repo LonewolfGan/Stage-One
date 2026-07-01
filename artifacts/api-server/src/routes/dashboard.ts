@@ -33,6 +33,30 @@ router.get("/provider", requireOwner, async (req, res) => {
   res.json({ ...provider, staff, services });
 });
 
+const providerUpdateSchema = z.object({
+  name:        z.string().min(1).optional(),
+  description: z.string().optional(),
+  phone:       z.string().optional(),
+  address:     z.string().optional(),
+  email:       z.string().email().optional(),
+});
+
+router.put("/provider", requireOwner, async (req, res) => {
+  const provider = await getOwnedProvider(req.user!.sub);
+  if (!provider) { res.status(404).json({ code: "ERR-004", message: "Espace prestataire introuvable" }); return; }
+
+  const parse = providerUpdateSchema.safeParse(req.body);
+  if (!parse.success) { res.status(400).json({ code: "ERR-001", message: "Données invalides", errors: parse.error.flatten() }); return; }
+
+  const [updated] = await db
+    .update(providersTable)
+    .set({ ...parse.data, updatedAt: new Date() })
+    .where(eq(providersTable.id, provider.id))
+    .returning();
+
+  res.json(updated);
+});
+
 // ── Photo upload (base64, dev fallback — no cloud storage required) ──────────
 
 const uploadPhotoSchema = z.object({ dataUri: z.string().startsWith("data:image/") });

@@ -539,6 +539,33 @@ export default function SettingsPage() {
     onError: () => toast.error("Erreur lors de la sauvegarde des horaires"),
   });
 
+  const profileMutation = useMutation({
+    mutationFn: () => api.put("/dashboard/provider", {
+      name:        profile.name        || undefined,
+      description: profile.description || undefined,
+      address:     profile.address     || undefined,
+      email:       profile.email       || undefined,
+      phone:       phones[0]?.number   || undefined,
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["dashboard", "provider"] });
+      toast.success("Profil enregistré");
+    },
+    onError: () => toast.error("Erreur lors de la sauvegarde du profil"),
+  });
+
+  const contactMutation = useMutation({
+    mutationFn: () => api.put("/dashboard/provider", {
+      email: profile.email       || undefined,
+      phone: phones[0]?.number   || undefined,
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["dashboard", "provider"] });
+      toast.success("Coordonnées enregistrées");
+    },
+    onError: () => toast.error("Erreur lors de la sauvegarde du contact"),
+  });
+
   function setDay(i: number, patch: Partial<DayHours>) {
     setHours((prev) => prev.map((d) => (d.dayOfWeek === i ? { ...d, ...patch } : d)));
   }
@@ -684,7 +711,7 @@ export default function SettingsPage() {
             </div>
 
             <div style={{ display: "flex", justifyContent: "flex-end" }}>
-              <SaveBtn label="Sauvegarder le profil" onClick={() => toast.success("Profil enregistré")} />
+              <SaveBtn label="Sauvegarder le profil" onClick={() => profileMutation.mutate()} loading={profileMutation.isPending} />
             </div>
           </div>
         </Section>
@@ -707,7 +734,7 @@ export default function SettingsPage() {
               hint="Utilisé pour les confirmations de réservation et le rapport hebdomadaire"
             />
             <div style={{ display: "flex", justifyContent: "flex-end" }}>
-              <SaveBtn label="Sauvegarder le contact" onClick={() => toast.success("Coordonnées enregistrées")} />
+              <SaveBtn label="Sauvegarder le contact" onClick={() => contactMutation.mutate()} loading={contactMutation.isPending} />
             </div>
           </div>
         </Section>

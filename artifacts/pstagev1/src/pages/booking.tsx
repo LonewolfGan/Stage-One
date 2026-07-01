@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useEffect } from "react";
+import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { useParams, useSearch, Link, useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { TopBar } from "@/components/layout/TopBar";
@@ -47,6 +47,24 @@ export default function BookingPage() {
   const [pendingBooking, setPendingBooking] = useState<PendingBooking | null>(null);
   const [bookingError, setBookingError] = useState<string | null>(null);
   const [slotConflictWarning, setSlotConflictWarning] = useState(false);
+  const [secondsLeft, setSecondsLeft] = useState<number | null>(null);
+  const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    if (pendingBooking?.expiresAt) {
+      const update = () => {
+        const remaining = Math.max(0, Math.round((new Date(pendingBooking.expiresAt).getTime() - Date.now()) / 1000));
+        setSecondsLeft(remaining);
+        if (remaining <= 0 && countdownRef.current) clearInterval(countdownRef.current);
+      };
+      update();
+      countdownRef.current = setInterval(update, 1000);
+    } else {
+      setSecondsLeft(null);
+      if (countdownRef.current) clearInterval(countdownRef.current);
+    }
+    return () => { if (countdownRef.current) clearInterval(countdownRef.current); };
+  }, [pendingBooking?.expiresAt]);
 
   const dates = useMemo(() => {
     const arr: Date[] = [];
@@ -227,17 +245,23 @@ export default function BookingPage() {
       <div
         style={{
           padding: "10px 12px",
-          backgroundColor: "var(--surface-2)",
+          backgroundColor: secondsLeft !== null && secondsLeft <= 60 ? "var(--accent-tint)" : "var(--surface-2)",
+          border: secondsLeft !== null && secondsLeft <= 60 ? "1px solid rgba(212,70,110,0.25)" : "1px solid transparent",
           borderRadius: "var(--radius-control)",
           marginBottom: 20,
           display: "flex",
           alignItems: "center",
           gap: 8,
+          transition: "background-color 300ms ease",
         }}
       >
-        <ClockIcon size={13} style={{ color: "var(--ink-tertiary)", flexShrink: 0 }} />
-        <span style={{ fontSize: 12, color: "var(--ink-secondary)" }}>
-          Créneau réservé pendant 10 minutes
+        <ClockIcon size={13} style={{ color: secondsLeft !== null && secondsLeft <= 60 ? "var(--accent)" : "var(--ink-tertiary)", flexShrink: 0 }} />
+        <span style={{ fontSize: 12, color: secondsLeft !== null && secondsLeft <= 60 ? "var(--accent)" : "var(--ink-secondary)", fontWeight: secondsLeft !== null && secondsLeft <= 60 ? 600 : 400 }}>
+          {secondsLeft !== null && secondsLeft > 0
+            ? `Créneau réservé — expire dans ${Math.floor(secondsLeft / 60)}:${String(secondsLeft % 60).padStart(2, "0")}`
+            : secondsLeft === 0
+            ? "Créneau expiré — veuillez recommencer"
+            : "Créneau réservé pendant 10 minutes"}
         </span>
       </div>
 
