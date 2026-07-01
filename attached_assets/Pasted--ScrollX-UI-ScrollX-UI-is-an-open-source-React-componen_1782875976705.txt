@@ -1,0 +1,456 @@
+# ScrollX UI
+
+> ScrollX UI is an open-source React component library featuring animated, customizable components and blocks designed for modern web interfaces. It provides beautifully crafted animations, theming support, high performance, modular architecture, and responsive design.
+
+All components and blocks are written in TypeScript and styled with Tailwind CSS. The library includes a wide range of UI elements such as interactive cards, buttons, modals, text animations, backgrounds, section blocks, hero sections, FAQ sections, and more — all optimized for accessibility and developer experience.
+
+**Important notes for agents:**
+
+- ScrollX UI has 145+ components and 34+ blocks and is actively growing with daily additions.
+- All components and blocks are AI-ready and work seamlessly with modern frameworks.
+- Components and blocks can be installed via CLI (shadcn) or manually copied.
+- Each component/block includes variants, dependencies, and usage examples.
+
+## Documentation
+
+- [Homepage](https://scrollxui.dev): Main landing page with component showcase and library overview.
+- [Introduction](https://scrollxui.dev/docs/introduction): Overview of ScrollX UI, its features, and design philosophy.
+- [Installation](https://scrollxui.dev/docs/installation): Installation guide with both CLI and manual setup options.
+- [Manual Installation](https://scrollxui.dev/docs/installation/manual): Step-by-step manual installation instructions.
+- [CLI Installation](https://scrollxui.dev/docs/installation/cli): Command-line installation using shadcn CLI with MCP server setup.
+
+## Key Features
+
+- **Beautiful Animations:** Pre-built animation components with smooth transitions
+- **Pre-built Blocks:** Full-page sections for hero, FAQ, logo clouds, and more
+- **Theming Support:** Dark mode and customizable color schemes via CSS variables
+- **High Performance:** Optimized for speed with minimal bundle size
+- **Modular Architecture:** Import only what you need
+- **TypeScript First:** Full type safety and IntelliSense support
+- **Accessibility:** WCAG compliant with proper ARIA attributes
+- **Framework Agnostic:** Works with Next.js, Remix, Vite, and other React frameworks
+- **AI-Ready:** Designed to work seamlessly with AI assistants via MCP
+
+## CLI Installation
+
+### Using shadcn CLI
+
+**Install Components:**
+```bash
+npx shadcn@latest add https://scrollxui.dev/registry/[component].json
+```
+
+**Example:**
+```bash
+npx shadcn@latest add https://scrollxui.dev/registry/alert-dialog.json
+```
+
+**Install Blocks:**
+```bash
+npx shadcn@latest add https://scrollxui.dev/registry/[category]/[block-name].json
+```
+
+**Example:**
+```bash
+npx shadcn@latest add https://scrollxui.dev/registry/hero-sections/hero-with-layers.json
+```
+
+### Shadcn CLI 3.0 (Namespaced Registry)
+
+1. Edit your `components.json` file:
+```json
+{
+  "registries": {
+    "@scrollxui": "https://scrollxui.dev/registry/{name}.json"
+  }
+}
+```
+
+2. Install components using the namespace:
+```bash
+npx shadcn@latest add @scrollxui/[component]
+```
+
+**Example (Component):**
+```bash
+npx shadcn@latest add @scrollxui/profilecard
+```
+
+**Example (Block):**
+```bash
+npx shadcn@latest add @scrollxui/hero-sections/hero-with-layers
+```
+
+### CLI Commands
+
+- **View registry items:** `npx shadcn@latest view @scrollxui`
+- **Search components:** `npx shadcn@latest search @scrollxui -q "search-term"`
+- **List all components:** `npx shadcn@latest list @scrollxui`
+
+### MCP Server Setup
+
+The shadcn MCP Server allows AI assistants to interact with ScrollX UI components and blocks:
+
+1. Initialize the MCP server:
+```bash
+npx shadcn@latest mcp init
+```
+
+2. Configure for your AI assistant:
+   - **Cursor:** `npx shadcn@latest mcp init --client cursor`
+   - **Claude:** `npx shadcn@latest mcp init --client claude`
+   - **VS Code:** `npx shadcn@latest mcp init --client vscode`
+
+## Manual Installation
+
+### Prerequisites
+
+1. **Install Tailwind CSS** - Follow the [Tailwind CSS installation guide](https://tailwindcss.com/docs/installation/framework-guides/nextjs)
+
+2. **Add Dependencies:**
+```bash
+npm install class-variance-authority clsx tailwind-merge lucide-react tw-animate-css
+```
+
+3. **Configure Path Aliases** in `tsconfig.json`:
+```json
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./*"]
+    }
+  }
+}
+```
+
+4. **Create Utility Function** at `lib/utils.ts`:
+```typescript
+import { ClassValue, clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
+```
+
+5. **Create components.json** in your project root:
+```json
+{
+  "$schema": "https://ui.shadcn.com/schema.json",
+  "style": "new-york",
+  "rsc": false,
+  "tsx": true,
+  "tailwind": {
+    "config": "",
+    "css": "src/styles/globals.css",
+    "baseColor": "zinc",
+    "cssVariables": true,
+    "prefix": ""
+  },
+  "aliases": {
+    "components": "@/components",
+    "utils": "@/lib/utils",
+    "ui": "@/components/ui",
+    "lib": "@/lib",
+    "hooks": "@/hooks"
+  },
+  "iconLibrary": "lucide"
+}
+```
+
+For complete setup including CSS variables and theming, see: https://scrollxui.dev/docs/installation/manual
+
+## Components
+
+ScrollX UI includes 145+ beautifully designed components. All components are:
+
+- Written in TypeScript with full type safety
+- Styled with Tailwind CSS for easy customization
+- Optimized for accessibility (WCAG compliant)
+- Responsive and mobile-first
+- Production-ready with minimal dependencies
+
+### Component Library
+
+- [Accordion](https://scrollxui.dev/docs/components/accordion): A vertically stacked set of interactive headings that each reveal a section of content.
+- [Alert Dialog](https://scrollxui.dev/docs/components/alert-dialog): A modal dialog used to convey critical information and require a user response before proceeding..
+- [Animated Button](https://scrollxui.dev/docs/components/animated-button): AnimatedButton is a highly customizable animated button component with shimmer effects, glow, and visual styling options.
+- [Animated Tabs](https://scrollxui.dev/docs/components/animated-tabs): A headless and styled tab UI component set for switching content views.
+- [Animated Testimonials](https://scrollxui.dev/docs/components/animated-testimonials): Minimal testimonials with image and quote for clean, modern design.
+- [Animated TextGenerate](https://scrollxui.dev/docs/components/animated-textgenerate): Generates animated text word-by-word with blur, highlights, links, and smooth effects.
+- [Announcement](https://scrollxui.dev/docs/components/announcement): An announcement component that highlights key info with icons, effects, and expandable content.
+- [Aspect Ratio](https://scrollxui.dev/docs/components/aspect-ratio): A responsive container component that maintains a fixed aspect ratio, commonly used for media like images and videos.
+- [Aurora Dots](https://scrollxui.dev/docs/components/aurora-dots): A captivating background effect featuring softly glowing, animated dots that mimic the ethereal beauty of the aurora borealis.
+- [Avatar](https://scrollxui.dev/docs/components/avatar): Customizable Avatar component with animated borders for status indicators like "close friends" or "normal story".
+- [Avatar Group](https://scrollxui.dev/docs/components/avatar-group): Overlapping avatar circles that expand smoothly to reveal each user's name on hover.
+- [Background Meteors](https://scrollxui.dev/docs/components/backgroundmeteors): Grid Background with Meteors.
+- [Background Paths](https://scrollxui.dev/docs/components/background-paths): A set of SVG paths that animate as if being drawn. Great for tech hero backgrounds.
+- [Badge](https://scrollxui.dev/docs/components/badge): A small badge component with customizable variants and shiny animation effects.
+- [BarsWave](https://scrollxui.dev/docs/components/barswave): Vertical wave bars animate in symmetry, forming a subtle motion-driven background layer.
+- [Beams Upstream](https://scrollxui.dev/docs/components/beams-upstream): Multiple background beams travel upstream, forming a hero section background.
+- [Bento Grid](https://scrollxui.dev/docs/components/bento-grid): A responsive grid layout for showcasing features in varied card sizes with optional tilt effects.
+- [Bolt Strike](https://scrollxui.dev/docs/components/bolt-strike): lightning bolts burst randomly with sparks and particles, creating a high-energy, reactive background effect.
+- [Border Glide](https://scrollxui.dev/docs/components/border-glide): Modern UI cards with a moving border and smooth transitions.
+- [Button](https://scrollxui.dev/docs/components/button): Reusable button component with multiple variants and sizes.
+- [Calendar](https://scrollxui.dev/docs/components/calendar): A date field component that enables users to choose and edit a date.
+- [Card](https://scrollxui.dev/docs/components/card): Renders a card component comprising a header, content section, and footer...
+- [Card Flip](https://scrollxui.dev/docs/components/card-flip): Renders a card component with flip animation, supporting front/back content.
+- [Card Tilt](https://scrollxui.dev/docs/components/card-tilt): smooth card tilt that responds naturally to your cursor, giving the card a more polished, modern look.
+- [Carousel](https://scrollxui.dev/docs/components/carousel): A carousel component with card stack visualization for cycling through content.
+- [Checkbox Pro](https://scrollxui.dev/docs/components/checkbox-pro): A switchable element to mark an option as checked or unchecked.
+- [Checklist Cell](https://scrollxui.dev/docs/components/checklist-cell): Animated checklist illustration with sliding tasks and progressive completion.
+- [Clock](https://scrollxui.dev/docs/components/clock): clock component with rotating hands and glowing effects, perfect for CTA sections.
+- [CodeBlock](https://scrollxui.dev/docs/components/codeblock): Syntax-highlighted codeblock component built on top of react-syntax-highlighter.
+- [Collapsible](https://scrollxui.dev/docs/components/collapsible): An interactive component which expands/collapses a panel with a smooth motion.
+- [ColumnLines](https://scrollxui.dev/docs/components/columnlines): column grid background with radial fade and subtle noise. Great for hero backgrounds.
+- [Cosmic Background](https://scrollxui.dev/docs/components/cosmic-background): A modern cosmic background featuring smooth motion and immersive depth effects.
+- [Cursor Highlight](https://scrollxui.dev/docs/components/cursor-highlight): Text is revealed on scroll with pointer, gradient, and border effects.
+- [Cursor ImageTrail](https://scrollxui.dev/docs/components/cursorimagetrail): mouse trail component with animated image effects on hover.
+- [Decorated Text](https://scrollxui.dev/docs/components/decorated-text): a decorative text frame with corner accents and a compact entrance effect.
+- [Dot Wave](https://scrollxui.dev/docs/components/dot-wave): Dot-based waves ripple outward in symmetry, creating a subtle, motion-driven background layer.
+- [Draggable Avatar](https://scrollxui.dev/docs/components/draggable-avatar): It displays a circular, draggable avatar with customizable size and style.
+- [Drift Card](https://scrollxui.dev/docs/components/drift-card): An interactive card with a drift hover effect that visually highlights content.
+- [Dropdown Menu](https://scrollxui.dev/docs/components/dropdown-menu): Animated Dropdown Reveals a menu of options or actions when activated by a button.
+- [DualSparks](https://scrollxui.dev/docs/components/dualsparks): Corner-based spark waves that radiate inward and outward with smooth motion.
+- [Electric Text](https://scrollxui.dev/docs/components/electric-text): Animated electric text with glowing, distorted outline for dynamic neon effects.
+- [Expandable Cards](https://scrollxui.dev/docs/components/expandable-cards): Interactive card layout where hovered cards expand smoothly for focused content viewing.
+- [Expandable Dock](https://scrollxui.dev/docs/components/expandable-dock): Smooth animated expandable dock with header and collapsible content area.
+- [Facescape](https://scrollxui.dev/docs/components/facescape): Interactive, animated user avatars with hover effects and responsive layout.
+- [Fancy Text](https://scrollxui.dev/docs/components/fancy-text): A refined text reveal animation with smooth character motion and a clean, modern visual flow.
+- [Flashy Card](https://scrollxui.dev/docs/components/flashy-card): Interactive card with smooth animated activation and visual effects.
+- [Flex Navbar](https://scrollxui.dev/docs/components/flex-navbar): A modern navbar with smooth expansion, media panels, and theme controls.
+- [FlipFlow](https://scrollxui.dev/docs/components/flipflow): A looping flow of flip cards with smooth motion and subtle interactive effects.
+- [FlipStack](https://scrollxui.dev/docs/components/flipstack): A stylish and animated card stack UI for showcasing content in layered views.
+- [Flowing Logos](https://scrollxui.dev/docs/components/flowing-logos): Flowing logo showcase with smooth animations, hover effects, and modern UI.
+- [Folder](https://scrollxui.dev/docs/components/folder): Interactive 3D Folder UI component with hover & click animations for modern sites.
+- [Folder Tree](https://scrollxui.dev/docs/components/folder-tree): A customizable folder tree component for displaying hierarchical data with expandable nodes.
+- [Follow Cursor](https://scrollxui.dev/docs/components/followcursor): Colorful, fluid cursor trails that respond to mouse movement.
+- [Glass](https://scrollxui.dev/docs/components/glass): glass surface with interactive ripple and dynamic cursor effects.
+- [Globe](https://scrollxui.dev/docs/components/globe): 5kb WebGL Globe.
+- [Globe Wireframe](https://scrollxui.dev/docs/components/globe-wireframe): globe with smooth city rotations, responsive design, and premium motion.
+- [Glowing Border Card](https://scrollxui.dev/docs/components/glowingbordercard): A customizable card with a glowing border effect that changes colors based on light and dark modes.
+- [Gravity](https://scrollxui.dev/docs/components/gravity): Gravity pulls objects as they launch, soar, and fall inside a container.
+- [Hero Section](https://scrollxui.dev/docs/components/hero-section): A set of hero sections ranging from simple to complex layouts.
+- [Hold ToConfirm](https://scrollxui.dev/docs/components/hold-toconfirm): A button that requires holding down to confirm irreversible or critical actions.
+- [Hyperlink](https://scrollxui.dev/docs/components/hyperlink): Hyperlink component with animated underline, smooth hover & customizable style.
+- [Infinite Canvas](https://scrollxui.dev/docs/components/infinite-canvas): Infinite draggable canvas with zoomable, repeating cards and touch/mouse controls.
+- [Input Otp](https://scrollxui.dev/docs/components/input-otp): A flexible Accessible one-time password component.
+- [Interactive input](https://scrollxui.dev/docs/components/interactive-input): InteractiveInput is a highly customizable interactive input component with shimmer effects, glow, and visual styling options.
+- [Iphone](https://scrollxui.dev/docs/components/iphone): IPhone mockup with screen, header, and custom children content.
+- [Kbd](https://scrollxui.dev/docs/components/kbd): A component for displaying keyboard shortcuts and key combinations.
+- [Keyboard](https://scrollxui.dev/docs/components/keyboard): Interactive keyboard component with customizable key styling and a beautifully minimal interface.
+- [Kinetic Testimonials](https://scrollxui.dev/docs/components/kinetic-testimonials): Smoothly scrolling, animated testimonials for modern developer websites to showcase user feedback visually.
+- [Label](https://scrollxui.dev/docs/components/label): Displays an accessible label associated with controls.
+- [Lamphome](https://scrollxui.dev/docs/components/lamphome): A stylish, animated header component with dark/light mode toggle functionality.
+- [Layer Stack](https://scrollxui.dev/docs/components/layer-stack): Interactive stacked card layout with drag and scroll momentum.
+- [Layered Button](https://scrollxui.dev/docs/components/layered-button): A layered button with a radial expand effect and smooth sliding hover label animation.
+- [Layered Text](https://scrollxui.dev/docs/components/layered-text): Layered text effect with offset shadows, customizable styling, and animations.
+- [Lean Card](https://scrollxui.dev/docs/components/lean-card): A stacked card that reveals a striped back card on hover.
+- [Loader](https://scrollxui.dev/docs/components/loader): Animated versatile loader with different variants, customizable size and content.
+- [Login Form](https://scrollxui.dev/docs/components/loginform): Modern, responsive login form with smooth transitions and gradient accents.
+- [Logo Stepper](https://scrollxui.dev/docs/components/logo-stepper): logo showcase with names, smooth animations, hover effects, and modern UI.
+- [Lustre Text](https://scrollxui.dev/docs/components/lustretext): A lustrous text component with animated gradient shine.
+- [Magic Dock](https://scrollxui.dev/docs/components/magicdock): MacOS-style React dock with smooth animation and customizable magnification.
+- [Media Card](https://scrollxui.dev/docs/components/media-card): An Interactive media cards with a fluid cursor and a polished, modern aesthetic.
+- [Meteor Orbit](https://scrollxui.dev/docs/components/meteor-orbit): orbit system featuring rotating meteors and gracefully animated icons.
+- [Modern Loader](https://scrollxui.dev/docs/components/modern-loader): A modern, dynamic code loader designed for AI-powered coding environments.
+- [MorphoText Flip](https://scrollxui.dev/docs/components/morphotextflip): Animated text component that flips between words with smooth transitions.
+- [Morphy Button](https://scrollxui.dev/docs/components/morphy-button): Morphing button with dynamic dot motion, reversible animation.
+- [Motion Grid](https://scrollxui.dev/docs/components/motion-grid): A set of diagonal lines that move continuously with gradientglow.
+- [Motion Navbar](https://scrollxui.dev/docs/components/motion-navbar): modern react navbar with smooth animations, dropdown menus, and mobile-friendly design.
+- [MotionCards](https://scrollxui.dev/docs/components/motioncards): Elegant cards in seamless flow for clean web design.
+- [MovingLines Background](https://scrollxui.dev/docs/components/movinglines-background): A set of diagonal lines that move continuously. Great for hero backgrounds.
+- [Navbar Flow](https://scrollxui.dev/docs/components/navbar-flow): Animated navbar component with flowing SVG connections and dropdown menus.
+- [Not Found](https://scrollxui.dev/docs/components/not-found): A beautifully designed 404 page to guide users when content is missing.
+- [Orb Button](https://scrollxui.dev/docs/components/orb-button): Modern orb-style button featuring smooth hover expansion and icon reveal.
+- [Pagination](https://scrollxui.dev/docs/components/pagination): A flexible and animated pagination component with active and hover states.
+- [Parallax Cards](https://scrollxui.dev/docs/components/parallaxcards): A vertical sticky-scroll component that displays stacked cards with parallax behavior.
+- [Particles](https://scrollxui.dev/docs/components/particles): Dynamic 3D particle system with customizable properties.
+- [Pixel Background](https://scrollxui.dev/docs/components/pixel-background): A flexible pixel animation background with customizable origins and smooth atmospheric motion.
+- [Pixel Highlight](https://scrollxui.dev/docs/components/pixel-highlight): Animated pixel-based text reveal with directional shimmer using canvas-rendered particles.
+- [Popover](https://scrollxui.dev/docs/components/popover): Displays rich content in a animated portal, triggered by a button.
+- [Profile Card](https://scrollxui.dev/docs/components/profilecard): A reusable profile card component displaying a user's image, name, bio, skills, and social links with interactive animations.
+- [Progress](https://scrollxui.dev/docs/components/progress): Displays an indicator showing the completion progress of a task, typically displayed as a progress bar.
+- [Radial Flow](https://scrollxui.dev/docs/components/radialflow): Dynamic radial graph for visualizing networks & hierarchies with animated nodes.
+- [Radial Socials](https://scrollxui.dev/docs/components/radial-socials): radial social icons arranged in circles, with smooth expansion and rotation.
+- [Radio Group](https://scrollxui.dev/docs/components/radio-group): A group of radio buttons that lets you pick only one option at a time.
+- [Reel](https://scrollxui.dev/docs/components/reel): A scrolling media strip that displays images and videos in flowing rows.
+- [Reveal Text](https://scrollxui.dev/docs/components/reveal-text): a clean text reveal component providing directional animation and stagger options.
+- [ScrollArea Pro](https://scrollxui.dev/docs/components/scroll-areapro): Advanced ScrollArea with auto-hide scrollbars, progress bars, and cross-axis scroll.
+- [Search Cell](https://scrollxui.dev/docs/components/search-cell): An animated search input illustration that cycles through queries with typewriter effect and blur-in results.
+- [Select](https://scrollxui.dev/docs/components/select): Displays an animated list of options for the user to choose from —smoothly triggered by a button.
+- [Sensitive Text](https://scrollxui.dev/docs/components/sensitive-text): Interactive text that subtly compresses or stretches characters based on cursor proximity.
+- [Seperator Pro](https://scrollxui.dev/docs/components/seperatorpro): Separates layout sections with customizable styles and orientations.
+- [Shiny Button](https://scrollxui.dev/docs/components/shiny-button): Interactive button with spotlight effect that follows mouse cursor and highlights borders on hover.
+- [Showcase](https://scrollxui.dev/docs/components/showcase): An interactive showcase component with smooth content and image transitions.
+- [Side Sheet](https://scrollxui.dev/docs/components/side-sheet): A customizable sheet component for creating elegant slide-out interfaces.
+- [Signup Form](https://scrollxui.dev/docs/components/signupform): Modern, responsive signup form with smooth transitions and gradient accents.
+- [Slide Text](https://scrollxui.dev/docs/components/slide-text): sliding text animation with smooth staggered motion and loop control.
+- [Slider](https://scrollxui.dev/docs/components/slider): An interactive slider with glass effects for selecting values smoothly within a range.
+- [Social Orbit](https://scrollxui.dev/docs/components/social-orbit): orbits your socials in smooth motion where icons spin, ripple, and glow with purpose.
+- [Spark Waves](https://scrollxui.dev/docs/components/spark-waves): Radial spark waves pulse outward and inward, creating a dynamic energy-driven background layer.
+- [Splitter](https://scrollxui.dev/docs/components/splitter): Splitter with collapsible panels, drag handle, and smooth animations.
+- [Spotlight Card](https://scrollxui.dev/docs/components/spotlightcard): An interactive card with a spotlight hover effect that highlights content and enhances user engagement visually.
+- [Squonk](https://scrollxui.dev/docs/components/squonk): elastic squircles illustration with fall and shrink movement.
+- [Stagger Button](https://scrollxui.dev/docs/components/stagger-button): Interactive button with animated stagger text and customizable styles for modern uis.
+- [Stagger Chars](https://scrollxui.dev/docs/components/stagger-chars): An animated text component that creates a smooth, staggered character animation effect when hovered.
+- [Stats Carousel](https://scrollxui.dev/docs/components/statscarousel): Animated statistics counter in stacked carousel for modern websites.
+- [StatsCount](https://scrollxui.dev/docs/components/statscount): Animated statistics counter with responsive layout and scroll triggers.
+- [Status](https://scrollxui.dev/docs/components/status): A small status component with customizable variants, indicator and shiny animation effects.
+- [Stripe Button](https://scrollxui.dev/docs/components/stripe-button): Smooth animated button crafted with refined glow and modern motion.
+- [Striped Grid](https://scrollxui.dev/docs/components/striped-grid): Animated diagonal stripes with optional base grid, creating a dynamic textured background.
+- [Table](https://scrollxui.dev/docs/components/table): Powerful responsive data table with sticky headers, smooth scrolling, sorting, and pagination.
+- [Testimonial Carousel](https://scrollxui.dev/docs/components/testimonial-carousel): Minimal, responsive testimonial slider with avatars, names, and quotes for clean, modern design.
+- [Text Highlighter](https://scrollxui.dev/docs/components/text-highlighter): TextHighlighter with smooth animated highlights to emphasize key text.
+- [Text Modifier](https://scrollxui.dev/docs/components/text-modifier): text highlighter with solid background and decorative markers for emphasis.
+- [Text Spotlight](https://scrollxui.dev/docs/components/text-spotlight): spotlight text effect with hover and mobile reveal, customizable size and color.
+- [Theme Switch](https://scrollxui.dev/docs/components/theme-switch): A flexible and accessible theme mode switcher component.
+- [Thunder Loader](https://scrollxui.dev/docs/components/thunder-loader): Animated thunderbolt loader with glow and shimmer effects, customizable sizes and colors.
+- [Timeline](https://scrollxui.dev/docs/components/timeline): Smoothly animated timeline slider with resizable handles for interactive use.
+- [Toast](https://scrollxui.dev/docs/components/toast): A customizable and responsive toast notification system.
+- [Toggle Vault](https://scrollxui.dev/docs/components/toggle-vault): Animated toggle vault component with trigger, close button, and expandable content panel.
+- [Tooltip](https://scrollxui.dev/docs/components/tooltip): An interactive, animated popup that displays information related to an element when it receives keyboard focus or when the mouse hovers over it.
+- [Top Sheet](https://scrollxui.dev/docs/components/top-sheet): A customizable sheet component for creating elegant slide-out interfaces.
+- [Transition](https://scrollxui.dev/docs/components/transition): Smooth page transitions with curved or slide effects.
+- [Type Animation](https://scrollxui.dev/docs/components/typeanimation): Displays an animated typing effect.
+- [Venom Beam](https://scrollxui.dev/docs/components/venom-beam): A glowing particle canvas with motion-reactive trails. Perfect for immersive, high-tech hero sections.
+- [Vercel Card](https://scrollxui.dev/docs/components/vercel-card): A smooth interactive vercel inspired card.
+- [Wavy Button](https://scrollxui.dev/docs/components/wavy-button): Interactive wavybutton with animated text and customizable styles for modern uis.
+- [Whitestripes](https://scrollxui.dev/docs/components/whitestripes): Dynamic motion background for hero sections and modern layouts.
+
+## Blocks
+
+ScrollX UI includes 34+ pre-built blocks organized into 15 categories. All blocks are:
+
+- Full-page sections ready to use
+- Fully responsive and accessible
+- Easy to customize and extend
+- Optimized for performance
+
+**Installation format:** `npx shadcn@latest add @scrollxui/[category]/[block-name]`
+
+### Bento
+
+Bento Grid with modern, high-impact design and micro-interactions
+
+- **[Bento with Focus](https://scrollxui.dev/blocks/bento/bento-with-focus)** (`bento/bento-with-focus`): Modern Bento Grid with blur and smooth reveal animations.
+
+### Contact Sections
+
+Contact sections with forms and micro interactions
+
+- **[Contact with Globe](https://scrollxui.dev/blocks/contact-sections/contact-with-globe)** (`contact-sections/contact-with-globe`): Modern Contact with globe and smooth reveal animations.
+- **[Contact with Pixel Background](https://scrollxui.dev/blocks/contact-sections/contact-with-pixelbackground)** (`contact-sections/contact-with-pixelbackground`): Minimal contact section with animated pixel background and stagger button.
+
+### CTA Sections
+
+CTA sections with modern, high-impact design
+
+- **[CTA Section with Avatars](https://scrollxui.dev/blocks/cta-sections/cta-section-with-avatars)** (`cta-sections/cta-section-with-avatars`): Modern CTA with avatars and smooth reveal animations.
+- **[CTA Section With Dashed Border](https://scrollxui.dev/blocks/cta-sections/cta-section-with-dashed-border)** (`cta-sections/cta-section-with-dashed-border`): CTA section with dashed border effects.
+- **[CTA Section With Floating Gallery](https://scrollxui.dev/blocks/cta-sections/cta-section-with-floating-gallery)** (`cta-sections/cta-section-with-floating-gallery`): CTA section with staggered image gallery.
+
+### Download Sections
+
+Download sections with modern, high-impact design
+
+- **[Download Section with ColumnLines](https://scrollxui.dev/blocks/download-sections/download-with-columnlines)** (`download-sections/download-with-columnlines`): A download section with subtle column lines.
+- **[Download Section with Iphone](https://scrollxui.dev/blocks/download-sections/download-with-iphone)** (`download-sections/download-with-iphone`): A download section with an iPhone mockup.
+
+### Features
+
+Elegant and minimal Features Showcase with interactive lists, panels and micro-interactions
+
+- **[Features with Panel](https://scrollxui.dev/blocks/features/features-with-panel)** (`features/features-with-panel`): Interactive feature list with sticky media panel and smooth transitions.
+- **[Features with Spotlight](https://scrollxui.dev/blocks/features/features-with-spotlight)** (`features/features-with-spotlight`): Interactive feature list with animated spotlight panel and smooth transitions.
+
+### Footers
+
+Elegant and minimal footers with a variety of styles and layouts.
+
+- **[Footer with Faded Brand](https://scrollxui.dev/blocks/footers/footer-with-faded-brand)** (`footers/footer-with-faded-brand`): Modern footer with oversized faded brand name and smooth transitions.
+- **[Footer with Minimal Outline](https://scrollxui.dev/blocks/footers/footer-with-minimal-outline)** (`footers/footer-with-minimal-outline`): Clean footer with minimal outlined brand text and smooth animations.
+- **[Footer with Newsletter](https://scrollxui.dev/blocks/footers/footer-with-newsletter)** (`footers/footer-with-newsletter`): Interactive footer with newsletter and smooth transitions.
+- **[Footer with Suite](https://scrollxui.dev/blocks/footers/footer-with-suite)** (`footers/footer-with-suite`): Modern footer with oversized split sections.
+
+### Frequently asked questions
+
+Elegant and minimal FAQs with grid, accordions and micro-interactions
+
+- **[Frequently asked questions Stack](https://scrollxui.dev/blocks/frequently-asked-questions/frequently-asked-questions-stack)** (`frequently-asked-questions/frequently-asked-questions-stack`): A modern FAQ section with layered stack design and smooth scroll-triggered animations.
+- **[Frequently asked questions with Accordion](https://scrollxui.dev/blocks/frequently-asked-questions/frequently-asked-questions-with-accordion)** (`frequently-asked-questions/frequently-asked-questions-with-accordion`): Elegant and minimal FAQs with grid, accordions and micro-interactions.
+
+### Hero Sections
+
+A collection of hero sections that are modern and stand out
+
+- **[Hero Section with Cards](https://scrollxui.dev/blocks/hero-sections/hero-with-cards)** (`hero-sections/hero-with-cards`): A hero section with a fan of photo cards and animated entrance.
+- **[Hero Section with Iphone](https://scrollxui.dev/blocks/hero-sections/hero-with-iphone)** (`hero-sections/hero-with-iphone`): A hero section with an iPhone mockup and animated background.
+- **[Hero Section with Layers](https://scrollxui.dev/blocks/hero-sections/hero-with-layers)** (`hero-sections/hero-with-layers`): A hero-section for AI startups.
+- **[Hero Section with Pixel Background](https://scrollxui.dev/blocks/hero-sections/hero-with-pixelbackground)** (`hero-sections/hero-with-pixelbackground`): A hero-section for modern AI interfaces with motion.
+- **[Hero Section with Reel](https://scrollxui.dev/blocks/hero-sections/hero-with-reel)** (`hero-sections/hero-with-reel`): A hero section with an animated image reel and motion entrance.
+
+### Login Sections
+
+A collection of Minimal and elegant login pages.
+
+- **[Login Minimal](https://scrollxui.dev/blocks/login-sections/login-minimal)** (`login-sections/login-minimal`): A clean, animated login form with Google OAuth and email/password fields.
+
+### Logo Cloud
+
+A collection of logo clouds with micro interactions and minimal animations
+
+- **[Logo Cloud Flipflow](https://scrollxui.dev/blocks/logo-cloud/logo-cloud-flipflow)** (`logo-cloud/logo-cloud-flipflow`): A logo-cloud for AI startups with flipflow animation.
+- **[Logo Cloud with Marquee](https://scrollxui.dev/blocks/logo-cloud/logo-cloud-marquee)** (`logo-cloud/logo-cloud-marquee`): A logo cloud with flowing marquee motion, perfect for bold AI startups.
+- **[Logo Cloud with Minimal Animation](https://scrollxui.dev/blocks/logo-cloud/logo-cloud-with-minimal-animation)** (`logo-cloud/logo-cloud-with-minimal-animation`): A clean logo cloud with smooth blur and fade-in animations.
+
+### Not Found
+
+404 not-found pages with creative designs and helpful navigation
+
+- **[Not Found with GlitchyText](https://scrollxui.dev/blocks/not-found/not-found-with-glitchytext)** (`not-found/not-found-with-glitchytext`): A clean 404 page with glitch animation and smooth reveal transitions.
+
+### Pricing Sections
+
+A collection of Minimal and elegant pricing sections.
+
+- **[Pricing Minimal](https://scrollxui.dev/blocks/pricing-sections/pricing-minimal)** (`pricing-sections/pricing-minimal`): A clean three-tier pricing section with a highlighted popular plan.
+- **[Pricing with Switch](https://scrollxui.dev/blocks/pricing-sections/pricing-with-switch)** (`pricing-sections/pricing-with-switch`): A pricing section with a monthly/yearly billing toggle, animated card reveal.
+
+### SignUp Sections
+
+A collection of Minimal and elegant signup pages.
+
+- **[SignUp Minimal](https://scrollxui.dev/blocks/signup-sections/signup-minimal)** (`signup-sections/signup-minimal`): A clean, animated signup form with Google OAuth and email/password fields.
+
+### Testimonials
+
+A collection of testimonials with micro interactions and minimal animations
+
+- **[Testimonials with Carousel](https://scrollxui.dev/blocks/testimonials/testimonials-with-carousel)** (`testimonials/testimonials-with-carousel`): A testimonial carousel with staggered title animations and smooth transitions, showcasing customer feedback in an elegant layout.
+- **[Testimonials with Marquee](https://scrollxui.dev/blocks/testimonials/testimonials-with-marquee)** (`testimonials/testimonials-with-marquee`): Horizontal scrolling testimonials with infinite marquee animation across multiple rows.
+- **[Testimonials with Vertical Marquee](https://scrollxui.dev/blocks/testimonials/testimonials-with-verticalmarquee)** (`testimonials/testimonials-with-verticalmarquee`): Vertical scrolling testimonial columns with alternating directions and smooth infinite animations.
+
+### Waitlist Sections
+
+A collection of waitlist sections that are modern and stand out
+
+- **[Waitlist Section with Iphone](https://scrollxui.dev/blocks/waitlist-sections/waitlist-with-iphone)** (`waitlist-sections/waitlist-with-iphone`): A waitlist section with an iPhone mockup.
+- **[Waitlist Section with Layers](https://scrollxui.dev/blocks/waitlist-sections/waitlist-with-layers)** (`waitlist-sections/waitlist-with-layers`): Waitlist section with a draggable stack of layered image cards.
+
+## Usage Notes for Agents
+
+- **Component URLs:** Use kebab-case for component paths (e.g., `/docs/components/profile-card`)
+- **Block URLs:** Use category/name format (e.g., `/blocks/hero-sections/hero-with-layers`)
+- **CLI Names (Components):** Use the exact component name from the registry
+- **CLI Names (Blocks):** Use category/block-name format (e.g., `@scrollxui/hero-sections/hero-with-layers`)
+- **Dependencies:** Check each component/block page for specific dependencies before installation
+- **Variants:** Some components and blocks may have multiple variants or customization options
+- **Updates:** The library is actively maintained with new components and blocks added regularly
+- **Support:** For issues or questions, refer to the documentation or repository
+
+## Development
+
+- [CONTRIBUTING.md](CONTRIBUTING.md): Guidelines for contributing to ScrollX UI.
+- [LICENSE](LICENSE.md): License information.
