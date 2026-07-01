@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Link, useLocation } from "wouter";
-import { Store, LogOut, LayoutDashboard } from "lucide-react";
+import { Store, LogOut, LayoutDashboard, CalendarDays, User } from "lucide-react";
 import { UserIcon } from "@/components/ui/user";
 import { MenuIcon } from "@/components/ui/menu";
 import { XIcon } from "@/components/ui/x";
@@ -34,6 +34,19 @@ function AuthActions({
 }) {
   const [, setLocation] = useLocation();
   const { user, isLoggedIn, isOwner } = useAuth();
+  const [open, setOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function handleClick(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [open]);
 
   return (
     <AnimatePresence mode="wait" initial={false}>
@@ -76,48 +89,140 @@ function AuthActions({
             </motion.button>
           )}
 
-          <div style={{
-            height: 32, paddingInline: 10,
-            display: "flex", alignItems: "center", gap: 6,
-            backgroundColor: "rgba(12,12,14,0.04)",
-            border: "1px solid rgba(12,12,14,0.08)",
-            borderRadius: 9999,
-            fontSize: 12, fontWeight: 500, color: "var(--ink-secondary)",
-            maxWidth: 140, overflow: "hidden",
-          }}>
-            <div style={{
-              width: 20, height: 20, borderRadius: "50%",
-              backgroundColor: "var(--accent-tint)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              flexShrink: 0,
-            }}>
-              <UserIcon size={11} style={{ color: "var(--accent)" }} />
-            </div>
-            {!compact && (
-              <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                {user.name.split(" ")[0]}
-              </span>
-            )}
-          </div>
+          {/* ── User chip — clickable dropdown trigger ── */}
+          <div ref={dropdownRef} style={{ position: "relative" }}>
+            <button
+              onClick={() => setOpen((v) => !v)}
+              style={{
+                height: 32, paddingInline: 10,
+                display: "flex", alignItems: "center", gap: 6,
+                backgroundColor: open ? "rgba(12,12,14,0.08)" : "rgba(12,12,14,0.04)",
+                border: `1px solid ${open ? "rgba(12,12,14,0.18)" : "rgba(12,12,14,0.08)"}`,
+                borderRadius: 9999, cursor: "pointer",
+                fontSize: 12, fontWeight: 500, color: "var(--ink-secondary)",
+                maxWidth: 140, overflow: "hidden",
+                transition: "background-color 140ms ease, border-color 140ms ease",
+                fontFamily: "var(--font)",
+              }}
+              onMouseEnter={e => {
+                (e.currentTarget as HTMLButtonElement).style.backgroundColor = "rgba(12,12,14,0.08)";
+                (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(12,12,14,0.18)";
+              }}
+              onMouseLeave={e => {
+                if (!open) {
+                  (e.currentTarget as HTMLButtonElement).style.backgroundColor = "rgba(12,12,14,0.04)";
+                  (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(12,12,14,0.08)";
+                }
+              }}
+            >
+              <div style={{
+                width: 20, height: 20, borderRadius: "50%",
+                backgroundColor: "var(--accent-tint)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                flexShrink: 0,
+              }}>
+                <UserIcon size={11} style={{ color: "var(--accent)" }} />
+              </div>
+              {!compact && (
+                <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  {user.name.split(" ")[0]}
+                </span>
+              )}
+            </button>
 
-          <motion.button
-            onClick={() => { clearTokens(); setLocation("/"); }}
-            whileTap={{ scale: 0.92 }}
-            title="Se déconnecter"
-            style={{
-              width: 32, height: 32,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              backgroundColor: "transparent",
-              border: "1px solid rgba(12,12,14,0.14)",
-              borderRadius: 9999, cursor: "pointer",
-              color: "var(--ink-tertiary)",
-              transition: "color 140ms ease",
-            }}
-            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = "var(--ink)"; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = "var(--ink-tertiary)"; }}
-          >
-            <LogOut size={13} />
-          </motion.button>
+            {/* ── Dropdown panel ── */}
+            <AnimatePresence>
+              {open && (
+                <motion.div
+                  initial={{ opacity: 0, y: -6, scale: 0.97 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -6, scale: 0.97 }}
+                  transition={{ duration: 0.14 }}
+                  style={{
+                    position: "absolute",
+                    top: "calc(100% + 6px)",
+                    right: 0,
+                    minWidth: 200,
+                    backgroundColor: "#FFFFFF",
+                    border: "1px solid var(--hairline)",
+                    borderRadius: 12,
+                    padding: "6px",
+                    zIndex: 9999,
+                  }}
+                >
+                  {/* User info header */}
+                  <div style={{
+                    padding: "10px 12px 10px",
+                    borderBottom: "1px solid var(--hairline)",
+                    marginBottom: 6,
+                  }}>
+                    <p style={{ fontSize: 13, fontWeight: 500, color: "var(--ink)", marginBottom: 1 }}>
+                      {user.name}
+                    </p>
+                    <p style={{ fontSize: 12, color: "var(--ink-tertiary)" }}>
+                      {user.email}
+                    </p>
+                  </div>
+
+                  {/* Menu items */}
+                  {[
+                    { icon: User, label: "Mon profil", href: "/account/profile" },
+                    { icon: CalendarDays, label: "Mes réservations", href: "/account/bookings" },
+                  ].map(({ icon: Icon, label, href }) => (
+                    <button
+                      key={href}
+                      onClick={() => { setOpen(false); setLocation(href); }}
+                      style={{
+                        width: "100%", display: "flex", alignItems: "center", gap: 9,
+                        padding: "9px 12px", borderRadius: 8,
+                        fontSize: 13, fontWeight: 400, color: "var(--ink-secondary)",
+                        background: "transparent", border: "none", cursor: "pointer",
+                        transition: "background-color 120ms ease, color 120ms ease",
+                        textAlign: "left", fontFamily: "var(--font)",
+                      }}
+                      onMouseEnter={e => {
+                        (e.currentTarget as HTMLButtonElement).style.backgroundColor = "var(--surface-2)";
+                        (e.currentTarget as HTMLButtonElement).style.color = "var(--ink)";
+                      }}
+                      onMouseLeave={e => {
+                        (e.currentTarget as HTMLButtonElement).style.backgroundColor = "transparent";
+                        (e.currentTarget as HTMLButtonElement).style.color = "var(--ink-secondary)";
+                      }}
+                    >
+                      <Icon size={14} />
+                      {label}
+                    </button>
+                  ))}
+
+                  {/* Divider + logout */}
+                  <div style={{ borderTop: "1px solid var(--hairline)", marginTop: 6, paddingTop: 6 }}>
+                    <button
+                      onClick={() => { setOpen(false); clearTokens(); setLocation("/"); }}
+                      style={{
+                        width: "100%", display: "flex", alignItems: "center", gap: 9,
+                        padding: "9px 12px", borderRadius: 8,
+                        fontSize: 13, fontWeight: 400, color: "var(--ink-tertiary)",
+                        background: "transparent", border: "none", cursor: "pointer",
+                        transition: "background-color 120ms ease, color 120ms ease",
+                        textAlign: "left", fontFamily: "var(--font)",
+                      }}
+                      onMouseEnter={e => {
+                        (e.currentTarget as HTMLButtonElement).style.backgroundColor = "var(--surface-2)";
+                        (e.currentTarget as HTMLButtonElement).style.color = "var(--ink)";
+                      }}
+                      onMouseLeave={e => {
+                        (e.currentTarget as HTMLButtonElement).style.backgroundColor = "transparent";
+                        (e.currentTarget as HTMLButtonElement).style.color = "var(--ink-tertiary)";
+                      }}
+                    >
+                      <LogOut size={14} />
+                      Se déconnecter
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </motion.div>
       ) : (
         <motion.button
