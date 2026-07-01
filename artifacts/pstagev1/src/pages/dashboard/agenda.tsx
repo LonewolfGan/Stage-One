@@ -407,7 +407,7 @@ export default function AgendaPage() {
             variant="ghost"
             size="sm"
             icon={<PlusIcon size={13} />}
-            style={{ backgroundColor: "var(--accent-tint)", color: "var(--accent)", border: "1px solid rgba(212,70,110,0.2)" }}
+            style={{ backgroundColor: "var(--surface-2)", color: "var(--ink)", border: "1px solid var(--hairline)" }}
             onClick={() => {
               const firstStaff = staffList[0];
               if (firstStaff) setBlockModal({ staffId: firstStaff.id, staffName: firstStaff.name, hour: 9, date: dateStr });

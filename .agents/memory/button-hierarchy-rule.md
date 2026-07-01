@@ -1,23 +1,29 @@
 ---
 name: Button hierarchy rule
-description: Which buttons are rose vs dark — corrected from earlier "ink everywhere" preference.
+description: Which buttons are black vs rose — corrected: primary CTAs are BLACK, rose is semantic only.
 ---
 
-## Rule (current, post-correction-prompt)
+## Rule (CORRECTED — previous memory was WRONG)
 
-**Primary action button** (the one that confirms/completes the user's intent on a screen: Réserver, Rechercher, Se connecter, Créer mon compte, Sauvegarder, Réserver maintenant, Commencer, Payer maintenant) → `background: var(--accent)` (#D4466E), text white.
+**Primary action button** (the one that confirms/completes the user's intent: Réserver, Rechercher, Se connecter, Créer mon compte, Sauvegarder, Réserver maintenant, Commencer, Payer maintenant, Choisir, Rechercher, Réinitialiser les filtres) → `background: #0C0C0E` (ink-black), text white. Hover: `opacity: 0.80` or `rgba(12,12,14,0.80)`.
 
-**Secondary button** (outline, cancel, ghost, back) → dark ink or transparent/outline.
+**Rose/accent (#D4466E) = SEMANTIC ONLY**, never a primary CTA. Allowed uses:
+- Current-day indicator pill (calendar)
+- Active step progress bar (home.tsx how-it-works)
+- Password rule met indicator (register)
+- Toggle switch ON state (settings)
+- Notification dot
+- Star ratings (use `var(--rating)` = #E8A33D, not accent)
+- "Tout voir" text link (secondary link, not a button)
 
-**Toggle / selection state** (active filter chip, selected tab, selected duration option) → dark ink is fine — these are UI state indicators, not CTAs.
+**Secondary button** (outline, cancel, ghost, back) → dark ink, outline, or `var(--surface-2)` background.
 
-**Decorative elements** (badges like "Top", "RECOMMANDÉ", dots, pins) → any color, not CTAs.
+## Why
 
-## Implementation
+PRODUCT.md (the canonical design source of truth) explicitly states: "Primary buttons are black (#0C0C0E). Rose (#D4466E) = semantic only." The previous memory had this inverted (claiming rose = primary CTA). That was wrong and has been corrected across all pages.
 
-- `index.css` `.ds-btn-primary` → `background-color: var(--accent)` + hover `var(--accent-hover)`. This propagates to ALL uses of `Button variant="primary"` across the codebase (booking, dashboard, account pages).
-- Inline buttons (auth, settings, category, search cards, provider-profile, not-found, verify-email) → edited individually.
+## How to apply
 
-**Why:** Correction prompt (attached_assets) explicitly required rose for primary CTA. This overrides the earlier replit.md preference of "ink #0C0C0E jamais rose sur les CTAs". When the user says "respecte ce prompt à la lettre", the prompt overrides previous stored preferences.
-
-**How to apply:** Any new button that is the primary confirming action → var(--accent). Navigation toggles, filter controls, selection states → dark is fine.
+Any NEW button that is the primary confirming action → `background: "#0C0C0E"`, color white, hover opacity 0.80.
+Any new semantic indicator (active state, status badge, date marker) → `var(--accent)` is fine.
+Never put rose on a button that triggers a navigation or form submission.

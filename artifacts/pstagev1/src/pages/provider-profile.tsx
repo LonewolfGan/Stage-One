@@ -248,14 +248,14 @@ function ServiceRow({ service, providerSlug, isLast }: { service: any; providerS
         onClick={() => setLocation(`/booking/${providerSlug}?serviceId=${service.id}`)}
         style={{
           flexShrink: 0, height: 34, paddingInline: 16,
-          background: "var(--accent)", color: "#fff",
+          background: "#0C0C0E", color: "#fff",
           border: "none", borderRadius: 8,
           fontSize: 13, fontWeight: 500, cursor: "pointer",
           fontFamily: "var(--font)", letterSpacing: "-0.01em",
-          transition: "background 140ms ease",
+          transition: "opacity 140ms ease",
         }}
-        onMouseEnter={e => { e.currentTarget.style.background = "var(--accent-hover)"; }}
-        onMouseLeave={e => { e.currentTarget.style.background = "var(--accent)"; }}
+        onMouseEnter={e => { e.currentTarget.style.opacity = "0.80"; }}
+        onMouseLeave={e => { e.currentTarget.style.opacity = "1"; }}
       >
         Choisir
       </button>
@@ -642,14 +642,14 @@ export default function ProviderProfilePage() {
                     onClick={() => setLocation(`/booking/${provider.slug}`)}
                     style={{
                       width: "100%", height: 44,
-                      background: "var(--accent)", color: "#fff",
+                      background: "#0C0C0E", color: "#fff",
                       border: "none", borderRadius: 9,
                       fontSize: 14, fontWeight: 600, cursor: "pointer",
                       fontFamily: "var(--font)", letterSpacing: "-0.01em",
-                      transition: "background 140ms",
+                      transition: "opacity 140ms",
                     }}
-                    onMouseEnter={e => { e.currentTarget.style.background = "var(--accent-hover)"; }}
-                    onMouseLeave={e => { e.currentTarget.style.background = "var(--accent)"; }}
+                    onMouseEnter={e => { e.currentTarget.style.opacity = "0.80"; }}
+                    onMouseLeave={e => { e.currentTarget.style.opacity = "1"; }}
                   >
                     Réserver maintenant
                   </button>

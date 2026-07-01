@@ -1,0 +1,45 @@
+The user wants me to write a good plan for the design improvements so they can continue in another session. Let me write a comprehensive plan that covers what needs to be done.
+
+From the conversation context:
+
+    shadcn MCP is now set up
+    ScrollX UI registry is already in components.json
+    The user wants to redesign cards and components that don't look good
+    They want to use: shadcn MCP, ScrollX UI, and all the design skills
+
+I need to write a plan that covers:
+
+    Which components to audit/redesign
+    How to use the MCP and ScrollX UI
+    Design principles to follow
+    Specific tasks
+
+I'll save this plan to a file in the project so it's accessible for the next session.
+
+Je vais écrire un plan détaillé pour la prochaine session et le sauvegarder dans le projet.
+
+The user wants to save a plan for the next session and wrap up. I've already written the plan to .local/design-redesign-plan.md. Let me also save key context to memory so the next session can pick up seamlessly.
+
+Je sauvegarde aussi ça en mémoire pour que le prochain agent reprenne directement sans chercher.
+
+Le plan est sauvegardé. Voici ce qui est prêt pour la prochaine session :
+
+Ce qui est déjà en place :
+
+    shadcn MCP pour Claude → artifacts/pstagev1/.mcp.json ✅
+    ScrollX UI registry → déjà dans components.json ✅
+    Infrastructure (API, DB, auth, dashboard) → 100% fonctionnelle ✅
+
+Le plan complet est dans .local/design-redesign-plan.md — le prochain agent le lira automatiquement via la mémoire et saura exactement où reprendre.
+
+Ordre de priorité établi dans le plan :
+
+    Audit visuel — screenshots de toutes les pages, liste des 5-10 composants les plus faibles
+    ResultCard (search) — carte prestataire desktop/mobile, plus forte valeur utilisateur
+    BookingFlow — sélecteur service/staff/créneau, impact direct sur conversion
+    KPI Cards agenda — première chose vue par un prestataire chaque matin
+    Composants atomiques — DSButton, Badge, Input, TopBar
+    Polish global — scroll animations, micro-interactions, toast ScrollX UI
+
+Pour démarrer la prochaine session, dis simplement : "reprends le plan de redesign" — le plan sera chargé depuis la mémoire et l'agent commencera par l'audit visuel avant de toucher au code.
+Checkpoint
