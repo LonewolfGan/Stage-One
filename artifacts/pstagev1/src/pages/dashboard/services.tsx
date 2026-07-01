@@ -8,11 +8,7 @@ import { api, type ApiService, type ApiStaff } from "@/lib/api";
 import { Pencil, Tag, Trash2, Clock, Timer, Users, ToggleLeft, ToggleRight, Plus, X } from "lucide-react";
 import { ds } from "@/lib/design-system";
 import { toast } from "sonner";
-
-/* ── helpers ─────────────────────────────────────────────── */
-function initials(name: string) {
-  return name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase();
-}
+import { initials } from "@/lib/utils";
 
 /* ── Staff chip ───────────────────────────────────────────── */
 function StaffChip({ name }: { name: string }) {

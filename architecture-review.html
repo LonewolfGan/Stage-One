@@ -1,0 +1,411 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>Architecture Review — PSTAGEV1</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+    mermaid.initialize({ startOnLoad: true, theme: "neutral", securityLevel: "loose" });
+  </script>
+  <style>
+    body { font-family: 'Georgia', serif; }
+    code { font-family: 'Courier New', monospace; }
+    .deep-box { background: linear-gradient(135deg,#0f172a,#1e293b); }
+  </style>
+</head>
+<body class="bg-stone-50 text-slate-900">
+<main class="max-w-5xl mx-auto px-6 py-14 space-y-14">
+
+  <!-- Header -->
+  <header class="border-b border-slate-200 pb-8">
+    <p class="text-xs uppercase tracking-widest text-slate-400 mb-2">Architecture Review</p>
+    <h1 class="text-4xl font-semibold tracking-tight text-slate-900">PSTAGEV1</h1>
+    <p class="text-slate-500 mt-2">Plateforme de Réservation Beauté &middot; July 2026</p>
+    <div class="flex gap-8 mt-6 text-xs uppercase tracking-wider text-slate-500">
+      <span class="flex items-center gap-1.5"><span class="inline-block w-4 h-4 border-2 border-slate-700 rounded-sm"></span> module</span>
+      <span class="flex items-center gap-2"><svg width="28" height="12"><line x1="0" y1="6" x2="28" y2="6" stroke="#94a3b8" stroke-dasharray="4 3" stroke-width="1.5"/></svg> seam</span>
+      <span class="flex items-center gap-2"><svg width="28" height="12"><line x1="0" y1="6" x2="28" y2="6" stroke="#dc2626" stroke-width="2"/></svg> leakage</span>
+      <span class="flex items-center gap-1.5"><span class="inline-block w-4 h-4 bg-slate-900 rounded-sm"></span> deep module</span>
+    </div>
+  </header>
+
+  <section id="candidates" class="space-y-12">
+
+    <!-- C1 notify.ts -->
+    <article class="bg-white border border-slate-200 rounded-xl p-8" id="c1">
+      <div class="flex items-start justify-between mb-6">
+        <div>
+          <h2 class="text-xl font-semibold tracking-tight">Collapse the booking notification pipeline</h2>
+          <p class="text-slate-500 text-sm mt-1">Backend &middot; <code>routes/bookings.ts</code> &middot; <code>routes/webhook.ts</code></p>
+        </div>
+        <div class="flex gap-2 flex-shrink-0">
+          <span class="px-2.5 py-1 text-xs font-medium rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">Strong</span>
+          <span class="px-2.5 py-1 text-xs font-medium rounded-full bg-red-50 text-red-700 border border-red-200">Bug fix</span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-6 mb-6">
+        <div>
+          <p class="text-xs uppercase tracking-wider text-slate-400 mb-3">Before &mdash; shallow, duplicated, incomplete</p>
+          <div class="bg-stone-50 border border-slate-200 rounded-lg p-4 h-64 overflow-hidden">
+            <pre class="mermaid" style="font-size:10px">
+flowchart TD
+  POST["POST /confirm"] --> E1["emitBookingConfirmed"]
+  POST --> DB1["insert notifications"]
+  POST --> EM1["enqueue confirm email"]
+  POST --> EM2["enqueue reminder email"]
+  WH["Stripe webhook"] --> E2["emitBookingConfirmed"]
+  WH -.->|missing| DB2["insert notifications"]
+  WH -.->|missing| EM3["enqueue confirm email"]
+  style DB2 fill:#fef2f2,stroke:#dc2626
+  style EM3 fill:#fef2f2,stroke:#dc2626
+            </pre>
+          </div>
+        </div>
+        <div>
+          <p class="text-xs uppercase tracking-wider text-slate-400 mb-3">After &mdash; one deep interface</p>
+          <div class="deep-box rounded-lg p-4 h-64 flex flex-col justify-center gap-3">
+            <div class="border-2 border-emerald-400 rounded-lg p-4 text-white">
+              <p class="text-xs uppercase tracking-wider text-emerald-300 mb-3">lib/notify.ts</p>
+              <p class="text-sm font-mono text-slate-200">notifyBookingConfirmed()</p>
+              <div class="mt-3 pl-3 border-l border-slate-600 space-y-1 text-xs text-slate-400">
+                <p>&rarr; emitBookingConfirmed()</p>
+                <p>&rarr; db.insert(notifications)</p>
+                <p>&rarr; enqueueEmail(confirm)</p>
+                <p>&rarr; enqueueEmail(reminder)</p>
+              </div>
+            </div>
+            <div class="flex gap-3 text-xs text-center">
+              <div class="flex-1 bg-slate-800 rounded p-2 text-slate-300">POST /confirm &darr; one call</div>
+              <div class="flex-1 bg-slate-800 rounded p-2 text-slate-300">Stripe webhook &darr; same call</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-3 gap-6 text-sm">
+        <div><p class="text-xs uppercase tracking-wider text-slate-400 mb-1">Problem</p><p>Notification side-effects duplicated between <code>bookings.ts</code> and <code>webhook.ts</code> — the webhook was missing email + DB notification (live bug: real Stripe payments never sent confirmation emails).</p></div>
+        <div><p class="text-xs uppercase tracking-wider text-slate-400 mb-1">Solution</p><p>Single <code>notifyBookingConfirmed(booking)</code> in <code>lib/notify.ts</code>. Both routes call one interface. Also adds <code>notifySlotBooked()</code> and <code>notifySlotReleased()</code>.</p></div>
+        <div>
+          <p class="text-xs uppercase tracking-wider text-slate-400 mb-1">Wins</p>
+          <ul class="space-y-1 text-slate-700">
+            <li>&check; locality: all notification logic in one module</li>
+            <li>&check; leverage: one interface, 2+ call sites</li>
+            <li>&check; fixes live bug (webhook skipped email + DB notif)</li>
+            <li>&check; callers lose 40+ lines each</li>
+          </ul>
+        </div>
+      </div>
+      <p class="mt-5 text-xs text-emerald-700 bg-emerald-50 border border-emerald-100 rounded px-3 py-2">&check; Implemented &mdash; <code>lib/notify.ts</code> created; <code>bookings.ts</code> and <code>webhook.ts</code> updated.</p>
+    </article>
+
+    <!-- C2 errors.ts -->
+    <article class="bg-white border border-slate-200 rounded-xl p-8" id="c2">
+      <div class="flex items-start justify-between mb-6">
+        <div>
+          <h2 class="text-xl font-semibold tracking-tight">Centralize the error response interface</h2>
+          <p class="text-slate-500 text-sm mt-1">Backend &middot; <code>routes/*.ts</code> (19 files with inline error codes)</p>
+        </div>
+        <div class="flex gap-2 flex-shrink-0">
+          <span class="px-2.5 py-1 text-xs font-medium rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">Strong</span>
+          <span class="px-2.5 py-1 text-xs font-medium rounded-full bg-slate-100 text-slate-600 border border-slate-200">in-process</span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-6 mb-6">
+        <div>
+          <p class="text-xs uppercase tracking-wider text-slate-400 mb-3">Before &mdash; hardcoded error codes everywhere</p>
+          <div class="bg-stone-50 border border-slate-200 rounded-lg p-4 h-48 space-y-2 flex flex-col justify-center">
+            <div class="h-9 border-l-4 border-red-400 bg-red-50 rounded px-3 flex items-center text-xs font-mono text-red-700">bookings.ts: res.status(404).json({code:"ERR-004"})</div>
+            <div class="h-9 border-l-4 border-red-400 bg-red-50 rounded px-3 flex items-center text-xs font-mono text-red-700">providers.ts: res.status(404).json({code:"ERR-004"})</div>
+            <div class="h-9 border-l-4 border-red-400 bg-red-50 rounded px-3 flex items-center text-xs font-mono text-red-700">dashboard.ts: res.status(403).json({code:"ERR-003"})</div>
+            <div class="h-9 border-l-4 border-slate-300 bg-slate-50 rounded px-3 flex items-center text-xs text-slate-400">16 more files with the same inline pattern&hellip;</div>
+          </div>
+        </div>
+        <div>
+          <p class="text-xs uppercase tracking-wider text-slate-400 mb-3">After &mdash; typed codes, one interface</p>
+          <div class="deep-box rounded-lg p-4 h-48 flex flex-col justify-center">
+            <div class="border-2 border-indigo-400 rounded-lg p-4 text-white">
+              <p class="text-xs uppercase tracking-wider text-indigo-300 mb-3">lib/errors.ts</p>
+              <div class="space-y-1 text-xs font-mono text-slate-300">
+                <p>notFound(res, msg?)</p>
+                <p>forbidden(res, msg?)</p>
+                <p>conflict(res, "ERR-005", msg)</p>
+                <p>badRequest(res, errors)</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-3 gap-6 text-sm">
+        <div><p class="text-xs uppercase tracking-wider text-slate-400 mb-1">Problem</p><p>Error codes (<code>"ERR-004"</code>, <code>"ERR-003"</code>&hellip;) are inline strings in 19 route files. A typo changes the contract silently. Changing the shape requires touching every file.</p></div>
+        <div><p class="text-xs uppercase tracking-wider text-slate-400 mb-1">Solution</p><p>Typed <code>AppErrorCode</code> union + convenience helpers in <code>lib/errors.ts</code>. Routes call <code>notFound(res)</code> not <code>res.status(404).json({&hellip;})</code>.</p></div>
+        <div>
+          <p class="text-xs uppercase tracking-wider text-slate-400 mb-1">Wins</p>
+          <ul class="space-y-1 text-slate-700">
+            <li>&check; leverage: one interface, 19+ call sites</li>
+            <li>&check; TypeScript enforces valid error codes</li>
+            <li>&check; locality: change error shape in one module</li>
+          </ul>
+        </div>
+      </div>
+      <p class="mt-5 text-xs text-emerald-700 bg-emerald-50 border border-emerald-100 rounded px-3 py-2">&check; Implemented &mdash; <code>lib/errors.ts</code> created. Migrating individual routes is an additive follow-up.</p>
+    </article>
+
+    <!-- C3 initials -->
+    <article class="bg-white border border-slate-200 rounded-xl p-8" id="c3">
+      <div class="flex items-start justify-between mb-6">
+        <div>
+          <h2 class="text-xl font-semibold tracking-tight">Absorb duplicated pure helpers into utils.ts</h2>
+          <p class="text-slate-500 text-sm mt-1">Frontend &middot; <code>lib/utils.ts</code> &middot; <code>lib/provider-adapter.ts</code> &middot; <code>pages/dashboard/services.tsx</code></p>
+        </div>
+        <div class="flex gap-2 flex-shrink-0">
+          <span class="px-2.5 py-1 text-xs font-medium rounded-full bg-amber-50 text-amber-700 border border-amber-200">Worth exploring</span>
+          <span class="px-2.5 py-1 text-xs font-medium rounded-full bg-slate-100 text-slate-600 border border-slate-200">in-process</span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-6 mb-6">
+        <div>
+          <p class="text-xs uppercase tracking-wider text-slate-400 mb-3">Before &mdash; same function defined twice (mass diagram)</p>
+          <div class="bg-stone-50 border border-slate-200 rounded-lg p-4 h-40 space-y-4 flex flex-col justify-center">
+            <div class="flex items-stretch gap-3">
+              <span class="text-xs font-mono text-slate-500 w-36 flex-shrink-0 flex items-center">provider-adapter.ts</span>
+              <div class="flex-1 flex flex-col gap-1">
+                <div class="h-5 bg-red-100 border border-red-300 rounded px-2 flex items-center"><span class="text-xs text-red-600">interface initials()</span></div>
+                <div class="h-10 bg-red-50 border border-red-200 rounded px-2 flex items-center"><span class="text-xs text-red-500">implementation (7 lines)</span></div>
+              </div>
+            </div>
+            <div class="flex items-stretch gap-3">
+              <span class="text-xs font-mono text-slate-500 w-36 flex-shrink-0 flex items-center">services.tsx</span>
+              <div class="flex-1 flex flex-col gap-1">
+                <div class="h-5 bg-red-100 border border-red-300 rounded px-2 flex items-center"><span class="text-xs text-red-600">interface initials()</span></div>
+                <div class="h-6 bg-red-50 border border-red-200 rounded px-2 flex items-center"><span class="text-xs text-red-500">implementation (3 lines)</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <p class="text-xs uppercase tracking-wider text-slate-400 mb-3">After &mdash; single source, interface shrinks</p>
+          <div class="bg-stone-50 border border-slate-200 rounded-lg p-4 h-40 flex flex-col justify-center gap-2">
+            <div class="flex items-stretch gap-3">
+              <span class="text-xs font-mono text-slate-500 w-36 flex-shrink-0 flex items-center">utils.ts</span>
+              <div class="flex-1 flex flex-col gap-1">
+                <div class="h-5 bg-emerald-100 border border-emerald-300 rounded px-2 flex items-center"><span class="text-xs text-emerald-700">initials() &middot; formatPrice()</span></div>
+                <div class="h-10 bg-emerald-50 border border-emerald-200 rounded px-2 flex items-center"><span class="text-xs text-emerald-600">one implementation</span></div>
+              </div>
+            </div>
+            <div class="ml-36 pl-3 text-xs text-slate-400 space-y-0.5">
+              <p>&larr; provider-adapter.ts imports</p>
+              <p>&larr; services.tsx imports</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-3 gap-6 text-sm">
+        <div><p class="text-xs uppercase tracking-wider text-slate-400 mb-1">Problem</p><p><code>initials()</code> defined in two files with slightly different implementations. Deletion test: deleting either copy concentrates complexity into the other &mdash; they are shallow duplicates.</p></div>
+        <div><p class="text-xs uppercase tracking-wider text-slate-400 mb-1">Solution</p><p>Canonical <code>initials()</code> and <code>formatPrice()</code> in <code>lib/utils.ts</code>. Both callers import from there. The two implementations are collapsed into one.</p></div>
+        <div>
+          <p class="text-xs uppercase tracking-wider text-slate-400 mb-1">Wins</p>
+          <ul class="space-y-1 text-slate-700">
+            <li>&check; locality: one place to fix initials edge cases</li>
+            <li>&check; deletion test passes cleanly</li>
+            <li>&check; formatPrice() available everywhere (was scattered inline)</li>
+          </ul>
+        </div>
+      </div>
+      <p class="mt-5 text-xs text-emerald-700 bg-emerald-50 border border-emerald-100 rounded px-3 py-2">&check; Implemented &mdash; <code>utils.ts</code> extended; both callers updated.</p>
+    </article>
+
+    <!-- C4 StripePaymentForm -->
+    <article class="bg-white border border-slate-200 rounded-xl p-8" id="c4">
+      <div class="flex items-start justify-between mb-6">
+        <div>
+          <h2 class="text-xl font-semibold tracking-tight">Extract StripePaymentForm behind a seam</h2>
+          <p class="text-slate-500 text-sm mt-1">Frontend &middot; <code>pages/booking.tsx</code> &rarr; <code>components/public/StripePaymentForm.tsx</code></p>
+        </div>
+        <div class="flex gap-2 flex-shrink-0">
+          <span class="px-2.5 py-1 text-xs font-medium rounded-full bg-amber-50 text-amber-700 border border-amber-200">Worth exploring</span>
+          <span class="px-2.5 py-1 text-xs font-medium rounded-full bg-slate-100 text-slate-600 border border-slate-200">local-substitutable</span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-6 mb-6">
+        <div>
+          <p class="text-xs uppercase tracking-wider text-slate-400 mb-3">Before &mdash; Stripe hooks leak into page scope</p>
+          <div class="bg-stone-50 border border-slate-200 rounded-lg p-4 h-52">
+            <pre class="mermaid" style="font-size:10px">
+flowchart TD
+  BP["BookingPage (534 lines)"]
+  BP --> STRIPE["useStripe + useElements + PaymentElement"]
+  BP --> STATE["booking state"]
+  BP --> SLOTS["slot selection"]
+  style STRIPE fill:#fef2f2,stroke:#dc2626,stroke-width:2
+            </pre>
+          </div>
+        </div>
+        <div>
+          <p class="text-xs uppercase tracking-wider text-slate-400 mb-3">After &mdash; seam at the Elements boundary</p>
+          <div class="deep-box rounded-lg p-4 h-52 flex flex-col justify-center gap-3">
+            <div class="border border-slate-600 rounded-lg p-3">
+              <p class="text-xs text-slate-400 uppercase tracking-wider mb-1">BookingPage (503 lines)</p>
+              <p class="text-xs text-slate-300">booking state &middot; slot selection &middot; &lt;Elements&gt; wrapper</p>
+            </div>
+            <div class="border-2 border-indigo-400 rounded-lg p-3">
+              <p class="text-xs text-indigo-300 uppercase tracking-wider mb-1">StripePaymentForm.tsx</p>
+              <p class="text-xs text-slate-300">useStripe &middot; useElements &middot; PaymentElement &middot; submit logic</p>
+              <p class="text-xs text-slate-500 mt-1">interface: bookingId + onError callback</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-3 gap-6 text-sm">
+        <div><p class="text-xs uppercase tracking-wider text-slate-400 mb-1">Problem</p><p>Stripe hooks (<code>useStripe</code>, <code>useElements</code>) inside a 534-line page. The payment logic cannot be tested in isolation; swapping to a different provider requires editing the booking page.</p></div>
+        <div><p class="text-xs uppercase tracking-wider text-slate-400 mb-1">Solution</p><p>Extract to <code>StripePaymentForm.tsx</code>. The <code>&lt;Elements&gt;</code> context is the natural seam &mdash; two hypothetical implementations (Stripe / mock) justify it.</p></div>
+        <div>
+          <p class="text-xs uppercase tracking-wider text-slate-400 mb-1">Wins</p>
+          <ul class="space-y-1 text-slate-700">
+            <li>&check; locality: Stripe-specific code in one module</li>
+            <li>&check; seam justified: mock adapter conceivable for tests</li>
+            <li>&check; BookingPage loses 31 lines of Stripe concern</li>
+          </ul>
+        </div>
+      </div>
+      <p class="mt-5 text-xs text-emerald-700 bg-emerald-50 border border-emerald-100 rounded px-3 py-2">&check; Implemented &mdash; <code>components/public/StripePaymentForm.tsx</code> created; <code>booking.tsx</code> updated.</p>
+    </article>
+
+    <!-- C5 auth-store -->
+    <article class="bg-white border border-slate-200 rounded-xl p-8" id="c5">
+      <div class="flex items-start justify-between mb-6">
+        <div>
+          <h2 class="text-xl font-semibold tracking-tight">Stop localStorage leaking through the API module interface</h2>
+          <p class="text-slate-500 text-sm mt-1">Frontend &middot; <code>lib/api.ts</code> &middot; <code>App.tsx</code> &rarr; owned by <code>lib/auth-store.ts</code></p>
+        </div>
+        <div class="flex gap-2 flex-shrink-0">
+          <span class="px-2.5 py-1 text-xs font-medium rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">Strong</span>
+          <span class="px-2.5 py-1 text-xs font-medium rounded-full bg-slate-100 text-slate-600 border border-slate-200">in-process</span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-6 mb-6">
+        <div>
+          <p class="text-xs uppercase tracking-wider text-slate-400 mb-3">Before &mdash; storage key is a hidden shared dependency</p>
+          <div class="bg-stone-50 border border-slate-200 rounded-lg p-4 h-40 space-y-3 flex flex-col justify-center">
+            <div class="h-9 border-l-4 border-red-400 bg-red-50 rounded px-3 flex items-center text-xs font-mono text-red-700">api.ts: localStorage.getItem("auth_token")</div>
+            <div class="h-9 border-l-4 border-red-400 bg-red-50 rounded px-3 flex items-center text-xs font-mono text-red-700">App.tsx: localStorage.setItem("auth_token", d.token)</div>
+            <p class="text-xs text-slate-500">"auth_token" key is an implicit contract between 3 files. DevAutoLogin also missed setting the refresh token and user object.</p>
+          </div>
+        </div>
+        <div>
+          <p class="text-xs uppercase tracking-wider text-slate-400 mb-3">After &mdash; storage owned behind auth-store interface</p>
+          <div class="deep-box rounded-lg p-4 h-40 flex flex-col justify-center">
+            <div class="border-2 border-emerald-400 rounded-lg p-3 text-white mb-3">
+              <p class="text-xs uppercase tracking-wider text-emerald-300 mb-2">lib/auth-store.ts</p>
+              <p class="text-xs font-mono text-slate-300">getToken() &middot; setTokens() &middot; clearTokens()</p>
+            </div>
+            <div class="flex justify-around text-xs text-slate-400">
+              <span>api.ts &rarr; getToken()</span>
+              <span>App.tsx &rarr; setTokens()</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-3 gap-6 text-sm">
+        <div><p class="text-xs uppercase tracking-wider text-slate-400 mb-1">Problem</p><p>Raw <code>localStorage.getItem("auth_token")</code> in <code>api.ts</code> — auth-store already owns the key via <code>getToken()</code> but it wasn't used. <code>DevAutoLogin</code> also set only the token, missing <code>refreshToken</code> and <code>user</code>.</p></div>
+        <div><p class="text-xs uppercase tracking-wider text-slate-400 mb-1">Solution</p><p><code>api.ts</code> calls <code>getToken()</code> from <code>auth-store</code>. <code>App.tsx</code> calls <code>setTokens(token, refresh, user)</code> — now correctly stores all three fields.</p></div>
+        <div>
+          <p class="text-xs uppercase tracking-wider text-slate-400 mb-1">Wins</p>
+          <ul class="space-y-1 text-slate-700">
+            <li>&check; locality: storage key owned by one module</li>
+            <li>&check; DevAutoLogin now stores full auth state</li>
+            <li>&check; swap to sessionStorage in one file</li>
+            <li>&check; deleting getItem("auth_token") from api.ts passes deletion test</li>
+          </ul>
+        </div>
+      </div>
+      <p class="mt-5 text-xs text-emerald-700 bg-emerald-50 border border-emerald-100 rounded px-3 py-2">&check; Implemented &mdash; <code>api.ts</code> and <code>App.tsx</code> now use <code>getToken()</code> / <code>setTokens()</code> from <code>auth-store</code>.</p>
+    </article>
+
+    <!-- C6 slot-engine (speculative) -->
+    <article class="bg-white border border-slate-100 rounded-xl p-8" id="c6" style="opacity:0.8">
+      <div class="flex items-start justify-between mb-6">
+        <div>
+          <h2 class="text-xl font-semibold tracking-tight text-slate-600">Deepen the slot engine: separate query from calculation</h2>
+          <p class="text-slate-400 text-sm mt-1">Backend &middot; <code>lib/slot-engine.ts</code> &middot; Phase 3</p>
+        </div>
+        <div class="flex gap-2 flex-shrink-0">
+          <span class="px-2.5 py-1 text-xs font-medium rounded-full bg-slate-100 text-slate-500 border border-slate-200">Speculative</span>
+          <span class="px-2.5 py-1 text-xs font-medium rounded-full bg-slate-100 text-slate-500 border border-slate-200">ports &amp; adapters</span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-6 mb-6">
+        <div>
+          <p class="text-xs uppercase tracking-wider text-slate-400 mb-3">Before &mdash; DB queries fused with slot logic</p>
+          <div class="bg-stone-50 border border-slate-200 rounded-lg p-4 h-44">
+            <pre class="mermaid" style="font-size:10px">
+flowchart LR
+  SE["getAvailableSlots()"] --> Q1["query bookings"]
+  SE --> Q2["query business_hours"]
+  SE --> Q3["query schedule_blocks"]
+  SE --> Q4["query services"]
+  SE --> CALC["compute free windows"]
+  style Q1 fill:#fef2f2,stroke:#dc2626
+  style Q2 fill:#fef2f2,stroke:#dc2626
+  style Q3 fill:#fef2f2,stroke:#dc2626
+  style Q4 fill:#fef2f2,stroke:#dc2626
+            </pre>
+          </div>
+        </div>
+        <div>
+          <p class="text-xs uppercase tracking-wider text-slate-400 mb-3">After &mdash; seam between data and logic</p>
+          <div class="deep-box rounded-lg p-4 h-44 flex flex-col justify-center gap-3">
+            <div class="border border-slate-600 rounded-lg p-3">
+              <p class="text-xs text-slate-400 uppercase tracking-wider mb-1">SlotRepository (adapter)</p>
+              <p class="text-xs font-mono text-slate-300">fetchSlotContext(staffId, date): SlotContext</p>
+            </div>
+            <div class="border-2 border-indigo-400 rounded-lg p-3">
+              <p class="text-xs uppercase tracking-wider text-indigo-300 mb-1">computeSlots() (pure)</p>
+              <p class="text-xs font-mono text-slate-300">SlotContext &rarr; Slot[]  — no DB, testable</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-3 gap-6 text-sm">
+        <div><p class="text-xs uppercase tracking-wider text-slate-400 mb-1">Problem</p><p><code>getAvailableSlots()</code> runs 4&ndash;5 DB queries internally. The slot calculation logic is impossible to unit test without a running database.</p></div>
+        <div><p class="text-xs uppercase tracking-wider text-slate-400 mb-1">Solution</p><p>Split into <code>fetchSlotContext()</code> (DB adapter) and <code>computeSlots(ctx)</code> (pure function). Two adapters &mdash; real DB + in-memory &mdash; justify the seam.</p></div>
+        <div>
+          <p class="text-xs uppercase tracking-wider text-slate-400 mb-1">Wins</p>
+          <ul class="space-y-1 text-slate-600">
+            <li>&check; interface shrinks (pure fn testable in isolation)</li>
+            <li>&check; seam justified: in-memory adapter for tests</li>
+            <li>&check; locality: slot calculation bugs visible in one module</li>
+          </ul>
+        </div>
+      </div>
+      <p class="mt-5 text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded px-3 py-2">&#9633; Not yet implemented &mdash; significant refactor. Recommended as Phase 3 work once test infrastructure exists.</p>
+    </article>
+
+  </section>
+
+  <!-- Top recommendation -->
+  <section id="top-recommendation" class="bg-slate-900 text-white rounded-xl p-10">
+    <p class="text-xs uppercase tracking-wider text-slate-400 mb-4">Top recommendation</p>
+    <h2 class="text-2xl font-semibold tracking-tight mb-4">Booking notification pipeline &rarr; <code class="text-emerald-400 text-xl">lib/notify.ts</code></h2>
+    <p class="text-slate-300 text-sm leading-relaxed max-w-2xl mb-4">The notification module is the only candidate that fixes a live bug (Stripe webhook skipping email + DB notification), removes 80+ lines of duplicated code from two route handlers, and deepens a seam that will compound in value every time a new notification channel (SMS, push) is added. It is the highest-leverage change because the interface was already implicit &mdash; this just makes it explicit and correct.</p>
+    <a href="#c1" class="text-emerald-400 text-sm underline">&uarr; See candidate details</a>
+  </section>
+
+  <footer class="text-center text-xs text-slate-400 border-t border-slate-200 pt-6">
+    Generated by improve-codebase-architecture skill &middot; PSTAGEV1 &middot; July 2026
+  </footer>
+
+</main>
+</body>
+</html>

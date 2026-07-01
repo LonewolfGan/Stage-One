@@ -1,7 +1,9 @@
+import { getToken } from "./auth-store";
+
 const BASE = "/api";
 
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
-  const token = localStorage.getItem("auth_token");
+  const token = getToken();
   const res = await fetch(`${BASE}${path}`, {
     ...init,
     headers: {

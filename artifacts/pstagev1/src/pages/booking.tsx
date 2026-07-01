@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, type FormEvent, useEffect } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { useParams, useSearch, Link, useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { TopBar } from "@/components/layout/TopBar";
@@ -16,7 +16,8 @@ import { CreditCardIcon } from "@/components/ui/credit-card";
 import { useBreakpoint } from "@/hooks/use-mobile";
 import { useSlotSync } from "@/hooks/useSlotSync";
 import { loadStripe } from "@stripe/stripe-js";
-import { Elements, PaymentElement, useStripe, useElements } from "@stripe/react-stripe-js";
+import { Elements } from "@stripe/react-stripe-js";
+import { StripePaymentForm } from "@/components/public/StripePaymentForm";
 
 const stripePublishableKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY as string | undefined;
 const stripePromise = stripePublishableKey ? loadStripe(stripePublishableKey) : null;
@@ -29,38 +30,6 @@ interface PendingBooking {
   amountCents: number;
   expiresAt: string;
   isMock: boolean;
-}
-
-// ── Stripe payment sub-form (uses hooks that require <Elements> context)
-function StripePaymentForm({ bookingId, onError }: { bookingId: string; onError: (msg: string) => void }) {
-  const stripe = useStripe();
-  const elements = useElements();
-  const [processing, setProcessing] = useState(false);
-
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault();
-    if (!stripe || !elements) return;
-    setProcessing(true);
-    const { error } = await stripe.confirmPayment({
-      elements,
-      confirmParams: {
-        return_url: `${window.location.origin}/booking/confirmation?id=${bookingId}`,
-      },
-    });
-    if (error) {
-      onError(error.message ?? "Erreur lors du paiement");
-      setProcessing(false);
-    }
-  }
-
-  return (
-    <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-      <PaymentElement />
-      <Button type="submit" variant="primary" size="lg" disabled={processing || !stripe} style={{ width: "100%" }}>
-        {processing ? "Paiement en cours…" : "Payer maintenant"}
-      </Button>
-    </form>
-  );
 }
 
 export default function BookingPage() {

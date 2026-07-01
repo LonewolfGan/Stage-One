@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { getToken, setTokens } from "@/lib/auth-store";
 import { Switch, Route, Router as WouterRouter, useLocation, Redirect } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -90,7 +91,7 @@ function AnimatedRouter() {
 function DevAutoLogin() {
   useEffect(() => {
     if (!import.meta.env.DEV) return;
-    if (localStorage.getItem("auth_token")) return;
+    if (getToken()) return;
     fetch("/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -98,12 +99,12 @@ function DevAutoLogin() {
     })
       .then((r) => r.json())
       .then((d) => {
-        if (d.token) {
-          localStorage.setItem("auth_token", d.token);
+        if (d.token && d.refreshToken && d.user) {
+          setTokens(d.token, d.refreshToken, d.user);
           window.location.reload();
         }
       })
-      .catch(() => {});
+      .catch((err) => console.warn("[DevAutoLogin] failed:", err));
   }, []);
   return null;
 }

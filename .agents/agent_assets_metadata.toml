@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "PchjTBWzpD9wA4LULk8Ou"
+uri = "file://architecture-review.html"
+type = "unspecified"
+title = "Architecture Review — PSTAGEV1"

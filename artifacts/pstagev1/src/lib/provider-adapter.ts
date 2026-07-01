@@ -1,15 +1,6 @@
 import type { Provider, StaffMember, Service, BusinessHours } from "./types";
 import type { ApiProvider } from "./api";
-
-
-function initials(name: string): string {
-  return name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
-}
+import { initials } from "./utils";
 
 const CATEGORY_BY_SLUG: Record<string, string> = {
   "salon-atlas": "coiffeur",

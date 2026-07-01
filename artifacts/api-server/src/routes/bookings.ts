@@ -1,13 +1,12 @@
 import { Router } from "express";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
-import { db, bookingsTable, servicesTable, staffTable, providersTable, usersTable, reviewsTable, notificationsTable } from "@workspace/db";
+import { db, bookingsTable, servicesTable, staffTable, providersTable, usersTable, reviewsTable } from "@workspace/db";
 import { eq, and, sql, desc, isNotNull } from "drizzle-orm";
 import { requireAuth } from "../middlewares/auth";
-import { emitSlotUpdate, emitBookingConfirmed } from "../lib/socket";
+import { notifyBookingConfirmed, notifySlotBooked, notifySlotReleased } from "../lib/notify";
 import { stripe } from "../lib/stripe";
 import { redis } from "../lib/redis";
-import { enqueueEmailJob } from "../lib/email-worker";
 
 const router = Router();
 
@@ -143,11 +142,7 @@ router.post("/", requireAuth, async (req, res) => {
     }
   }
 
-  emitSlotUpdate(provider.id, {
-    slotStart: startDatetime.toISOString(),
-    staffId,
-    change: "booked",
-  });
+  notifySlotBooked(provider.id, staffId, startDatetime);
 
   res.status(201).json({
     bookingId,
@@ -246,75 +241,25 @@ router.post("/:bookingId/cancel", requireAuth, async (req, res) => {
     .set({ status: "CANCELLED", updatedAt: new Date() })
     .where(eq(bookingsTable.id, req.params.bookingId));
 
-  emitSlotUpdate(booking.providerId, {
-    slotStart: booking.startDatetime.toISOString(),
-    staffId: booking.staffId,
-    change: "released",
-  });
+  notifySlotReleased(booking);
 
   res.json({ message: "Réservation annulée" });
 });
 
-// POST /bookings/:bookingId/confirm — manual confirmation (mock/webhook fallback)
+// POST /bookings/:bookingId/confirm — manual confirmation (mock / webhook fallback)
 router.post("/:bookingId/confirm", async (req, res) => {
   const booking = await db.query.bookingsTable.findFirst({ where: eq(bookingsTable.id, req.params.bookingId) });
   if (!booking) { res.status(404).json({ code: "ERR-004", message: "Réservation introuvable" }); return; }
 
-  await db
+  // Idempotent: only notify when actually transitioning PENDING → CONFIRMED.
+  const [updated] = await db
     .update(bookingsTable)
     .set({ status: "CONFIRMED", paymentStatus: "paid", updatedAt: new Date() })
-    .where(eq(bookingsTable.id, req.params.bookingId));
+    .where(and(eq(bookingsTable.id, req.params.bookingId), eq(bookingsTable.status, "PENDING")))
+    .returning({ id: bookingsTable.id });
 
-  const [service, staff, client] = await Promise.all([
-    db.query.servicesTable.findFirst({ where: eq(servicesTable.id, booking.serviceId) }),
-    db.query.staffTable.findFirst({ where: eq(staffTable.id, booking.staffId) }),
-    db.query.usersTable.findFirst({ where: eq(usersTable.id, booking.clientId) }),
-  ]);
-
-  emitBookingConfirmed(booking.providerId, {
-    bookingId: booking.id,
-    staffId: booking.staffId,
-    serviceName: service?.name ?? "",
-    clientName: client?.name ?? "",
-    startDatetime: booking.startDatetime.toISOString(),
-  });
-
-  // Persist notification in DB for owner dashboard bell
-  const startFormatted = booking.startDatetime.toLocaleString("fr-MA", {
-    weekday: "short",
-    day: "numeric",
-    month: "short",
-    hour: "2-digit",
-    minute: "2-digit",
-    timeZone: "Africa/Casablanca",
-  });
-  await db.insert(notificationsTable).values({
-    providerId: booking.providerId,
-    type: "booking.confirmed",
-    title: "Nouvelle réservation confirmée",
-    body: `${client?.name ?? "Client"} — ${service?.name ?? "Prestation"} à ${startFormatted}`,
-    metadata: {
-      bookingId: booking.id,
-      staffId: booking.staffId,
-      staffName: staff?.name ?? null,
-      serviceName: service?.name ?? null,
-      clientName: client?.name ?? null,
-      startDatetime: booking.startDatetime.toISOString(),
-    },
-  }).catch((err) => req.log.error({ err }, "Failed to persist booking notification"));
-
-  // Confirmation email — sent immediately
-  enqueueEmailJob({ type: "booking_confirmation", bookingId: booking.id }).catch((err) =>
-    req.log.error({ err }, "Failed to enqueue confirmation email"),
-  );
-
-  // J-1 reminder — scheduled 24h before appointment (only if > 25h away)
-  const msUntilStart = booking.startDatetime.getTime() - Date.now();
-  const reminderDelay = msUntilStart - 24 * 60 * 60 * 1000;
-  if (reminderDelay > 60_000) {
-    enqueueEmailJob({ type: "booking_reminder", bookingId: booking.id }, reminderDelay).catch((err) =>
-      req.log.error({ err }, "Failed to enqueue reminder email"),
-    );
+  if (updated) {
+    await notifyBookingConfirmed(booking);
   }
 
   res.json({ message: "Réservation confirmée" });
