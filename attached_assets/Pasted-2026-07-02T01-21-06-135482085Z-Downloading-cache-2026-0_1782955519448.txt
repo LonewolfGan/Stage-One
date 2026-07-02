@@ -1,0 +1,165 @@
+2026-07-02T01:21:06.135482085Z ==> Downloading cache...
+2026-07-02T01:21:06.17428244Z ==> Cloning from https://github.com/LonewolfGan/Stage-One
+2026-07-02T01:21:07.40415673Z ==> Checking out commit cb7c444d36e05ac601362f5d714d36452136f897 in branch main
+2026-07-02T01:21:22.659307179Z ==> Downloaded 132MB in 1s. Extraction took 14s.
+2026-07-02T01:23:02.779760204Z ==> Requesting Node.js version 20
+2026-07-02T01:23:02.890750627Z ==> Using Node.js version 20.20.2 via /opt/render/project/src/.node-version
+2026-07-02T01:23:02.890769848Z ==> Docs on specifying a Node.js version: https://render.com/docs/node-version
+2026-07-02T01:23:02.890959963Z ==> Installing Node.js version 20.20.2...
+2026-07-02T01:23:03.824242892Z ==> Running build command 'pnpm install --frozen-lockfile && BASE_PATH=/ NODE_ENV=production pnpm --filter @workspace/pstagev1 run build && node artifacts/api-server/build.mjs'...
+2026-07-02T01:23:06.11283996Z 
+2026-07-02T01:23:06.112871983Z > @workspace/pstagev1@0.0.0 build /opt/render/project/src/artifacts/pstagev1
+2026-07-02T01:23:06.112879034Z > vite build --config vite.config.ts
+2026-07-02T01:23:06.112883094Z 
+2026-07-02T01:23:06.528117356Z vite v7.3.5 building client environment for production...
+2026-07-02T01:23:06.631508046Z transforming...
+2026-07-02T01:23:07.213872617Z src/components/ui/tooltip.tsx (2:0): Error when using sourcemap for reporting an error: Can't resolve original location of error.
+2026-07-02T01:23:07.988892608Z src/components/ui/file-text.tsx (2:0): Error when using sourcemap for reporting an error: Can't resolve original location of error.
+2026-07-02T01:23:07.9896939Z src/components/ui/arrow-left.tsx (2:0): Error when using sourcemap for reporting an error: Can't resolve original location of error.
+2026-07-02T01:23:07.990381064Z src/components/ui/chevron-left.tsx (2:0): Error when using sourcemap for reporting an error: Can't resolve original location of error.
+2026-07-02T01:23:07.991093369Z src/components/ui/map-pin.tsx (2:0): Error when using sourcemap for reporting an error: Can't resolve original location of error.
+2026-07-02T01:23:07.9918693Z src/components/ui/phone.tsx (2:0): Error when using sourcemap for reporting an error: Can't resolve original location of error.
+2026-07-02T01:23:07.992559623Z src/components/ui/clock.tsx (2:0): Error when using sourcemap for reporting an error: Can't resolve original location of error.
+2026-07-02T01:23:07.993992835Z src/components/ui/toast.tsx (2:0): Error when using sourcemap for reporting an error: Can't resolve original location of error.
+2026-07-02T01:23:08.002270891Z src/components/ui/user.tsx (2:0): Error when using sourcemap for reporting an error: Can't resolve original location of error.
+2026-07-02T01:23:08.299374853Z src/components/ui/search.tsx (2:0): Error when using sourcemap for reporting an error: Can't resolve original location of error.
+2026-07-02T01:23:08.300387922Z src/components/ui/trending-up.tsx (2:0): Error when using sourcemap for reporting an error: Can't resolve original location of error.
+2026-07-02T01:23:08.301467226Z src/components/ui/check.tsx (2:0): Error when using sourcemap for reporting an error: Can't resolve original location of error.
+2026-07-02T01:23:08.306219096Z src/components/ui/users.tsx (2:0): Error when using sourcemap for reporting an error: Can't resolve original location of error.
+2026-07-02T01:23:08.30690741Z src/components/ui/chevron-right.tsx (2:0): Error when using sourcemap for reporting an error: Can't resolve original location of error.
+2026-07-02T01:23:08.31100883Z src/components/ui/arrow-right.tsx (2:0): Error when using sourcemap for reporting an error: Can't resolve original location of error.
+2026-07-02T01:23:08.312145469Z src/components/ui/plus.tsx (2:0): Error when using sourcemap for reporting an error: Can't resolve original location of error.
+2026-07-02T01:23:08.312823501Z src/components/ui/x.tsx (2:0): Error when using sourcemap for reporting an error: Can't resolve original location of error.
+2026-07-02T01:23:08.313799047Z src/components/ui/chevron-down.tsx (2:0): Error when using sourcemap for reporting an error: Can't resolve original location of error.
+2026-07-02T01:23:08.314706538Z src/components/ui/arrow-up-right.tsx (2:0): Error when using sourcemap for reporting an error: Can't resolve original location of error.
+2026-07-02T01:23:08.317233945Z src/components/ui/eye.tsx (2:0): Error when using sourcemap for reporting an error: Can't resolve original location of error.
+2026-07-02T01:23:08.320147222Z src/components/ui/eye-off.tsx (2:0): Error when using sourcemap for reporting an error: Can't resolve original location of error.
+2026-07-02T01:23:08.827121306Z src/components/ui/credit-card.tsx (2:0): Error when using sourcemap for reporting an error: Can't resolve original location of error.
+2026-07-02T01:23:10.326034921Z src/components/ui/bell.tsx (2:0): Error when using sourcemap for reporting an error: Can't resolve original location of error.
+2026-07-02T01:23:10.326774799Z src/components/ui/settings.tsx (2:0): Error when using sourcemap for reporting an error: Can't resolve original location of error.
+2026-07-02T01:23:10.328347192Z src/components/ui/menu.tsx (2:0): Error when using sourcemap for reporting an error: Can't resolve original location of error.
+2026-07-02T01:23:10.330431054Z src/components/ui/home.tsx (2:0): Error when using sourcemap for reporting an error: Can't resolve original location of error.
+2026-07-02T01:23:13.886663558Z ✓ 3801 modules transformed.
+2026-07-02T01:23:13.986419405Z Circular chunk: vendor-misc -> vendor-react -> vendor-misc. Please adjust the manual chunk logic for these chunks.
+2026-07-02T01:23:13.986498582Z Circular chunk: vendor-misc -> vendor-map -> vendor-misc. Please adjust the manual chunk logic for these chunks.
+2026-07-02T01:23:14.46403051Z rendering chunks...
+2026-07-02T01:23:14.929038382Z computing gzip size...
+2026-07-02T01:23:14.949761037Z dist/public/index.html                                                                       2.17 kB │ gzip:   0.71 kB
+2026-07-02T01:23:14.94978947Z dist/public/assets/Location_search-bro_(1)_1782683551969-BqlcvSKH.svg                       33.35 kB │ gzip:   7.12 kB
+2026-07-02T01:23:14.949801821Z dist/public/assets/404_Error-pana_1782672606697-BnqUU1-y.svg                                57.22 kB │ gzip:  20.13 kB
+2026-07-02T01:23:14.949806641Z dist/public/assets/ChatGPT_Image_Jun_27__2026__07_43_37_PM_(1)_1782586261262-jY6j-72g.png  540.32 kB
+2026-07-02T01:23:14.949814082Z dist/public/assets/vendor-map-CIGW-MKW.css                                                  15.61 kB │ gzip:   6.46 kB
+2026-07-02T01:23:14.949817992Z dist/public/assets/index-BVoCeZuz.css                                                       62.83 kB │ gzip:  12.17 kB
+2026-07-02T01:23:14.949889597Z dist/public/assets/use-mobile-CZh97fY4.js                                                    0.61 kB │ gzip:   0.34 kB
+2026-07-02T01:23:14.949895978Z dist/public/assets/useSlotSync-CzbqsmW9.js                                                   0.62 kB │ gzip:   0.41 kB
+2026-07-02T01:23:14.949909979Z dist/public/assets/design-system-CEEae1Tq.js                                                 0.62 kB │ gzip:   0.34 kB
+2026-07-02T01:23:14.950025278Z dist/public/assets/Avatar-B1fPtQPx.js                                                        0.83 kB │ gzip:   0.57 kB
+2026-07-02T01:23:14.950044209Z dist/public/assets/types-hTELSpYo.js                                                         0.83 kB │ gzip:   0.53 kB
+2026-07-02T01:23:14.950060011Z dist/public/assets/useSeoMeta-DRKzzfuD.js                                                    0.85 kB │ gzip:   0.44 kB
+2026-07-02T01:23:14.950067421Z dist/public/assets/auth-store-D1DFgZUa.js                                                    0.86 kB │ gzip:   0.41 kB
+2026-07-02T01:23:14.950075172Z dist/public/assets/cities-LZ2RcD-e.js                                                        0.91 kB │ gzip:   0.50 kB
+2026-07-02T01:23:14.950077902Z dist/public/assets/chevron-left-eAeZbNpy.js                                                  0.97 kB │ gzip:   0.58 kB
+2026-07-02T01:23:14.950096693Z dist/public/assets/x-BnrXIBaU.js                                                             1.03 kB │ gzip:   0.59 kB
+2026-07-02T01:23:14.950136587Z dist/public/assets/Reveal-BF2-2GPH.js                                                        1.09 kB │ gzip:   0.46 kB
+2026-07-02T01:23:14.950140157Z dist/public/assets/arrow-up-right-DkME4qHy.js                                                1.15 kB │ gzip:   0.65 kB
+2026-07-02T01:23:14.950142667Z dist/public/assets/arrow-left-BIVrzG5b.js                                                    1.15 kB │ gzip:   0.62 kB
+2026-07-02T01:23:14.950295769Z dist/public/assets/menu-B2LQVr-W.js                                                          1.23 kB │ gzip:   0.67 kB
+2026-07-02T01:23:14.950300989Z dist/public/assets/map-pin-E_A37PJk.js                                                       1.29 kB │ gzip:   0.74 kB
+2026-07-02T01:23:14.95031511Z dist/public/assets/clock-4u36Tj-K.js                                                         1.34 kB │ gzip:   0.68 kB
+2026-07-02T01:23:14.950319611Z dist/public/assets/Logo-Bcig-cgv.js                                                          1.64 kB │ gzip:   0.87 kB
+2026-07-02T01:23:14.950330552Z dist/public/assets/ChatGPT_Image_Jun_27__2026__07_43_37_PM_(1)_1782586261262-BCQ9fb8o.js     2.52 kB │ gzip:   0.95 kB
+2026-07-02T01:23:14.950334662Z dist/public/assets/Footer-BHeyWQyX.js                                                        2.59 kB │ gzip:   1.04 kB
+2026-07-02T01:23:14.950348573Z dist/public/assets/verify-email-DpluMSja.js                                                  2.66 kB │ gzip:   1.10 kB
+2026-07-02T01:23:14.950386356Z dist/public/assets/not-found-DhSICwJV.js                                                     3.33 kB │ gzip:   1.33 kB
+2026-07-02T01:23:14.950395287Z dist/public/assets/api-DWIhXecN.js                                                           4.38 kB │ gzip:   1.40 kB
+2026-07-02T01:23:14.950409358Z dist/public/assets/provider-adapter-cQzjPgwZ.js                                              5.18 kB │ gzip:   1.38 kB
+2026-07-02T01:23:14.950421839Z dist/public/assets/login-4UveHOdA.js                                                         5.71 kB │ gzip:   2.24 kB
+2026-07-02T01:23:14.950424519Z dist/public/assets/static-page-CH3aCzaN.js                                                   6.08 kB │ gzip:   2.58 kB
+2026-07-02T01:23:14.950454952Z dist/public/assets/booking-confirmation-B5DTAxYW.js                                          6.17 kB │ gzip:   1.87 kB
+2026-07-02T01:23:14.950458892Z dist/public/assets/profile-Bm60BD3c.js                                                       6.44 kB │ gzip:   2.41 kB
+2026-07-02T01:23:14.950461352Z dist/public/assets/vendor-state-B4_tL-Gx.js                                                  6.55 kB │ gzip:   3.01 kB
+2026-07-02T01:23:14.950472963Z dist/public/assets/subscription-BP-IHU8o.js                                                  6.68 kB │ gzip:   2.57 kB
+2026-07-02T01:23:14.950488384Z dist/public/assets/setup-CDhWwEgl.js                                                         8.75 kB │ gzip:   3.00 kB
+2026-07-02T01:23:14.950513056Z dist/public/assets/reviews-Bqi_Ga4Z.js                                                      12.58 kB │ gzip:   3.83 kB
+2026-07-02T01:23:14.950518206Z dist/public/assets/bookings-0CVJhSXg.js                                                     12.61 kB │ gzip:   3.60 kB
+2026-07-02T01:23:14.950531057Z dist/public/assets/vendor-stripe-BViW30bp.js                                                12.66 kB │ gzip:   4.73 kB
+2026-07-02T01:23:14.950534678Z dist/public/assets/services-BjFZP2Zb.js                                                     14.84 kB │ gzip:   4.09 kB
+2026-07-02T01:23:14.950537278Z dist/public/assets/DashboardLayout-D-dpvTkZ.js                                              16.10 kB │ gzip:   4.55 kB
+2026-07-02T01:23:14.950577271Z dist/public/assets/TopBar-CJZQIjmf.js                                                       16.61 kB │ gzip:   4.14 kB
+2026-07-02T01:23:14.950582922Z dist/public/assets/analytics-ChF_Q9Se.js                                                    17.02 kB │ gzip:   4.75 kB
+2026-07-02T01:23:14.950586932Z dist/public/assets/register-B9wWEFOg.js                                                     17.04 kB │ gzip:   5.29 kB
+2026-07-02T01:23:14.950600273Z dist/public/assets/reservations-5uckNm7s.js                                                 17.05 kB │ gzip:   5.24 kB
+2026-07-02T01:23:14.950605073Z dist/public/assets/booking-CCg7QnNt.js                                                      18.70 kB │ gzip:   5.79 kB
+2026-07-02T01:23:14.950613464Z dist/public/assets/category-C-DgL3GO.js                                                     19.35 kB │ gzip:   5.00 kB
+2026-07-02T01:23:14.950617544Z dist/public/assets/index-DJTX8Cse.js                                                        21.00 kB │ gzip:   7.34 kB
+2026-07-02T01:23:14.950634875Z dist/public/assets/staff-CkcwyXFL.js                                                        21.57 kB │ gzip:   5.28 kB
+2026-07-02T01:23:14.950637916Z dist/public/assets/provider-profile-oEWaqK1s.js                                             22.26 kB │ gzip:   5.93 kB
+2026-07-02T01:23:14.950646996Z dist/public/assets/agenda-BaPCMLvz.js                                                       22.38 kB │ gzip:   6.01 kB
+2026-07-02T01:23:14.950652327Z dist/public/assets/settings-CPinjrHA.js                                                     28.18 kB │ gzip:   7.28 kB
+2026-07-02T01:23:14.95069784Z dist/public/assets/home-BUfAE3ef.js                                                         29.86 kB │ gzip:   6.79 kB
+2026-07-02T01:23:14.950701181Z dist/public/assets/vendor-radix-CqB6-V83.js                                                 31.85 kB │ gzip:  11.02 kB
+2026-07-02T01:23:14.950703861Z dist/public/assets/vendor-motion-Kkd_HW3g.js                                                33.10 kB │ gzip:  11.48 kB
+2026-07-02T01:23:14.950714432Z dist/public/assets/search-Bin1qAaI.js                                                       36.45 kB │ gzip:   9.88 kB
+2026-07-02T01:23:14.950718762Z dist/public/assets/vendor-map-C4vHlX01.js                                                  151.75 kB │ gzip:  44.21 kB
+2026-07-02T01:23:14.950750355Z dist/public/assets/vendor-react-l9GJVX0b.js                                                189.34 kB │ gzip:  60.00 kB
+2026-07-02T01:23:14.950754805Z dist/public/assets/vendor-charts-C1GG3FBn.js                                               304.41 kB │ gzip:  78.53 kB
+2026-07-02T01:23:14.950757355Z dist/public/assets/vendor-misc-6Q0Q_iBr.js                                                 403.19 kB │ gzip: 129.78 kB
+2026-07-02T01:23:14.951086101Z ✓ built in 8.37s
+2026-07-02T01:23:16.425660689Z 
+2026-07-02T01:23:16.425690021Z   artifacts/api-server/dist/index.mjs                       6.8mb ⚠️
+2026-07-02T01:23:16.425694391Z   artifacts/api-server/dist/pino-worker.mjs               153.0kb
+2026-07-02T01:23:16.425698042Z   artifacts/api-server/dist/pino-file.mjs                 141.7kb
+2026-07-02T01:23:16.425701422Z   artifacts/api-server/dist/pino-pretty.mjs               114.1kb
+2026-07-02T01:23:16.425705092Z   artifacts/api-server/dist/thread-stream-worker.mjs        7.3kb
+2026-07-02T01:23:16.425708712Z   artifacts/api-server/dist/index.mjs.map                  10.5mb
+2026-07-02T01:23:16.425712423Z   artifacts/api-server/dist/pino-worker.mjs.map           256.9kb
+2026-07-02T01:23:16.425716023Z   artifacts/api-server/dist/pino-file.mjs.map             229.0kb
+2026-07-02T01:23:16.425719773Z   artifacts/api-server/dist/pino-pretty.mjs.map           204.0kb
+2026-07-02T01:23:16.425723164Z   artifacts/api-server/dist/thread-stream-worker.mjs.map   12.0kb
+2026-07-02T01:23:16.425726194Z 
+2026-07-02T01:23:16.425730414Z ⚡ Done in 1292ms
+2026-07-02T01:23:16.4587649Z ✓ Frontend dist copied → /opt/render/project/src/artifacts/api-server/dist/public
+2026-07-02T01:23:20.574499343Z ==> Uploading build...
+2026-07-02T01:23:30.562799721Z ==> Uploaded in 4.2s. Compression took 5.8s
+2026-07-02T01:23:30.601797661Z ==> Build successful 🎉
+2026-07-02T01:23:34.531784485Z ==> Deploying...
+2026-07-02T01:23:34.72445878Z ==> Setting WEB_CONCURRENCY=1 by default, based on available CPUs in the instance
+2026-07-02T01:24:01.685648018Z ==> Running 'node --enable-source-maps artifacts/api-server/dist/index.mjs'
+2026-07-02T01:24:05.494708385Z {"level":30,"time":1782955445494,"pid":70,"hostname":"srv-d92lsm4vikkc73cc5j3g-hibernate-84d745cd96-722mz","msg":"Firebase Admin initialized"}
+2026-07-02T01:24:09.390658293Z (node:70) Warning: SECURITY WARNING: The SSL modes 'prefer', 'require', and 'verify-ca' are treated as aliases for 'verify-full'.
+2026-07-02T01:24:09.390683373Z In the next major version (pg-connection-string v3.0.0 and pg v9.0.0), these modes will adopt standard libpq semantics, which have weaker security guarantees.
+2026-07-02T01:24:09.390685804Z 
+2026-07-02T01:24:09.390688504Z To prepare for this change:
+2026-07-02T01:24:09.390691313Z - If you want the current behavior, explicitly use 'sslmode=verify-full'
+2026-07-02T01:24:09.390697394Z - If you want libpq compatibility now, use 'uselibpqcompat=true&sslmode=require'
+2026-07-02T01:24:09.390779825Z 
+2026-07-02T01:24:09.390785625Z See https://www.postgresql.org/docs/current/libpq-ssl.html for libpq SSL mode definitions.
+2026-07-02T01:24:09.390789186Z (Use `node --trace-warnings ...` to show where the warning was created)
+2026-07-02T01:24:09.483747231Z {"level":40,"time":1782955445888,"pid":70,"hostname":"srv-d92lsm4vikkc73cc5j3g-hibernate-84d745cd96-722mz","msg":"TWILIO_* vars not set — SMS notifications are logged only"}
+2026-07-02T01:24:09.483774761Z {"level":30,"time":1782955448883,"pid":70,"hostname":"srv-d92lsm4vikkc73cc5j3g-hibernate-84d745cd96-722mz","staticDir":"/opt/render/project/src/artifacts/api-server/dist/public","exists":true,"msg":"Serving static frontend"}
+2026-07-02T01:24:09.483778561Z {"level":30,"time":1782955449183,"pid":70,"hostname":"srv-d92lsm4vikkc73cc5j3g-hibernate-84d745cd96-722mz","msg":"Email worker started (BullMQ + Redis)"}
+2026-07-02T01:24:09.587775316Z {"level":30,"time":1782955449587,"pid":70,"hostname":"srv-d92lsm4vikkc73cc5j3g-hibernate-84d745cd96-722mz","msg":"Redis connected"}
+2026-07-02T01:24:09.787222784Z {"level":30,"time":1782955449787,"pid":70,"hostname":"srv-d92lsm4vikkc73cc5j3g-hibernate-84d745cd96-722mz","msg":"Redis ready"}
+2026-07-02T01:24:09.982948631Z {"level":30,"time":1782955449982,"pid":70,"hostname":"srv-d92lsm4vikkc73cc5j3g-hibernate-84d745cd96-722mz","port":10000,"msg":"Server listening"}
+2026-07-02T01:24:10.006158762Z {"level":30,"time":1782955450005,"pid":70,"hostname":"srv-d92lsm4vikkc73cc5j3g-hibernate-84d745cd96-722mz","msg":"PostGIS setup complete"}
+2026-07-02T01:24:10.118452824Z {"level":30,"time":1782955450118,"pid":70,"hostname":"srv-d92lsm4vikkc73cc5j3g-hibernate-84d745cd96-722mz","msg":"Reminder cron started (BullMQ — every 60 min)"}
+2026-07-02T01:24:10.174637161Z {"level":30,"time":1782955450174,"pid":70,"hostname":"srv-d92lsm4vikkc73cc5j3g-hibernate-84d745cd96-722mz","msg":"Booking expiry job started (BullMQ + Redis)"}
+2026-07-02T01:24:10.718355377Z {"level":30,"time":1782955450717,"pid":70,"hostname":"srv-d92lsm4vikkc73cc5j3g-hibernate-84d745cd96-722mz","req":{"id":1,"method":"HEAD","url":"/"},"res":{"statusCode":200},"responseTime":10,"msg":"request completed"}
+2026-07-02T01:24:14.512475531Z {"level":30,"time":1782955454511,"pid":70,"hostname":"srv-d92lsm4vikkc73cc5j3g-hibernate-84d745cd96-722mz","req":{"id":2,"method":"GET","url":"/api/providers/cities"},"res":{"statusCode":200},"responseTime":7,"msg":"request completed"}
+2026-07-02T01:24:14.521058864Z {"level":30,"time":1782955454520,"pid":70,"hostname":"srv-d92lsm4vikkc73cc5j3g-hibernate-84d745cd96-722mz","req":{"id":3,"method":"GET","url":"/api/providers/cities"},"res":{"statusCode":200},"responseTime":5,"msg":"request completed"}
+2026-07-02T01:24:15.531406397Z ==> Your service is live 🎉
+2026-07-02T01:24:15.730810223Z ==> 
+2026-07-02T01:24:15.733221216Z ==> ///////////////////////////////////////////////////////////
+2026-07-02T01:24:15.735756322Z ==> 
+2026-07-02T01:24:15.738102734Z ==> Available at your primary URL https://pstagev1.onrender.com
+2026-07-02T01:24:15.74067407Z ==> 
+2026-07-02T01:24:15.743082524Z ==> ///////////////////////////////////////////////////////////
+2026-07-02T01:24:16.08478193Z {"level":30,"time":1782955456081,"pid":70,"hostname":"srv-d92lsm4vikkc73cc5j3g-hibernate-84d745cd96-722mz","req":{"id":4,"method":"GET","url":"/"},"res":{"statusCode":200},"responseTime":483,"msg":"request completed"}
+2026-07-02T01:24:19.526138275Z {"level":30,"time":1782955459525,"pid":70,"hostname":"srv-d92lsm4vikkc73cc5j3g-hibernate-84d745cd96-722mz","req":{"id":5,"method":"GET","url":"/api/providers/cities"},"res":{"statusCode":200},"responseTime":7,"msg":"request completed"}
+2026-07-02T01:24:24.523893667Z {"level":30,"time":1782955464522,"pid":70,"hostname":"srv-d92lsm4vikkc73cc5j3g-hibernate-84d745cd96-722mz","req":{"id":6,"method":"GET","url":"/api/providers/cities"},"res":{"statusCode":200},"responseTime":6,"msg":"request completed"}
+2026-07-02T01:24:29.520201762Z {"level":30,"time":1782955469519,"pid":70,"hostname":"srv-d92lsm4vikkc73cc5j3g-hibernate-84d745cd96-722mz","req":{"id":7,"method":"GET","url":"/api/providers/cities"},"res":{"statusCode":200},"responseTime":4,"msg":"request completed"}
+2026-07-02T01:24:34.508049016Z {"level":30,"time":1782955474507,"pid":70,"hostname":"srv-d92lsm4vikkc73cc5j3g-hibernate-84d745cd96-722mz","req":{"id":8,"method":"GET","url":"/api/providers/cities"},"res":{"statusCode":200},"responseTime":4,"msg":"request completed"}
+2026-07-02T01:24:34.520423991Z {"level":30,"time":1782955474520,"pid":70,"hostname":"srv-d92lsm4vikkc73cc5j3g-hibernate-84d745cd96-722mz","req":{"id":9,"method":"GET","url":"/api/providers/cities"},"res":{"statusCode":200},"responseTime":4,"msg":"request completed"}
+2026-07-02T01:24:39.520368805Z {"level":30,"time":1782955479520,"pid":70,"hostname":"srv-d92lsm4vikkc73cc5j3g-hibernate-84d745cd96-722mz","req":{"id":10,"method":"GET","url":"/api/providers/cities"},"res":{"statusCode":200},"responseTime":4,"msg":"request completed"}
+2026-07-02T01:24:44.520212887Z {"level":30,"time":1782955484519,"pid":70,"hostname":"srv-d92lsm4vikkc73cc5j3g-hibernate-84d745cd96-722mz","req":{"id":11,"method":"GET","url":"/api/providers/cities"},"res":{"statusCode":200},"responseTime":4,"msg":"request completed"}
+2026-07-02T01:24:49.520450097Z {"level":30,"time":1782955489520,"pid":70,"hostname":"srv-d92lsm4vikkc73cc5j3g-hibernate-84d745cd96-722mz","req":{"id":12,"method":"GET","url":"/api/providers/cities"},"res":{"statusCode":200},"responseTime":5,"msg":"request completed"}
