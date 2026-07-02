@@ -3,7 +3,6 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { X, Clock, User, Scissors, CreditCard, CheckCircle, XCircle, AlertCircle, ChevronRight } from "lucide-react";
 import { ds } from "@/lib/design-system";
-import { Separator } from "@/components/ui/separator";
 
 // ────────────────────────────────────────────────
 // TYPES
@@ -200,7 +199,7 @@ function BookingPopup({
       <div style={{ height: 3, backgroundColor: color, width: "100%" }} />
 
       {/* Header: service name + status badge */}
-      <div style={{ padding: "12px 14px 10px" }}>
+      <div style={{ padding: "12px 14px 0px" }}>
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8 }}>
           <p style={{
             fontSize:      13,
@@ -240,8 +239,6 @@ function BookingPopup({
           </span>
         </div>
       </div>
-
-      <Separator className="mx-0" />
 
       {/* Body */}
       <div style={{ padding: "10px 14px 12px", display: "flex", flexDirection: "column", gap: 8 }}>
@@ -552,23 +549,20 @@ function InfoRow({
   valueStyle?: React.CSSProperties;
 }) {
   return (
-    <>
-      <div style={{
-        display:    "flex",
-        alignItems: "center",
-        gap:        10,
-        padding:    "9px 2px",
-      }}>
-        <span style={{ color: "var(--ink-tertiary)", flexShrink: 0, display: "flex" }}>{icon}</span>
-        <span style={{ fontSize: 12, color: "var(--ink-tertiary)", fontWeight: 500, minWidth: 88 }}>
-          {label}
-        </span>
-        <span style={{ fontSize: 13, color: "var(--ink-secondary)", fontWeight: 400, marginLeft: "auto", textAlign: "right", ...valueStyle }}>
-          {value}
-        </span>
-      </div>
-      <div style={{ height: 1, backgroundColor: "var(--surface-2)" }} />
-    </>
+    <div style={{
+      display:    "flex",
+      alignItems: "center",
+      gap:        10,
+      padding:    "9px 2px",
+    }}>
+      <span style={{ color: "var(--ink-tertiary)", flexShrink: 0, display: "flex" }}>{icon}</span>
+      <span style={{ fontSize: 12, color: "var(--ink-tertiary)", fontWeight: 500, minWidth: 88 }}>
+        {label}
+      </span>
+      <span style={{ fontSize: 13, color: "var(--ink-secondary)", fontWeight: 400, marginLeft: "auto", textAlign: "right", ...valueStyle }}>
+        {value}
+      </span>
+    </div>
   );
 }
 
@@ -714,8 +708,6 @@ export default function WeekCalendar({ days, bookings, isLoading }: WeekCalendar
                     padding:         "10px 0 9px",
                     textAlign:       "center",
                     borderRight:     i < 6 ? "1px solid var(--hairline)" : "none",
-                    borderTop:       "1px solid var(--hairline)",
-                    borderBottom:    "1px solid var(--hairline)",
                     backgroundColor: active ? "var(--accent-tint)" : "transparent",
                   }}>
                     <p style={{

@@ -127,141 +127,138 @@ export default function ReservationsPage() {
     <DashboardLayout title="Réservations" breadcrumb="Agenda" noPadding>
       <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
 
-        {/* ── Toolbar ── */}
+        {/* ── Toolbar : flexWrap — gauche fixe, nav peut passer à la ligne ── */}
         <div style={{
           flexShrink: 0,
           padding: "10px 16px",
           backgroundColor: "var(--canvas-pure)",
           borderBottom: "1px solid var(--hairline)",
           display: "flex",
+          flexWrap: "wrap",
           alignItems: "center",
-          gap: 8,
+          gap: "8px 8px",
         }}>
 
-          {/* Retour */}
-          <button
-            type="button"
-            onClick={() => navigate("/dashboard/agenda")}
-            style={{
-              flexShrink: 0, display: "flex", alignItems: "center", gap: 5,
-              height: 32, padding: "0 10px 0 7px",
-              borderRadius: 9, border: "1px solid var(--hairline)",
-              background: "none", cursor: "pointer",
-              fontSize: 13, fontWeight: 500, color: "var(--ink-secondary)",
-              letterSpacing: "-0.01em", transition: "background 120ms", whiteSpace: "nowrap",
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-2)")}
-            onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
-          >
-            <ArrowLeft size={14} strokeWidth={2} />
-            Agenda
-          </button>
+          {/* ── Groupe gauche : retour + filtre (jamais wrappés séparément) ── */}
+          <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
 
-          <div style={{ width: 1, height: 20, backgroundColor: "var(--hairline)", flexShrink: 0 }} />
+            {/* Retour */}
+            <button
+              type="button"
+              onClick={() => navigate("/dashboard/agenda")}
+              style={{
+                display: "flex", alignItems: "center", gap: 5,
+                height: 32, padding: "0 10px 0 7px",
+                borderRadius: 9, border: "1px solid var(--hairline)",
+                background: "none", cursor: "pointer",
+                fontSize: 13, fontWeight: 500, color: "var(--ink-secondary)",
+                letterSpacing: "-0.01em", transition: "background 120ms", whiteSpace: "nowrap",
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-2)")}
+              onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
+            >
+              <ArrowLeft size={14} strokeWidth={2} />
+              Agenda
+            </button>
 
-          {/* Bouton filtre équipe */}
-          {staffList.length > 0 && (
-            <div ref={filterRef} style={{ position: "relative", flexShrink: 0 }}>
-              <button
-                type="button"
-                onClick={() => setFilterOpen((o) => !o)}
-                style={{
-                  display: "flex", alignItems: "center", gap: 6,
-                  height: 32, padding: "0 11px 0 9px",
-                  borderRadius: 9,
-                  border: `1px solid ${selectedStaffId ? "var(--ink)" : "var(--hairline)"}`,
-                  backgroundColor: selectedStaffId ? "var(--ink)" : "transparent",
-                  color: selectedStaffId ? "var(--canvas)" : "var(--ink-secondary)",
-                  fontSize: 13, fontWeight: 500,
-                  cursor: "pointer", letterSpacing: "-0.01em",
-                  transition: "background 120ms, color 120ms, border-color 120ms",
-                  whiteSpace: "nowrap",
-                }}
-                onMouseEnter={(e) => { if (!selectedStaffId) e.currentTarget.style.background = "var(--surface-2)"; }}
-                onMouseLeave={(e) => { if (!selectedStaffId) e.currentTarget.style.background = "transparent"; }}
-              >
-                <SlidersHorizontal size={13} strokeWidth={2} />
-                {selectedStaffId
-                  ? (staffList.find((s) => s.id === selectedStaffId)?.name ?? "Équipe")
-                  : "Équipe"}
-                {selectedStaffId && (
-                  <span
-                    role="button"
-                    onClick={(e) => { e.stopPropagation(); setSelectedStaffId(null); }}
-                    style={{ display: "flex", alignItems: "center", marginLeft: 2, opacity: 0.7 }}
-                  >
-                    <X size={11} strokeWidth={2.5} />
-                  </span>
-                )}
-              </button>
+            {/* Séparateur vertical */}
+            <div style={{ width: 1, height: 20, backgroundColor: "var(--hairline)" }} />
 
-              {/* Dropdown */}
-              {filterOpen && (
-                <div style={{
-                  position: "absolute",
-                  top: "calc(100% + 6px)",
-                  left: 0,
-                  zIndex: 200,
-                  backgroundColor: "var(--canvas-pure)",
-                  border: "1px solid var(--hairline)",
-                  borderRadius: 12,
-                  boxShadow: "0 4px 6px -1px rgba(0,0,0,0.07), 0 12px 28px -4px rgba(0,0,0,0.12)",
-                  padding: "6px",
-                  minWidth: 160,
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 2,
-                }}>
-                  <p style={{
-                    fontSize: 10, fontWeight: 600, color: "var(--ink-tertiary)",
-                    letterSpacing: "0.06em", textTransform: "uppercase",
-                    margin: "4px 8px 6px", userSelect: "none",
+            {/* Bouton filtre équipe */}
+            {staffList.length > 0 && (
+              <div ref={filterRef} style={{ position: "relative" }}>
+                <button
+                  type="button"
+                  onClick={() => setFilterOpen((o) => !o)}
+                  style={{
+                    display: "flex", alignItems: "center", gap: 6,
+                    height: 32, padding: "0 11px 0 9px",
+                    borderRadius: 9,
+                    border: `1px solid ${selectedStaffId ? "var(--ink)" : "var(--hairline)"}`,
+                    backgroundColor: selectedStaffId ? "var(--ink)" : "transparent",
+                    color: selectedStaffId ? "var(--canvas)" : "var(--ink-secondary)",
+                    fontSize: 13, fontWeight: 500,
+                    cursor: "pointer", letterSpacing: "-0.01em",
+                    transition: "background 120ms, color 120ms, border-color 120ms",
+                    whiteSpace: "nowrap",
+                  }}
+                  onMouseEnter={(e) => { if (!selectedStaffId) e.currentTarget.style.background = "var(--surface-2)"; }}
+                  onMouseLeave={(e) => { if (!selectedStaffId) e.currentTarget.style.background = "transparent"; }}
+                >
+                  <SlidersHorizontal size={13} strokeWidth={2} />
+                  {selectedStaffId
+                    ? (staffList.find((s) => s.id === selectedStaffId)?.name ?? "Équipe")
+                    : "Équipe"}
+                  {selectedStaffId && (
+                    <span
+                      role="button"
+                      onClick={(e) => { e.stopPropagation(); setSelectedStaffId(null); }}
+                      style={{ display: "flex", alignItems: "center", marginLeft: 2, opacity: 0.7 }}
+                    >
+                      <X size={11} strokeWidth={2.5} />
+                    </span>
+                  )}
+                </button>
+
+                {/* Dropdown */}
+                {filterOpen && (
+                  <div style={{
+                    position: "absolute",
+                    top: "calc(100% + 6px)",
+                    left: 0,
+                    zIndex: 200,
+                    backgroundColor: "var(--canvas-pure)",
+                    border: "1px solid var(--hairline)",
+                    borderRadius: 12,
+                    boxShadow: "0 4px 6px -1px rgba(0,0,0,0.07), 0 12px 28px -4px rgba(0,0,0,0.12)",
+                    padding: "6px",
+                    minWidth: 160,
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 2,
                   }}>
-                    Collaborateur
-                  </p>
-                  {[{ id: null, name: "Tous" }, ...staffList].map((s) => {
-                    const active = selectedStaffId === s.id;
-                    return (
-                      <button
-                        key={s.id ?? "all"}
-                        type="button"
-                        onClick={() => { setSelectedStaffId(s.id); setFilterOpen(false); }}
-                        style={{
-                          display: "flex", alignItems: "center", justifyContent: "space-between",
-                          width: "100%", textAlign: "left",
-                          padding: "7px 10px",
-                          borderRadius: 8,
-                          border: "none",
-                          backgroundColor: active ? "var(--surface-2)" : "transparent",
-                          color: active ? "var(--ink)" : "var(--ink-secondary)",
-                          fontSize: 13, fontWeight: active ? 600 : 400,
-                          cursor: "pointer", letterSpacing: "-0.01em",
-                          transition: "background 100ms",
-                          fontFamily: "var(--font)",
-                        }}
-                        onMouseEnter={(e) => { if (!active) e.currentTarget.style.background = "var(--surface-2)"; }}
-                        onMouseLeave={(e) => { if (!active) e.currentTarget.style.background = "transparent"; }}
-                      >
-                        {s.name}
-                        {active && (
-                          <span style={{
-                            width: 6, height: 6, borderRadius: "50%",
-                            backgroundColor: "var(--ink)", flexShrink: 0,
-                          }} />
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          )}
+                    <p style={{
+                      fontSize: 10, fontWeight: 600, color: "var(--ink-tertiary)",
+                      letterSpacing: "0.06em", textTransform: "uppercase",
+                      margin: "4px 8px 6px", userSelect: "none",
+                    }}>
+                      Collaborateur
+                    </p>
+                    {[{ id: null, name: "Tous" }, ...staffList].map((s) => {
+                      const active = selectedStaffId === s.id;
+                      return (
+                        <button
+                          key={s.id ?? "all"}
+                          type="button"
+                          onClick={() => { setSelectedStaffId(s.id); setFilterOpen(false); }}
+                          style={{
+                            display: "flex", alignItems: "center", justifyContent: "space-between",
+                            width: "100%", textAlign: "left",
+                            padding: "7px 10px", borderRadius: 8, border: "none",
+                            backgroundColor: active ? "var(--surface-2)" : "transparent",
+                            color: active ? "var(--ink)" : "var(--ink-secondary)",
+                            fontSize: 13, fontWeight: active ? 600 : 400,
+                            cursor: "pointer", letterSpacing: "-0.01em",
+                            transition: "background 100ms", fontFamily: "var(--font)",
+                          }}
+                          onMouseEnter={(e) => { if (!active) e.currentTarget.style.background = "var(--surface-2)"; }}
+                          onMouseLeave={(e) => { if (!active) e.currentTarget.style.background = "transparent"; }}
+                        >
+                          {s.name}
+                          {active && (
+                            <span style={{ width: 6, height: 6, borderRadius: "50%", backgroundColor: "var(--ink)", flexShrink: 0 }} />
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
 
-          {/* Spacer */}
-          <div style={{ flex: 1 }} />
-
-          {/* Nav semaine */}
-          <div style={{ flexShrink: 0, display: "flex", alignItems: "center", gap: 4 }}>
+          {/* ── Nav semaine : marginLeft auto → droite sur desktop, ligne suivante sur mobile ── */}
+          <div style={{ marginLeft: "auto", flexShrink: 0, display: "flex", alignItems: "center", gap: 4 }}>
             <button
               type="button"
               onClick={() => setWeekOffset((w) => w - 1)}
