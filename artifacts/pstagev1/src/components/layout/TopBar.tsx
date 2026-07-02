@@ -88,7 +88,35 @@ function AuthActions({
             </motion.button>
           )}
 
-          {/* ── User chip — clickable dropdown trigger ── */}
+          {/* ── Owner: bouton déconnexion direct (pas de dropdown) ── */}
+          {isOwner ? (
+            <motion.button
+              onClick={() => { clearTokens(); setLocation("/"); }}
+              whileTap={{ scale: 0.94 }}
+              title="Se déconnecter"
+              style={{
+                width: 32, height: 32,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                backgroundColor: "transparent",
+                border: "1px solid rgba(12,12,14,0.08)",
+                borderRadius: 9999, cursor: "pointer",
+                color: "var(--ink-tertiary)",
+                transition: "background-color 140ms ease, border-color 140ms ease, color 140ms ease",
+              }}
+              onMouseEnter={e => {
+                (e.currentTarget as HTMLButtonElement).style.backgroundColor = "rgba(12,12,14,0.06)";
+                (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(12,12,14,0.18)";
+                (e.currentTarget as HTMLButtonElement).style.color = "var(--ink)";
+              }}
+              onMouseLeave={e => {
+                (e.currentTarget as HTMLButtonElement).style.backgroundColor = "transparent";
+                (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(12,12,14,0.08)";
+                (e.currentTarget as HTMLButtonElement).style.color = "var(--ink-tertiary)";
+              }}
+            >
+              <LogOut size={14} />
+            </motion.button>
+          ) : (
           <div ref={dropdownRef} style={{ position: "relative" }}>
             <button
               onClick={() => setOpen((v) => !v)}
@@ -222,6 +250,7 @@ function AuthActions({
               )}
             </AnimatePresence>
           </div>
+          )}
         </motion.div>
       ) : (
         <motion.button
