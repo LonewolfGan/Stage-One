@@ -663,12 +663,12 @@ function MapView({
 /* Popular cities — images: mosquée Hassan II Casablanca, souk Marrakech,
    kasbah des Oudayas Rabat, médina Tanger, corniche Agadir, tanneries Fès */
 const POPULAR_CITIES = [
-  { name: "Casablanca", img: "https://images.pexels.com/photos/9677615/pexels-photo-9677615.jpeg?auto=compress&cs=tinysrgb&w=800", count: 142 },
-  { name: "Marrakech",  img: "https://images.unsplash.com/photo-1597212618440-806262de4f9b?w=800&q=80", count: 98 },
-  { name: "Rabat",      img: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80", count: 76 },
-  { name: "Tanger",     img: "https://images.unsplash.com/photo-1539650116574-75c0c6d73f6e?w=800&q=80", count: 54 },
-  { name: "Agadir",     img: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800&q=80", count: 43 },
-  { name: "Fès",        img: "https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&q=80", count: 38 },
+  { name: "Casablanca", img: "/cities/casablanca.webp", count: 142 },
+  { name: "Marrakech",  img: "/cities/marrakech.webp",  count: 98 },
+  { name: "Rabat",      img: "/cities/rabat.webp",      count: 76 },
+  { name: "Tanger",     img: "/cities/tanger.jpg",      count: 54 },
+  { name: "Agadir",     img: "/cities/agadir.jpg",      count: 43 },
+  { name: "Fès",        img: "/cities/fes.jpg",         count: 38 },
 ];
 
 function CityCard({ city, onClick }: { city: typeof POPULAR_CITIES[0]; onClick: () => void }) {
