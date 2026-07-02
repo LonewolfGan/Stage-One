@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { Store, LogOut, LayoutDashboard, CalendarDays, User } from "lucide-react";
-import { UserIcon } from "@/components/ui/user";
 import { MenuIcon } from "@/components/ui/menu";
 import { XIcon } from "@/components/ui/x";
 import { motion, AnimatePresence } from "framer-motion";
@@ -121,7 +120,7 @@ function AuthActions({
                 display: "flex", alignItems: "center", justifyContent: "center",
                 flexShrink: 0,
               }}>
-                <UserIcon size={11} style={{ color: "var(--accent)" }} />
+                <User size={11} color="var(--accent)" />
               </div>
               {!compact && (
                 <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
@@ -269,25 +268,29 @@ function OnboardingModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         className="bg-canvas border border-hairline overflow-hidden p-0"
-        style={{ maxWidth: 440, borderRadius: "var(--radius-panel)" }}
+        style={{
+          maxWidth: 440,
+          width: "calc(100% - 2rem)",
+          borderRadius: "var(--radius-panel)",
+        }}
       >
-        <div className="p-8">
+        <div className="p-5 sm:p-8">
           <DialogHeader className="items-center mb-0">
-            <div className="flex items-center justify-center gap-2 mb-5">
+            <div className="flex items-center justify-center gap-2 mb-4 sm:mb-5">
               <Logo size="lg" />
             </div>
             <h2 className="text-heading-m font-semibold text-ink text-center mb-2" style={{ letterSpacing: "-0.015em" }}>
               Bienvenue
             </h2>
-            <p className="text-body text-ink-tertiary text-center mb-6">
+            <p className="text-body text-ink-tertiary text-center mb-5 sm:mb-6">
               Comment souhaitez-vous continuer ?
             </p>
           </DialogHeader>
 
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 gap-2 sm:gap-3">
             {[
               {
-                icon: UserIcon,
+                icon: User,
                 title: "Je cherche un salon",
                 desc: "Réservez en ligne, 24h/24",
                 onClick: () => { onOpenChange(false); setLocation("/auth/register?role=client"); },
@@ -302,7 +305,7 @@ function OnboardingModal({
               <motion.button
                 key={title}
                 onClick={onClick}
-                className="border border-hairline rounded-card p-5 text-center cursor-pointer bg-surface-1"
+                className="border border-hairline rounded-card p-3 sm:p-5 text-center cursor-pointer bg-surface-1"
                 whileHover={{ borderColor: "var(--accent)", backgroundColor: "var(--accent-tint)", scale: 1.02 }}
                 whileTap={{ scale: 0.97 }}
                 transition={{ type: "spring", stiffness: 400, damping: 28 }}
@@ -316,7 +319,7 @@ function OnboardingModal({
             ))}
           </div>
 
-          <div className="border-t border-hairline mt-6 pt-5 text-center">
+          <div className="border-t border-hairline mt-5 sm:mt-6 pt-4 sm:pt-5 text-center">
             <span className="text-body-s text-ink-tertiary">Déjà un compte ? </span>
             <button
               onClick={() => { onOpenChange(false); setLocation("/auth/login"); }}
