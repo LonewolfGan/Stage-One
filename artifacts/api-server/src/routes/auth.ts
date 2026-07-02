@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 import { db, usersTable, providersTable, emailVerificationTokensTable } from "@workspace/db";
 import { eq, and, gt } from "drizzle-orm";
-import { signToken, verifyToken, signPhoneToken, verifyPhoneToken } from "../lib/auth";
+import { signToken, verifyToken, signPhoneToken, verifyPhoneToken, signEmailToken, verifyEmailToken } from "../lib/auth";
 import { requireAuth } from "../middlewares/auth";
 import { logger } from "../lib/logger";
 import { redis } from "../lib/redis";
@@ -83,9 +83,12 @@ const registerSchema = z.object({
   password: z.string().min(6),
   name: z.string().min(1),
   role: z.enum(["CLIENT", "OWNER"]).default("CLIENT"),
-  // phoneToken: either a Firebase ID Token (tokenType="firebase") or our internal JWT (tokenType="internal")
-  phoneToken: z.string({ required_error: "phoneToken requis" }),
-  tokenType: z.enum(["firebase", "internal"]).default("internal"),
+  // tokenType "email"    = email OTP verified before account creation (primary flow)
+  // tokenType "firebase" = Firebase phone ID token (legacy)
+  // tokenType "internal" = internal phone JWT (legacy)
+  tokenType: z.enum(["firebase", "internal", "email"]).default("email"),
+  emailToken: z.string().optional(),  // used when tokenType="email"
+  phoneToken: z.string().optional(),  // used when tokenType="firebase" or "internal"
 });
 
 const loginSchema = z.object({
@@ -100,41 +103,69 @@ router.post("/register", async (req, res) => {
     res.status(400).json({ code: "ERR-001", message: "Données invalides", errors: parse.error.flatten() });
     return;
   }
-  const { email, phone, password, name, role, phoneToken, tokenType } = parse.data;
+  const { email, phone, password, name, role, tokenType, emailToken, phoneToken } = parse.data;
+  const normalizedEmail = email.trim().toLowerCase();
 
-  // Verify phone token — either Firebase ID Token or internal JWT
-  let verifiedPhone: string;
-  try {
-    if (tokenType === "firebase") {
-      const { adminAuth } = await import("../lib/firebase");
-      if (!adminAuth) {
-        res.status(500).json({ code: "ERR-CONFIG", message: "Firebase non configuré côté serveur." });
-        return;
-      }
-      const decoded = await adminAuth.verifyIdToken(phoneToken);
-      const firebasePhone = decoded.phone_number;
-      if (!firebasePhone) {
-        res.status(400).json({ code: "ERR-PHONE", message: "Token Firebase invalide : numéro de téléphone manquant." });
-        return;
-      }
-      verifiedPhone = firebasePhone;
-    } else {
-      verifiedPhone = await verifyPhoneToken(phoneToken);
+  // ── Token verification ──────────────────────────────────────────────────
+  let emailVerified = false;
+  let phoneVerified = false;
+
+  if (tokenType === "email") {
+    // Primary flow: email OTP verified before account creation
+    if (!emailToken) {
+      res.status(400).json({ code: "ERR-TOKEN", message: "emailToken requis pour tokenType=email" });
+      return;
     }
-  } catch {
-    res.status(400).json({ code: "ERR-PHONE", message: "Token de vérification du téléphone invalide ou expiré. Recommencez la vérification." });
-    return;
+    try {
+      const verifiedEmail = await verifyEmailToken(emailToken);
+      if (verifiedEmail !== normalizedEmail) {
+        res.status(400).json({ code: "ERR-TOKEN", message: "Token email invalide ou ne correspond pas à l'adresse fournie." });
+        return;
+      }
+      emailVerified = true;
+    } catch {
+      res.status(400).json({ code: "ERR-TOKEN", message: "Token email invalide ou expiré. Recommencez la vérification." });
+      return;
+    }
+  } else {
+    // Legacy phone flow (firebase / internal)
+    if (!phoneToken) {
+      res.status(400).json({ code: "ERR-TOKEN", message: "phoneToken requis pour ce tokenType" });
+      return;
+    }
+    let verifiedPhone: string;
+    try {
+      if (tokenType === "firebase") {
+        const { adminAuth } = await import("../lib/firebase");
+        if (!adminAuth) {
+          res.status(500).json({ code: "ERR-CONFIG", message: "Firebase non configuré côté serveur." });
+          return;
+        }
+        const decoded = await adminAuth.verifyIdToken(phoneToken);
+        const firebasePhone = decoded.phone_number;
+        if (!firebasePhone) {
+          res.status(400).json({ code: "ERR-PHONE", message: "Token Firebase invalide : numéro de téléphone manquant." });
+          return;
+        }
+        verifiedPhone = firebasePhone;
+      } else {
+        verifiedPhone = await verifyPhoneToken(phoneToken);
+      }
+    } catch {
+      res.status(400).json({ code: "ERR-PHONE", message: "Token de vérification du téléphone invalide ou expiré." });
+      return;
+    }
+    const normalizedInput    = normalizePhone(phone);
+    const normalizedVerified = normalizePhone(verifiedPhone);
+    if (normalizedVerified !== normalizedInput) {
+      res.status(400).json({ code: "ERR-PHONE", message: "Le numéro ne correspond pas au token de vérification." });
+      return;
+    }
+    phoneVerified = true;
   }
 
-  // Normalize both sides for comparison
-  const normalizedInput = normalizePhone(phone);
-  const normalizedVerified = normalizePhone(verifiedPhone);
-  if (normalizedVerified !== normalizedInput) {
-    res.status(400).json({ code: "ERR-PHONE", message: "Le numéro de téléphone ne correspond pas au token de vérification." });
-    return;
-  }
-
-  const existingEmail = await db.query.usersTable.findFirst({ where: eq(usersTable.email, email) });
+  // ── Duplicate checks ────────────────────────────────────────────────────
+  const existingEmail = await db.query.usersTable.findFirst({ where: eq(usersTable.email, normalizedEmail) });
   if (existingEmail) {
     res.status(409).json({ code: "AUTH-001", message: "Cet email est déjà utilisé" });
     return;
@@ -146,44 +177,45 @@ router.post("/register", async (req, res) => {
     return;
   }
 
+  // ── Create user ─────────────────────────────────────────────────────────
   const passwordHash = await bcrypt.hash(password, 12);
   const userId = uuidv4();
 
   const [user] = await db
     .insert(usersTable)
-    .values({ id: userId, email, phone, passwordHash, name, role, emailVerified: false, phoneVerified: true })
+    .values({ id: userId, email: normalizedEmail, phone, passwordHash, name, role, emailVerified, phoneVerified })
     .returning({ id: usersTable.id, email: usersTable.email, phone: usersTable.phone, name: usersTable.name, role: usersTable.role, photoUrl: usersTable.photoUrl });
 
   const token = await signToken({ sub: user.id, role: user.role });
   const refreshToken = await signToken({ sub: user.id, role: user.role }, "7d");
 
-  // Auto-generate email verification token
+  // If email not yet verified (legacy phone flow), send verification link
   let devEmailLink: string | undefined;
-  try {
-    const evToken = uuidv4();
-    const expiresAt = new Date(Date.now() + 24 * 60 * 60_000);
-    await db.insert(emailVerificationTokensTable).values({ userId, token: evToken, expiresAt });
+  if (!emailVerified) {
+    try {
+      const evToken = uuidv4();
+      const expiresAt = new Date(Date.now() + 24 * 60 * 60_000);
+      await db.insert(emailVerificationTokensTable).values({ userId, token: evToken, expiresAt });
 
-    const replitDomain = process.env.REPLIT_DEV_DOMAIN
-      ?? (process.env.REPL_SLUG && process.env.REPL_OWNER
-        ? `${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`
-        : null);
-    const frontendUrl = process.env.FRONTEND_URL ?? (replitDomain ? `https://${replitDomain}` : "http://localhost:5000");
-    const link = `${frontendUrl}/verify-email?token=${evToken}`;
-
-    if (process.env.NODE_ENV !== "production") {
-      devEmailLink = link;
-      logger.info({ userId, link }, "[DEV] Email verification link");
+      const replitDomain = process.env.REPLIT_DEV_DOMAIN
+        ?? (process.env.REPL_SLUG && process.env.REPL_OWNER
+          ? `${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`
+          : null);
+      const frontendUrl = process.env.FRONTEND_URL ?? (replitDomain ? `https://${replitDomain}` : "http://localhost:5000");
+      const link = `${frontendUrl}/verify-email?token=${evToken}`;
+      if (process.env.NODE_ENV !== "production") {
+        devEmailLink = link;
+        logger.info({ userId, link }, "[DEV] Email verification link");
+      }
+      const { sendMail } = await import("../lib/email");
+      await sendMail({
+        to: normalizedEmail,
+        subject: "Vérifiez votre adresse email — ANUBIS",
+        html: `<p>Bonjour ${name},</p><p>Cliquez sur ce lien pour vérifier votre email :</p><p><a href="${link}">${link}</a></p><p>Valable 24 heures.</p>`,
+      });
+    } catch (err) {
+      logger.warn({ err }, "Email verification send failed — continuing");
     }
-
-    const { sendMail } = await import("../lib/email");
-    await sendMail({
-      to: email,
-      subject: "Vérifiez votre adresse email — PSTAGEV1",
-      html: `<p>Bonjour ${name},</p><p>Cliquez sur ce lien pour vérifier votre email :</p><p><a href="${link}">${link}</a></p><p>Valable 24 heures.</p>`,
-    });
-  } catch (err) {
-    logger.warn({ err }, "Email verification send failed — continuing");
   }
 
   res.status(201).json({ user, token, refreshToken, devEmailLink });
@@ -282,6 +314,113 @@ router.post("/pre-register/verify-otp", async (req, res) => {
   const phoneToken = await signPhoneToken(normalized);
 
   res.json({ phoneToken });
+});
+
+// ── POST /auth/pre-register/send-email-otp ────────────────────────────────
+// Envoie un OTP 6 chiffres à l'email fourni avant la création de compte.
+router.post("/pre-register/send-email-otp", async (req, res) => {
+  const { email } = req.body as { email?: string };
+  if (!email || !email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+    res.status(400).json({ code: "ERR-001", message: "Adresse email invalide" });
+    return;
+  }
+  const normalized = email.trim().toLowerCase();
+
+  const allowed = await otp_checkRateLimit(`preregemail:${normalized}`);
+  if (!allowed) {
+    res.status(429).json({ code: "RATE_LIMIT", message: "Trop de tentatives. Réessayez dans une heure." });
+    return;
+  }
+
+  const code = String(Math.floor(100000 + Math.random() * 900000));
+  await otp_save(`preregemail:${normalized}`, code);
+
+  const { sendMail } = await import("../lib/email");
+  await sendMail({
+    to: normalized,
+    subject: `${code} — Votre code de vérification ANUBIS`,
+    html: `
+      <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px 24px">
+        <p style="font-size:14px;color:#6b7280;margin:0 0 24px">ANUBIS · Vérification de compte</p>
+        <h1 style="font-size:22px;font-weight:600;color:#111827;margin:0 0 8px;letter-spacing:-0.015em">
+          Votre code de vérification
+        </h1>
+        <p style="font-size:14px;color:#6b7280;margin:0 0 32px;line-height:1.6">
+          Entrez ce code dans l'application pour continuer la création de votre compte.
+        </p>
+        <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;padding:24px;text-align:center;margin-bottom:32px">
+          <span style="font-size:36px;font-weight:700;letter-spacing:0.2em;color:#111827;font-variant-numeric:tabular-nums">
+            ${code}
+          </span>
+          <p style="font-size:12px;color:#9ca3af;margin:12px 0 0">Valable 10 minutes</p>
+        </div>
+        <p style="font-size:12px;color:#9ca3af;line-height:1.6">
+          Si vous n'avez pas demandé ce code, ignorez cet email.
+        </p>
+      </div>
+    `,
+  });
+
+  const response: any = { message: "Code envoyé" };
+  if (process.env.NODE_ENV !== "production") {
+    response.devCode = code;
+    logger.info({ email: normalized, code }, "[DEV] Pre-register email OTP");
+  }
+  res.json(response);
+});
+
+// ── POST /auth/pre-register/verify-email-otp ──────────────────────────────
+// Vérifie le code email et retourne un token court-terme pour le /register.
+router.post("/pre-register/verify-email-otp", async (req, res) => {
+  const { email, code } = req.body as { email?: string; code?: string };
+  if (!email || !code) {
+    res.status(400).json({ code: "ERR-001", message: "email et code requis" });
+    return;
+  }
+
+  const normalized = email.trim().toLowerCase();
+  const attemptKey = `verifyattempt:preregemail:${normalized}`;
+  const MAX_ATTEMPTS = 5;
+
+  // Check brute-force attempts (5 max per OTP window)
+  let attempts = 0;
+  if (redis) {
+    attempts = parseInt(await redis.get(attemptKey) ?? "0", 10);
+  } else {
+    const entry = memOtpStore.get(attemptKey);
+    attempts = (entry && entry.sendCountExpiresAt > Date.now()) ? entry.sendCount : 0;
+  }
+  if (attempts >= MAX_ATTEMPTS) {
+    res.status(429).json({ code: "RATE_LIMIT", message: "Trop de tentatives. Demandez un nouveau code." });
+    return;
+  }
+
+  const stored = await otp_get(`preregemail:${normalized}`);
+  if (!stored || stored !== code.trim()) {
+    // Increment attempt counter
+    if (redis) {
+      const newCount = await redis.incr(attemptKey);
+      if (newCount === 1) await redis.expire(attemptKey, 600); // expire with OTP
+    } else {
+      const now = Date.now();
+      const entry = memOtpStore.get(attemptKey);
+      const cur = (entry && entry.sendCountExpiresAt > now) ? entry.sendCount : 0;
+      memOtpStore.set(attemptKey, { code: "", codeExpiresAt: 0, sendCount: cur + 1, sendCountExpiresAt: now + 600_000 });
+    }
+    res.status(400).json({ code: "AUTH-004", message: "Code incorrect ou expiré" });
+    return;
+  }
+
+  // Success — clean up OTP and attempt counter
+  await otp_delete(`preregemail:${normalized}`);
+  if (redis) {
+    await redis.del(attemptKey);
+  } else {
+    memOtpStore.delete(attemptKey);
+  }
+
+  const emailToken = await signEmailToken(normalized);
+  res.json({ emailToken });
 });
 
 // ── POST /auth/send-phone-otp (legacy — post-registration) ────────────────

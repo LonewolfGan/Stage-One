@@ -240,7 +240,7 @@ export const api = {
   login: (email: string, password: string) =>
     apiFetch<LoginResponse>("/auth/login", { method: "POST", body: JSON.stringify({ email, password }) }),
 
-  register: (data: { email: string; phone: string; password: string; name: string; role?: "CLIENT" | "OWNER"; phoneToken: string; tokenType?: "firebase" | "internal" }) =>
+  register: (data: { email: string; phone: string; password: string; name: string; role?: "CLIENT" | "OWNER"; tokenType?: "email" | "firebase" | "internal"; emailToken?: string; phoneToken?: string }) =>
     apiFetch<RegisterResponse>("/auth/register", { method: "POST", body: JSON.stringify(data) }),
 
   preRegisterSendOtp: (phone: string) =>
@@ -248,6 +248,12 @@ export const api = {
 
   preRegisterVerifyOtp: (phone: string, code: string) =>
     apiFetch<{ phoneToken: string }>("/auth/pre-register/verify-otp", { method: "POST", body: JSON.stringify({ phone, code }) }),
+
+  preRegisterSendEmailOtp: (email: string) =>
+    apiFetch<{ message: string; devCode?: string }>("/auth/pre-register/send-email-otp", { method: "POST", body: JSON.stringify({ email }) }),
+
+  preRegisterVerifyEmailOtp: (email: string, code: string) =>
+    apiFetch<{ emailToken: string }>("/auth/pre-register/verify-email-otp", { method: "POST", body: JSON.stringify({ email, code }) }),
 
   sendPhoneOtp: () =>
     apiFetch<{ message: string; devCode?: string }>("/auth/send-phone-otp", { method: "POST" }),

@@ -44,3 +44,21 @@ export async function verifyPhoneToken(token: string): Promise<string> {
   if (!phone || typeof phone !== "string") throw new Error("Missing phone in token");
   return phone;
 }
+
+/** Signs a short-lived (15 min) email pre-registration token. */
+export async function signEmailToken(email: string): Promise<string> {
+  return new SignJWT({ email, type: "email-pre-reg" } as any)
+    .setProtectedHeader({ alg: ALGORITHM })
+    .setIssuedAt()
+    .setExpirationTime("15m")
+    .sign(SECRET);
+}
+
+/** Verifies an email pre-registration token and returns the email address. */
+export async function verifyEmailToken(token: string): Promise<string> {
+  const { payload } = await jwtVerify(token, SECRET, { algorithms: [ALGORITHM] });
+  if ((payload as any).type !== "email-pre-reg") throw new Error("Invalid token type");
+  const email = (payload as any).email as string | undefined;
+  if (!email || typeof email !== "string") throw new Error("Missing email in token");
+  return email;
+}
