@@ -207,16 +207,6 @@ export default function RegisterPage() {
                 exit={{ opacity: 0, x: -24 }}
                 transition={{ duration: 0.22, ease: [0.25, 0.1, 0.25, 1] }}
               >
-                {/* Icon badge */}
-                <div style={{
-                  width: 52, height: 52, borderRadius: 14,
-                  backgroundColor: "var(--accent-tint)",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  marginBottom: 24,
-                }}>
-                  <ShieldCheck size={24} color="var(--accent)" strokeWidth={1.75} />
-                </div>
-
                 <h1 style={{ fontSize: 24, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.018em", marginBottom: 6, lineHeight: 1.2 }}>
                   Code de vérification
                 </h1>
@@ -566,36 +556,6 @@ export default function RegisterPage() {
             alt="Beauté"
             style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top", display: "block" }}
           />
-          {/* Step overlay */}
-          <AnimatePresence>
-            {step === "otp" && (
-              <motion.div
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 16 }}
-                style={{
-                  position: "absolute", bottom: 32, left: 32, right: 32,
-                  backgroundColor: "rgba(255,255,255,0.92)",
-                  backdropFilter: "blur(12px)",
-                  borderRadius: 16,
-                  padding: "20px 24px",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 16,
-                }}
-              >
-                <div style={{ width: 40, height: 40, borderRadius: 10, backgroundColor: "var(--accent-tint)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                  <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                  </svg>
-                </div>
-                <div>
-                  <p style={{ fontSize: 14, fontWeight: 500, color: "var(--ink)", marginBottom: 2 }}>Vérification en 2 étapes</p>
-                  <p style={{ fontSize: 13, color: "var(--ink-tertiary)" }}>Votre numéro est sécurisé par un code unique à usage unique.</p>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
         </div>
       </div>
     </div>
