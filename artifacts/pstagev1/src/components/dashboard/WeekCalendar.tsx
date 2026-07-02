@@ -377,31 +377,41 @@ function BookingModal({
         }}
       />
 
-      {/* Panel */}
+      {/* Panel — centré sur desktop, bottom-sheet sur mobile */}
       <div
         style={{
           position:        "fixed",
+          zIndex:          501,
+          /* Desktop: centré */
           top:             "50%",
           left:            "50%",
           transform:       "translate(-50%, -50%)",
-          width:           420,
-          backgroundColor: "#FFFFFF",
+          /* Largeur fluide : max 420px, min 0, jamais hors écran */
+          width:           "calc(100vw - 32px)",
+          maxWidth:        420,
+          backgroundColor: ds.colors.canvas,
           borderRadius:    16,
-          zIndex:          501,
           overflow:        "hidden",
+          display:         "flex",
+          flexDirection:   "column",
+          /* Hauteur max pour les petits écrans */
+          maxHeight:       "calc(100dvh - 80px)",
         }}
       >
-        {/* Header */}
+        {/* Barre couleur service */}
+        <div style={{ height: 3, backgroundColor: color, flexShrink: 0 }} />
+
+        {/* Header — fixe, ne scroll pas */}
         <div style={{
-          padding:      "20px 20px 18px",
-          borderBottom: "1px solid var(--hairline)",
-          display:      "flex",
-          alignItems:   "flex-start",
+          flexShrink:     0,
+          padding:        "16px 18px 14px",
+          borderBottom:   "1px solid var(--hairline)",
+          display:        "flex",
+          alignItems:     "flex-start",
           justifyContent: "space-between",
-          gap:          12,
+          gap:            12,
         }}>
           <div style={{ flex: 1, minWidth: 0 }}>
-            {/* Status badge */}
             <div style={{
               display:         "inline-flex",
               alignItems:      "center",
@@ -416,9 +426,8 @@ function BookingModal({
                 {statusInfo.label}
               </span>
             </div>
-
             <h2 style={{
-              fontSize:      17,
+              fontSize:      16,
               fontWeight:    600,
               color:         "var(--ink)",
               margin:        0,
@@ -429,22 +438,21 @@ function BookingModal({
             </h2>
           </div>
 
-          {/* Close button */}
           <button
             onClick={onClose}
             style={{
-              flexShrink:  0,
-              width:       32,
-              height:      32,
-              borderRadius: 8,
-              border:      "1px solid var(--hairline)",
-              background:  "none",
-              cursor:      "pointer",
-              display:     "flex",
-              alignItems:  "center",
+              flexShrink:     0,
+              width:          32,
+              height:         32,
+              borderRadius:   8,
+              border:         "1px solid var(--hairline)",
+              background:     "none",
+              cursor:         "pointer",
+              display:        "flex",
+              alignItems:     "center",
               justifyContent: "center",
-              color:       "var(--ink-tertiary)",
-              transition:  "background 120ms",
+              color:          "var(--ink-tertiary)",
+              transition:     "background 120ms",
             }}
             onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-2)")}
             onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
@@ -453,8 +461,8 @@ function BookingModal({
           </button>
         </div>
 
-        {/* Body */}
-        <div style={{ padding: "20px" }}>
+        {/* Body — scrollable si contenu trop long (mobile) */}
+        <div style={{ flex: 1, overflowY: "auto", padding: "18px" }}>
 
           {/* Client card */}
           {hasClient && (
@@ -462,10 +470,10 @@ function BookingModal({
               display:         "flex",
               alignItems:      "center",
               gap:             12,
-              padding:         "12px 14px",
+              padding:         "11px 13px",
               backgroundColor: "var(--surface-2)",
               borderRadius:    10,
-              marginBottom:    16,
+              marginBottom:    14,
             }}>
               <div style={{
                 width:           40,
@@ -481,8 +489,8 @@ function BookingModal({
                   {booking.clientInitials}
                 </span>
               </div>
-              <div>
-                <p style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)", margin: 0, letterSpacing: "-0.01em" }}>
+              <div style={{ minWidth: 0 }}>
+                <p style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)", margin: 0, letterSpacing: "-0.01em", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                   {booking.client}
                 </p>
                 <p style={{ fontSize: 12, color: "var(--ink-tertiary)", margin: "2px 0 0", fontWeight: 400 }}>
@@ -494,8 +502,6 @@ function BookingModal({
 
           {/* Info rows */}
           <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
-
-            {/* Date */}
             {dateLabel && (
               <InfoRow
                 icon={<CheckCircle size={14} strokeWidth={1.75} />}
@@ -503,15 +509,11 @@ function BookingModal({
                 value={dateLabel.charAt(0).toUpperCase() + dateLabel.slice(1)}
               />
             )}
-
-            {/* Time */}
             <InfoRow
               icon={<Clock size={14} strokeWidth={1.75} />}
               label="Horaire"
               value={`${timeLabel} · ${duration} min`}
             />
-
-            {/* Staff */}
             {booking.staffName && (
               <InfoRow
                 icon={<User size={14} strokeWidth={1.75} />}
@@ -519,15 +521,11 @@ function BookingModal({
                 value={booking.staffName}
               />
             )}
-
-            {/* Service */}
             <InfoRow
               icon={<Scissors size={14} strokeWidth={1.75} />}
               label="Prestation"
               value={booking.title}
             />
-
-            {/* Price */}
             {price && (
               <InfoRow
                 icon={<CreditCard size={14} strokeWidth={1.75} />}

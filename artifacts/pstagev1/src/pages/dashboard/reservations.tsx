@@ -113,26 +113,27 @@ export default function ReservationsPage() {
     <DashboardLayout title="Réservations" breadcrumb="Agenda" noPadding>
       <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
 
-        {/* ── Toolbar : retour + nav semaine + filtres équipe ── */}
+        {/* ── Toolbar : une seule ligne, les chips scrollent en interne ── */}
         <div style={{
-          flexShrink: 0,
-          padding: "10px 20px",
+          flexShrink:      0,
+          padding:         "10px 16px",
           backgroundColor: "var(--canvas-pure)",
-          borderBottom: "1px solid var(--hairline)",
-          display: "flex",
-          flexWrap: "wrap",
-          alignItems: "center",
-          gap: "8px 10px",
+          borderBottom:    "1px solid var(--hairline)",
+          display:         "flex",
+          alignItems:      "center",
+          gap:             8,
+          overflow:        "hidden",   /* jamais de débordement horizontal */
+          minWidth:        0,
         }}>
 
-          {/* ── Bouton retour ── */}
+          {/* Bouton retour — taille fixe */}
           <button
             type="button"
             onClick={() => navigate("/dashboard/agenda")}
             style={{
               flexShrink: 0,
               display: "flex", alignItems: "center", gap: 5,
-              height: 32, padding: "0 11px 0 8px",
+              height: 32, padding: "0 10px 0 7px",
               borderRadius: 9, border: "1px solid var(--hairline)",
               background: "none", cursor: "pointer",
               fontSize: 13, fontWeight: 500, color: "var(--ink-secondary)",
@@ -143,22 +144,21 @@ export default function ReservationsPage() {
             onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
           >
             <ArrowLeft size={14} strokeWidth={2} />
-            Agenda
+            <span style={{ display: "var(--show-label, inline)" }}>Agenda</span>
           </button>
 
-          {/* ── Séparateur ── */}
           <div style={{ width: 1, height: 20, backgroundColor: "var(--hairline)", flexShrink: 0 }} />
 
-          {/* ── Chips équipe — prend l'espace disponible, scrollable ── */}
+          {/* Chips équipe — zone flex:1 qui scroll en interne */}
           {staffList.length > 0 && (
             <div style={{
-              flex: "1 1 140px",
-              minWidth: 0,
-              display: "flex",
-              alignItems: "center",
-              gap: 5,
-              overflowX: "auto",
-              scrollbarWidth: "none",
+              flex:            "1 1 0",
+              minWidth:        0,
+              display:         "flex",
+              alignItems:      "center",
+              gap:             5,
+              overflowX:       "auto",
+              scrollbarWidth:  "none",
               msOverflowStyle: "none",
             } as React.CSSProperties}>
               {[{ id: null, name: "Tous" }, ...staffList].map((s) => {
@@ -169,27 +169,23 @@ export default function ReservationsPage() {
                     type="button"
                     onClick={() => setSelectedStaffId(s.id)}
                     style={{
-                      flexShrink: 0,
-                      height: 28,
-                      padding: "0 11px",
-                      borderRadius: 14,
-                      border: `1px solid ${active ? "var(--ink)" : "var(--hairline)"}`,
+                      flexShrink:      0,
+                      height:          28,
+                      padding:         "0 11px",
+                      borderRadius:    14,
+                      border:          `1px solid ${active ? "var(--ink)" : "var(--hairline)"}`,
                       backgroundColor: active ? "var(--ink)" : "transparent",
-                      color: active ? "var(--canvas)" : "var(--ink-secondary)",
-                      fontSize: 12,
-                      fontWeight: active ? 600 : 400,
-                      cursor: "pointer",
-                      letterSpacing: "-0.01em",
-                      transition: "background 120ms, color 120ms, border-color 120ms",
-                      fontFamily: "var(--font)",
-                      whiteSpace: "nowrap",
+                      color:           active ? "var(--canvas)" : "var(--ink-secondary)",
+                      fontSize:        12,
+                      fontWeight:      active ? 600 : 400,
+                      cursor:          "pointer",
+                      letterSpacing:   "-0.01em",
+                      transition:      "background 120ms, color 120ms, border-color 120ms",
+                      fontFamily:      "var(--font)",
+                      whiteSpace:      "nowrap",
                     }}
-                    onMouseEnter={(e) => {
-                      if (!active) e.currentTarget.style.background = "var(--surface-2)";
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!active) e.currentTarget.style.background = "transparent";
-                    }}
+                    onMouseEnter={(e) => { if (!active) e.currentTarget.style.background = "var(--surface-2)"; }}
+                    onMouseLeave={(e) => { if (!active) e.currentTarget.style.background = "transparent"; }}
                   >
                     {s.name}
                   </button>
@@ -198,13 +194,12 @@ export default function ReservationsPage() {
             </div>
           )}
 
-          {/* ── Séparateur ── */}
           {staffList.length > 0 && (
             <div style={{ width: 1, height: 20, backgroundColor: "var(--hairline)", flexShrink: 0 }} />
           )}
 
-          {/* ── Nav semaine — fixe à droite ── */}
-          <div style={{ flexShrink: 0, display: "flex", alignItems: "center", gap: 6 }}>
+          {/* Nav semaine — taille fixe à droite */}
+          <div style={{ flexShrink: 0, display: "flex", alignItems: "center", gap: 4 }}>
             <button
               type="button"
               onClick={() => setWeekOffset((w) => w - 1)}
@@ -215,9 +210,9 @@ export default function ReservationsPage() {
               <ChevronLeft size={14} />
             </button>
 
-            <span style={{ fontSize: 12, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.01em", minWidth: 148, textAlign: "center", whiteSpace: "nowrap" }}>
+            <span style={{ fontSize: 11, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.01em", minWidth: 120, textAlign: "center", whiteSpace: "nowrap" }}>
               {isLoading
-                ? <span style={{ display: "inline-block", width: 120, height: 12, borderRadius: 6, background: "var(--surface-3)", animation: "pulse 1.5s ease-in-out infinite" }} />
+                ? <span style={{ display: "inline-block", width: 100, height: 11, borderRadius: 6, background: "var(--surface-3)", animation: "pulse 1.5s ease-in-out infinite" }} />
                 : weekLabel}
             </span>
 
@@ -235,11 +230,11 @@ export default function ReservationsPage() {
               <button
                 type="button"
                 onClick={() => setWeekOffset(0)}
-                style={{ height: 30, padding: "0 10px", borderRadius: 8, border: "1px solid var(--hairline)", background: "none", cursor: "pointer", fontSize: 12, fontWeight: 500, color: "var(--ink-secondary)", transition: "background 120ms", whiteSpace: "nowrap" }}
+                style={{ height: 30, padding: "0 9px", borderRadius: 8, border: "1px solid var(--hairline)", background: "none", cursor: "pointer", fontSize: 11, fontWeight: 500, color: "var(--ink-secondary)", transition: "background 120ms", whiteSpace: "nowrap" }}
                 onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-2)")}
                 onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
               >
-                Aujourd'hui
+                Auj.
               </button>
             )}
           </div>
