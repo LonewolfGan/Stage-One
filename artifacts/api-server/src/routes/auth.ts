@@ -8,7 +8,7 @@ import { signToken, verifyToken, signPhoneToken, verifyPhoneToken } from "../lib
 import { requireAuth } from "../middlewares/auth";
 import { logger } from "../lib/logger";
 import { redis } from "../lib/redis";
-import { sendSms } from "../lib/sms";
+
 
 const router = Router();
 
@@ -251,12 +251,12 @@ router.post("/pre-register/send-otp", async (req, res) => {
   const code = String(Math.floor(100000 + Math.random() * 900000));
   await otp_save(`pre:${normalized}`, code);
 
-  await sendSms(normalized, `Votre code de vérification PSTAGEV1 : ${code}`);
-
+  // SMS removed — phone OTP now handled by Firebase Auth on the frontend.
+  // Code is still returned in dev mode for testing.
   const response: any = { message: "Code envoyé" };
   if (process.env.NODE_ENV !== "production") {
     response.devCode = code;
-    logger.info({ phone: normalized, code }, "[DEV] Pre-register OTP code");
+    logger.info({ phone: normalized, code }, "[DEV] Pre-register OTP code (SMS disabled — use Firebase)");
   }
 
   res.json(response);
@@ -300,8 +300,7 @@ router.post("/send-phone-otp", requireAuth, async (req, res) => {
 
   const code = String(Math.floor(100000 + Math.random() * 900000));
   await otp_save(`user:${userId}`, code);
-  await sendSms(normalized, `Votre code de vérification PSTAGEV1 : ${code}`);
-
+  // SMS removed — phone verification now handled by Firebase Auth.
   const response: any = { message: "Code envoyé" };
   if (process.env.NODE_ENV !== "production") {
     response.devCode = code;

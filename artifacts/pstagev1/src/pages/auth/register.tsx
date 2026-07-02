@@ -171,11 +171,15 @@ export default function RegisterPage() {
       await sendPhoneOtp(phone);
       setStep("phone-otp");
     } catch (err: any) {
-      const status = err?.status;
-      if (status === 429) {
-        setFieldError({ general: "Trop de tentatives d'envoi. Réessayez dans une heure." });
+      const code: string = err?.code ?? "";
+      if (code === "auth/too-many-requests" || err?.status === 429) {
+        setFieldError({ general: "Trop de tentatives. Réessayez dans quelques minutes." });
+      } else if (code === "auth/invalid-phone-number") {
+        setFieldError({ general: "Numéro de téléphone invalide. Utilisez le format 06XXXXXXXX." });
+      } else if (code === "auth/captcha-check-failed" || code === "auth/internal-error") {
+        setFieldError({ general: "Vérification échouée. Assurez-vous que votre navigateur autorise les scripts Google." });
       } else {
-        setFieldError({ general: err?.data?.message ?? "Erreur lors de l'envoi du code." });
+        setFieldError({ general: err?.data?.message ?? err?.message ?? "Erreur lors de l'envoi du code." });
       }
     } finally {
       setLoading(false);
@@ -258,7 +262,8 @@ export default function RegisterPage() {
   return (
     <div className="flex overflow-hidden" style={{ height: "100vh", backgroundColor: "var(--canvas)" }}>
       {/* reCAPTCHA invisible — requis par Firebase Phone Auth */}
-      <div id="recaptcha-container" style={{ display: "none" }} />
+      {/* reCAPTCHA invisible — must NOT be display:none or Firebase won't render it */}
+      <div id="recaptcha-container" style={{ position: "absolute", visibility: "hidden", width: 0, height: 0 }} />
       {/* ── Left column ── */}
       <div
         style={{

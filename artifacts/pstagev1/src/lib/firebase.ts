@@ -26,6 +26,8 @@ export function setupRecaptcha(containerId: string): RecaptchaVerifier {
 
 export async function sendFirebaseOtp(phone: string, containerId: string): Promise<ConfirmationResult> {
   const verifier = setupRecaptcha(containerId);
+  // Pre-render the invisible widget — required when container is hidden
+  try { await verifier.render(); } catch { /* ignore render errors for invisible reCAPTCHA */ }
   return signInWithPhoneNumber(auth, phone, verifier);
 }
 
