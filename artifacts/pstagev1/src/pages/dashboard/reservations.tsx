@@ -113,26 +113,31 @@ export default function ReservationsPage() {
     <DashboardLayout title="Réservations" breadcrumb="Agenda" noPadding>
       <div style={{ display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
 
-        {/* ── Week navigator bar ── */}
+        {/* ── Toolbar : retour + nav semaine + filtres équipe (une seule ligne) ── */}
         <div style={{
           flexShrink: 0,
-          padding: "12px 28px",
+          padding: "10px 20px",
           backgroundColor: "var(--canvas-pure)",
+          borderBottom: "1px solid var(--hairline)",
           display: "flex",
           alignItems: "center",
-          justifyContent: "space-between",
+          gap: 10,
+          minWidth: 0,
         }}>
+
           {/* Back button */}
           <button
             type="button"
             onClick={() => navigate("/dashboard/agenda")}
             style={{
-              display: "flex", alignItems: "center", gap: 6,
-              height: 32, padding: "0 12px 0 8px",
+              flexShrink: 0,
+              display: "flex", alignItems: "center", gap: 5,
+              height: 32, padding: "0 11px 0 8px",
               borderRadius: 9, border: "1px solid var(--hairline)",
               background: "none", cursor: "pointer",
               fontSize: 13, fontWeight: 500, color: "var(--ink-secondary)",
               letterSpacing: "-0.01em", transition: "background 120ms",
+              whiteSpace: "nowrap",
             }}
             onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-2)")}
             onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
@@ -141,39 +146,42 @@ export default function ReservationsPage() {
             Agenda
           </button>
 
+          {/* Divider */}
+          <div style={{ width: 1, height: 20, backgroundColor: "var(--hairline)", flexShrink: 0 }} />
+
           {/* Week navigator */}
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <div style={{ flexShrink: 0, display: "flex", alignItems: "center", gap: 6 }}>
             <button
               type="button"
               onClick={() => setWeekOffset((w) => w - 1)}
-              style={{ width: 32, height: 32, borderRadius: 9, border: "1px solid var(--hairline)", background: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--ink-secondary)", transition: "background 120ms" }}
+              style={{ width: 30, height: 30, borderRadius: 8, border: "1px solid var(--hairline)", background: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--ink-secondary)", transition: "background 120ms" }}
               onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-2)")}
               onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
             >
-              <ChevronLeft size={15} />
+              <ChevronLeft size={14} />
             </button>
 
-            <span style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.01em", minWidth: 160, textAlign: "center" }}>
+            <span style={{ fontSize: 12, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.01em", minWidth: 148, textAlign: "center", whiteSpace: "nowrap" }}>
               {isLoading
-                ? <span style={{ display: "inline-block", width: 140, height: 14, borderRadius: 6, background: "var(--surface-3)", animation: "pulse 1.5s ease-in-out infinite" }} />
+                ? <span style={{ display: "inline-block", width: 120, height: 12, borderRadius: 6, background: "var(--surface-3)", animation: "pulse 1.5s ease-in-out infinite" }} />
                 : weekLabel}
             </span>
 
             <button
               type="button"
               onClick={() => setWeekOffset((w) => w + 1)}
-              style={{ width: 32, height: 32, borderRadius: 9, border: "1px solid var(--hairline)", background: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--ink-secondary)", transition: "background 120ms" }}
+              style={{ width: 30, height: 30, borderRadius: 8, border: "1px solid var(--hairline)", background: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--ink-secondary)", transition: "background 120ms" }}
               onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-2)")}
               onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
             >
-              <ChevronRight size={15} />
+              <ChevronRight size={14} />
             </button>
 
             {weekOffset !== 0 && (
               <button
                 type="button"
                 onClick={() => setWeekOffset(0)}
-                style={{ height: 32, padding: "0 12px", borderRadius: 9, border: "1px solid var(--hairline)", background: "none", cursor: "pointer", fontSize: 12, fontWeight: 500, color: "var(--ink-secondary)", transition: "background 120ms" }}
+                style={{ height: 30, padding: "0 10px", borderRadius: 8, border: "1px solid var(--hairline)", background: "none", cursor: "pointer", fontSize: 12, fontWeight: 500, color: "var(--ink-secondary)", transition: "background 120ms", whiteSpace: "nowrap" }}
                 onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-2)")}
                 onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
               >
@@ -181,55 +189,62 @@ export default function ReservationsPage() {
               </button>
             )}
           </div>
-        </div>
 
-        {/* ── Staff filter chips ── */}
-        {staffList.length > 0 && (
-          <div style={{
-            flexShrink: 0,
-            padding: "8px 28px",
-            backgroundColor: "var(--canvas-pure)",
-            display: "flex",
-            alignItems: "center",
-            gap: 6,
-            overflowX: "auto",
-          }}>
-            {[{ id: null, name: "Tous" }, ...staffList].map((s) => {
-              const active = selectedStaffId === s.id;
-              return (
-                <button
-                  key={s.id ?? "all"}
-                  type="button"
-                  onClick={() => setSelectedStaffId(s.id)}
-                  style={{
-                    flexShrink: 0,
-                    height: 28,
-                    padding: "0 12px",
-                    borderRadius: 14,
-                    border: `1px solid ${active ? "var(--ink)" : "var(--hairline)"}`,
-                    backgroundColor: active ? "var(--ink)" : "transparent",
-                    color: active ? "#fff" : "var(--ink-secondary)",
-                    fontSize: 12,
-                    fontWeight: active ? 600 : 400,
-                    cursor: "pointer",
-                    letterSpacing: "-0.01em",
-                    transition: "background 120ms, color 120ms, border-color 120ms",
-                    fontFamily: "var(--font)",
-                    whiteSpace: "nowrap",
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!active) e.currentTarget.style.background = "var(--surface-2)";
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!active) e.currentTarget.style.background = "transparent";
-                  }}
-                >
-                  {s.name}
-                </button>
-              );
-            })}
-          </div>
-        )}
+          {/* Divider — only if staff chips exist */}
+          {staffList.length > 0 && (
+            <div style={{ width: 1, height: 20, backgroundColor: "var(--hairline)", flexShrink: 0 }} />
+          )}
+
+          {/* Staff filter chips — scrollable, takes remaining space */}
+          {staffList.length > 0 && (
+            <div style={{
+              flex: 1,
+              minWidth: 0,
+              display: "flex",
+              alignItems: "center",
+              gap: 5,
+              overflowX: "auto",
+              scrollbarWidth: "none",
+              /* hide scrollbar on webkit */
+              msOverflowStyle: "none",
+            } as React.CSSProperties}>
+              {[{ id: null, name: "Tous" }, ...staffList].map((s) => {
+                const active = selectedStaffId === s.id;
+                return (
+                  <button
+                    key={s.id ?? "all"}
+                    type="button"
+                    onClick={() => setSelectedStaffId(s.id)}
+                    style={{
+                      flexShrink: 0,
+                      height: 28,
+                      padding: "0 11px",
+                      borderRadius: 14,
+                      border: `1px solid ${active ? "var(--ink)" : "var(--hairline)"}`,
+                      backgroundColor: active ? "var(--ink)" : "transparent",
+                      color: active ? "var(--canvas)" : "var(--ink-secondary)",
+                      fontSize: 12,
+                      fontWeight: active ? 600 : 400,
+                      cursor: "pointer",
+                      letterSpacing: "-0.01em",
+                      transition: "background 120ms, color 120ms, border-color 120ms",
+                      fontFamily: "var(--font)",
+                      whiteSpace: "nowrap",
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!active) e.currentTarget.style.background = "var(--surface-2)";
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!active) e.currentTarget.style.background = "transparent";
+                    }}
+                  >
+                    {s.name}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
 
         {/* ── Week calendar grid ── */}
         <div style={{ flex: 1, minHeight: 0 }}>
