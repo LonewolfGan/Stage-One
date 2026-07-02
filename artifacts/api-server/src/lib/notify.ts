@@ -12,6 +12,7 @@ import { db, bookingsTable, servicesTable, staffTable, usersTable, notifications
 import { eq } from "drizzle-orm";
 import { emitBookingConfirmed, emitSlotUpdate } from "./socket";
 import { enqueueEmailJob } from "./email-worker";
+import { sendSms, formatDateFr } from "./sms";
 import { logger } from "./logger";
 
 type BookingRow = typeof bookingsTable.$inferSelect;
@@ -89,6 +90,14 @@ export async function notifyBookingConfirmed(
     );
   }
 
+  // 5. SMS confirmation to client (fire-and-forget)
+  if (client && "phone" in client && client.phone) {
+    const dateStr = formatDateFr(booking.startDatetime);
+    const smsBody = `✅ Réservation confirmée — ${service?.name ?? "Prestation"} le ${dateStr}. Merci de votre confiance !`;
+    sendSms(client.phone, smsBody).catch((err) =>
+      logger.error({ err }, "Failed to send SMS confirmation"),
+    );
+  }
 }
 
 // ── Slot events ─────────────────────────────────────────────────────────────
