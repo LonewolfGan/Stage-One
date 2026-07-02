@@ -488,10 +488,10 @@ export default function RegisterPage() {
                     disabled={loading}
                     whileTap={loading ? {} : { scale: 0.98 }}
                     style={{
-                      width: "100%", height: 44,
+                      width: "100%", height: 46,
                       backgroundColor: loading ? "rgba(212,70,110,0.35)" : "var(--accent)",
                       color: "#FFFFFF", fontSize: 14, fontWeight: 600,
-                      letterSpacing: "-0.01em", borderRadius: 8, border: "none",
+                      letterSpacing: "-0.01em", borderRadius: 9999, border: "none",
                       cursor: loading ? "not-allowed" : "pointer",
                       transition: "background-color 160ms ease", marginTop: 4,
                     }}
