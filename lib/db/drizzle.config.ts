@@ -20,4 +20,7 @@ export default defineConfig({
     "!raster_columns",
     "!raster_overviews",
   ],
+  // Exclude the PostGIS geography column managed by postgis-setup.ts
+  // (not in Drizzle schema — managed raw via SQL to avoid interactive CI prompts)
+  extensionsFilters: ["postgis"],
 });

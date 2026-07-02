@@ -6,6 +6,7 @@ import rateLimit from "express-rate-limit";
 import pinoHttp from "pino-http";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
+import { existsSync } from "node:fs";
 import router from "./routes";
 import { stripeWebhookHandler } from "./routes/webhook";
 import { logger } from "./lib/logger";
@@ -97,8 +98,14 @@ app.use("/api", router);
 // static assets from artifacts/pstagev1/dist/public, SPA fallback for
 // any non-/api route (client-side routing via Wouter).
 if (process.env.NODE_ENV === "production") {
+  // Resolve static dir relative to this compiled bundle, with a CWD fallback
   const thisDir = path.dirname(fileURLToPath(import.meta.url));
-  const staticDir = path.resolve(thisDir, "../../pstagev1/dist/public");
+  const fromBundle = path.resolve(thisDir, "../../pstagev1/dist/public");
+  const fromCwd    = path.resolve(process.cwd(), "artifacts/pstagev1/dist/public");
+  const staticDir  = existsSync(fromBundle) ? fromBundle : fromCwd;
+
+  logger.info({ staticDir, exists: existsSync(staticDir) }, "Serving static frontend");
+
   app.use(express.static(staticDir, { maxAge: "1y", immutable: true }));
   // SPA fallback — everything that is not /api gets index.html
   app.get("*splat", (_req, res) => {
