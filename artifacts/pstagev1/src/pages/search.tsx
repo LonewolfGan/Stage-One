@@ -160,6 +160,7 @@ function ResultCardList({ provider, isSelected, onHover, onLeave, index }: {
           <img
             src={provider.photos[0]}
             alt={provider.name}
+            onError={(e) => { e.currentTarget.style.display = "none"; }}
             style={{
               width: "100%", height: "100%", objectFit: "cover", display: "block",
               transform: hov ? "scale(1.04)" : "scale(1)",
@@ -311,6 +312,7 @@ function ResultCardGrid({ provider, isSelected, onHover, onLeave, index }: {
           <img
             src={provider.photos[0]}
             alt={provider.name}
+            onError={(e) => { e.currentTarget.style.display = "none"; }}
             style={{
               width: "100%", height: "100%", objectFit: "cover", display: "block",
               transform: hov ? "scale(1.05)" : "scale(1)",
@@ -625,7 +627,7 @@ function MapView({
                 style={{ width: 210, cursor: "pointer", fontFamily: "var(--font)", borderRadius: 12, overflow: "hidden" }}
               >
                 {p.photos[0] ? (
-                  <img src={p.photos[0]} alt={p.name} style={{ width: "100%", height: 96, objectFit: "cover", display: "block" }} />
+                  <img src={p.photos[0]} alt={p.name} onError={(e) => { e.currentTarget.style.display = "none"; }} style={{ width: "100%", height: 96, objectFit: "cover", display: "block" }} />
                 ) : (
                   <div style={{ width: "100%", height: 96, backgroundColor: "rgba(12,12,14,0.05)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                     <Scissors size={20} color="rgba(12,12,14,0.18)" />

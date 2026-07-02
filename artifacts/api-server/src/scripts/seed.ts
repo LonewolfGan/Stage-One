@@ -228,6 +228,212 @@ export async function runSeed() {
     await db.insert(businessHoursTable).values({ id: uuidv4(), providerId: p4Id, dayOfWeek: day, openTime: "09:00", closeTime: "21:00", isClosed: false });
   }
 
+  // ── PROVIDER 5: Coiffure Wafa (INDIVIDUAL, Casablanca)
+  const owner5Id = uuidv4();
+  await db.insert(usersTable).values({
+    id: owner5Id, email: "wafa@coiffure.ma", phone: "+212661234501", name: "Wafa El Alaoui",
+    passwordHash, role: "OWNER", phoneVerified: true, emailVerified: true,
+  });
+  const p5Id = uuidv4();
+  await db.insert(providersTable).values({
+    id: p5Id, type: "INDIVIDUAL", name: "Coiffure Wafa", slug: "coiffure-wafa",
+    description: "Coiffeuse professionnelle à domicile sur Casablanca. Diplômée de l'OFPPT, formations Paris et Dubaï. Produits L'Oréal Professionnel exclusivement.",
+    phone: "+212661234501", email: "wafa@coiffure.ma", address: "Hay Hassani, Casablanca",
+    city: "Casablanca", latitude: 33.5568, longitude: -7.6572, status: "ACTIVE", ownerId: owner5Id,
+    logoUrl: "https://images.unsplash.com/photo-1562322140-8baeececf3df?w=800&q=80",
+  });
+  await db.insert(subscriptionsTable).values({ id: uuidv4(), providerId: p5Id, plan: "FREE", status: "active" });
+
+  const s5_self = uuidv4();
+  await db.insert(staffTable).values({
+    id: s5_self, providerId: p5Id, name: "Wafa El Alaoui",
+    bio: "Coiffeuse diplômée, 9 ans d'expérience. Spécialiste balayage, kératine et coupe femme. Déplacement inclus sur tout Casablanca.",
+    photoUrl: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&auto=format&fit=crop&q=80",
+    isActive: true,
+  });
+  const p5Svc1 = uuidv4(), p5Svc2 = uuidv4(), p5Svc3 = uuidv4(), p5Svc4 = uuidv4();
+  await db.insert(servicesTable).values([
+    { id: p5Svc1, providerId: p5Id, name: "Coupe femme à domicile", description: "Coupe + finition + déplacement inclus sur Casablanca", durationMinutes: 60, priceCents: 22000, bufferMinutes: 30 },
+    { id: p5Svc2, providerId: p5Id, name: "Balayage californien", description: "Balayage complet + soin + brushing, produits L'Oréal", durationMinutes: 150, priceCents: 65000, bufferMinutes: 15 },
+    { id: p5Svc3, providerId: p5Id, name: "Brushing à domicile", description: "Brushing professionnel, déplacement inclus", durationMinutes: 45, priceCents: 16000, bufferMinutes: 30 },
+    { id: p5Svc4, providerId: p5Id, name: "Soin kératine brésilien", description: "Lissage longue durée + soin restructurant, 3h", durationMinutes: 180, priceCents: 80000, bufferMinutes: 15 },
+  ]);
+  await db.insert(serviceStaffTable).values([
+    { serviceId: p5Svc1, staffId: s5_self },
+    { serviceId: p5Svc2, staffId: s5_self },
+    { serviceId: p5Svc3, staffId: s5_self },
+    { serviceId: p5Svc4, staffId: s5_self },
+  ]);
+  for (let day = 1; day <= 6; day++) {
+    await db.insert(businessHoursTable).values({ id: uuidv4(), providerId: p5Id, dayOfWeek: day, openTime: "09:00", closeTime: "18:30", isClosed: false });
+  }
+  await db.insert(businessHoursTable).values({ id: uuidv4(), providerId: p5Id, dayOfWeek: 0, openTime: "09:00", closeTime: "18:30", isClosed: true });
+
+  // ── PROVIDER 6: Barbershop Le Sultan (ESTABLISHMENT, Rabat – Agdal)
+  const owner6Id = uuidv4();
+  await db.insert(usersTable).values({
+    id: owner6Id, email: "sultan@barbershop.ma", phone: "+212537781200", name: "Khalid Regragui",
+    passwordHash, role: "OWNER", phoneVerified: true, emailVerified: true,
+  });
+  const p6Id = uuidv4();
+  await db.insert(providersTable).values({
+    id: p6Id, type: "ESTABLISHMENT", name: "Barbershop Le Sultan", slug: "barbershop-sultan",
+    description: "Barbershop moderne au cœur d'Agdal. Coupe homme, rasage rasoir droit, barbe design et soins visage. Ambiance soignée, café offert. Le barbier de référence à Rabat depuis 2019.",
+    phone: "+212537781200", email: "sultan@barbershop.ma", address: "15 Avenue Fal Ould Oumeir, Agdal",
+    city: "Rabat", latitude: 33.9716, longitude: -6.8498, status: "ACTIVE", ownerId: owner6Id,
+    logoUrl: "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=800&q=80",
+  });
+  await db.insert(subscriptionsTable).values({ id: uuidv4(), providerId: p6Id, plan: "PRO", status: "active" });
+
+  const s6_k = uuidv4(), s6_a = uuidv4();
+  await db.insert(staffTable).values([
+    {
+      id: s6_k, providerId: p6Id, name: "Khalid Regragui",
+      bio: "Maître barbier, 12 ans d'expérience. Spécialiste rasage rasoir droit et barbe de créateur.",
+      photoUrl: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&auto=format&fit=crop&q=80",
+      isActive: true,
+    },
+    {
+      id: s6_a, providerId: p6Id, name: "Adam Tazi",
+      bio: "Barbier certifié, expert coupe homme et dégradé américain.",
+      photoUrl: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&h=400&auto=format&fit=crop&q=80",
+      isActive: true,
+    },
+  ]);
+  const p6Svc1 = uuidv4(), p6Svc2 = uuidv4(), p6Svc3 = uuidv4(), p6Svc4 = uuidv4();
+  await db.insert(servicesTable).values([
+    { id: p6Svc1, providerId: p6Id, name: "Coupe homme", description: "Coupe + dégradé + finition styling", durationMinutes: 30, priceCents: 9000, bufferMinutes: 5 },
+    { id: p6Svc2, providerId: p6Id, name: "Rasage rasoir droit", description: "Rasage traditionnel + serviette chaude + soin après-rasage", durationMinutes: 30, priceCents: 12000, bufferMinutes: 10 },
+    { id: p6Svc3, providerId: p6Id, name: "Barbe design", description: "Taille + mise en forme + contour précis", durationMinutes: 20, priceCents: 8000, bufferMinutes: 5 },
+    { id: p6Svc4, providerId: p6Id, name: "Forfait Sultan complet", description: "Coupe + barbe design + rasage rasoir + soin visage", durationMinutes: 75, priceCents: 25000, bufferMinutes: 10 },
+  ]);
+  await db.insert(serviceStaffTable).values([
+    { serviceId: p6Svc1, staffId: s6_k },
+    { serviceId: p6Svc1, staffId: s6_a },
+    { serviceId: p6Svc2, staffId: s6_k },
+    { serviceId: p6Svc3, staffId: s6_k },
+    { serviceId: p6Svc3, staffId: s6_a },
+    { serviceId: p6Svc4, staffId: s6_k },
+  ]);
+  // Mar-Dim 10h-20h, fermé Lun
+  for (let day = 2; day <= 6; day++) {
+    await db.insert(businessHoursTable).values({ id: uuidv4(), providerId: p6Id, dayOfWeek: day, openTime: "10:00", closeTime: "20:00", isClosed: false });
+  }
+  await db.insert(businessHoursTable).values({ id: uuidv4(), providerId: p6Id, dayOfWeek: 0, openTime: "10:00", closeTime: "20:00", isClosed: false });
+  await db.insert(businessHoursTable).values({ id: uuidv4(), providerId: p6Id, dayOfWeek: 1, openTime: "10:00", closeTime: "20:00", isClosed: true });
+
+  // ── PROVIDER 7: Spa & Institut Palmeraie (ESTABLISHMENT, Marrakech)
+  const owner7Id = uuidv4();
+  await db.insert(usersTable).values({
+    id: owner7Id, email: "palmeraie@spa.ma", phone: "+212524368800", name: "Salima Bensouda",
+    passwordHash, role: "OWNER", phoneVerified: true, emailVerified: true,
+  });
+  const p7Id = uuidv4();
+  await db.insert(providersTable).values({
+    id: p7Id, type: "ESTABLISHMENT", name: "Spa & Institut Palmeraie", slug: "spa-palmeraie",
+    description: "Havre de paix au cœur de la Palmeraie de Marrakech. Massages signature, soins visage à l'argan et au ghassoul, bains flottants et rituels corps inspirés de la tradition marocaine.",
+    phone: "+212524368800", email: "palmeraie@spa.ma", address: "Route de la Palmeraie, Km 5, Marrakech",
+    city: "Marrakech", latitude: 31.6829, longitude: -7.9459, status: "ACTIVE", ownerId: owner7Id,
+    logoUrl: "https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=800&q=80",
+  });
+  await db.insert(subscriptionsTable).values({ id: uuidv4(), providerId: p7Id, plan: "PRO", status: "active" });
+
+  const s7_s = uuidv4(), s7_n = uuidv4(), s7_h = uuidv4();
+  await db.insert(staffTable).values([
+    {
+      id: s7_s, providerId: p7Id, name: "Salima Bensouda",
+      bio: "Directrice et masseuse certifiée, spécialiste soins argan et rituels marocains. Formation en Thaïlande et à Paris.",
+      photoUrl: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=400&auto=format&fit=crop&q=80",
+      isActive: true,
+    },
+    {
+      id: s7_n, providerId: p7Id, name: "Nour Kadiri",
+      bio: "Esthéticienne haut de gamme, experte soins visage anti-âge et enveloppements corps.",
+      photoUrl: "https://images.unsplash.com/photo-1554151228-14d9def656e4?w=400&h=400&auto=format&fit=crop&q=80",
+      isActive: true,
+    },
+    {
+      id: s7_h, providerId: p7Id, name: "Hassan Elbacha",
+      bio: "Kinésithérapeute et masseur, spécialiste décontraction musculaire et massage sportif.",
+      photoUrl: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=400&h=400&auto=format&fit=crop&q=80",
+      isActive: true,
+    },
+  ]);
+  const p7Svc1 = uuidv4(), p7Svc2 = uuidv4(), p7Svc3 = uuidv4(), p7Svc4 = uuidv4();
+  await db.insert(servicesTable).values([
+    { id: p7Svc1, providerId: p7Id, name: "Massage relaxant aux pierres chaudes", description: "Massage corps complet + pierres volcaniques + huiles essentielles Maroc", durationMinutes: 75, priceCents: 55000, bufferMinutes: 15 },
+    { id: p7Svc2, providerId: p7Id, name: "Soin visage à l'argan royal", description: "Nettoyage profond + masque argan + sérum + modelage visage", durationMinutes: 60, priceCents: 42000, bufferMinutes: 10 },
+    { id: p7Svc3, providerId: p7Id, name: "Rituel corps complet", description: "Hammam privatif 30min + gommage kessa + enveloppement ghassoul + massage 45min", durationMinutes: 120, priceCents: 85000, bufferMinutes: 20 },
+    { id: p7Svc4, providerId: p7Id, name: "Massage signature Palmeraie", description: "Massage signature exclusif aux huiles de rose de Dadès et argan, 90 minutes", durationMinutes: 90, priceCents: 70000, bufferMinutes: 15 },
+  ]);
+  await db.insert(serviceStaffTable).values([
+    { serviceId: p7Svc1, staffId: s7_s },
+    { serviceId: p7Svc1, staffId: s7_h },
+    { serviceId: p7Svc2, staffId: s7_n },
+    { serviceId: p7Svc2, staffId: s7_s },
+    { serviceId: p7Svc3, staffId: s7_s },
+    { serviceId: p7Svc3, staffId: s7_h },
+    { serviceId: p7Svc4, staffId: s7_s },
+    { serviceId: p7Svc4, staffId: s7_h },
+  ]);
+  for (let day = 0; day <= 6; day++) {
+    await db.insert(businessHoursTable).values({ id: uuidv4(), providerId: p7Id, dayOfWeek: day, openTime: "09:00", closeTime: "21:00", isClosed: false });
+  }
+
+  // ── PROVIDER 8: Nails Factory Tanger (ESTABLISHMENT, Tanger)
+  const owner8Id = uuidv4();
+  await db.insert(usersTable).values({
+    id: owner8Id, email: "nails@tanger.ma", phone: "+212539942211", name: "Imane Boudra",
+    passwordHash, role: "OWNER", phoneVerified: true, emailVerified: true,
+  });
+  const p8Id = uuidv4();
+  await db.insert(providersTable).values({
+    id: p8Id, type: "ESTABLISHMENT", name: "Nails Factory Tanger", slug: "nails-factory-tanger",
+    description: "Studio beauté ongles haut de gamme au centre de Tanger. Manucure, pédicure, nail art, pose gel et semi-permanent. Matériel stérilisé entre chaque cliente. Réservation en ligne disponible.",
+    phone: "+212539942211", email: "nails@tanger.ma", address: "8 Rue de Fès, Centre-ville",
+    city: "Tanger", latitude: 35.7672, longitude: -5.7995, status: "ACTIVE", ownerId: owner8Id,
+    logoUrl: "https://images.unsplash.com/photo-1604654894610-df63bc536371?w=800&q=80",
+  });
+  await db.insert(subscriptionsTable).values({ id: uuidv4(), providerId: p8Id, plan: "PRO", status: "active" });
+
+  const s8_i = uuidv4(), s8_m = uuidv4();
+  await db.insert(staffTable).values([
+    {
+      id: s8_i, providerId: p8Id, name: "Imane Boudra",
+      bio: "Nail artist certifiée, 7 ans d'expérience. Spécialiste nail art géométrique et dégradé aquarelle.",
+      photoUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&auto=format&fit=crop&q=80",
+      isActive: true,
+    },
+    {
+      id: s8_m, providerId: p8Id, name: "Malak Chraibi",
+      bio: "Prothésiste ongulaire, spécialiste pose gel et capsules. Résultats longue durée garantis.",
+      photoUrl: "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=400&h=400&auto=format&fit=crop&q=80",
+      isActive: true,
+    },
+  ]);
+  const p8Svc1 = uuidv4(), p8Svc2 = uuidv4(), p8Svc3 = uuidv4(), p8Svc4 = uuidv4();
+  await db.insert(servicesTable).values([
+    { id: p8Svc1, providerId: p8Id, name: "Manucure classique", description: "Lime + soin + base + vernis couleur", durationMinutes: 45, priceCents: 14000, bufferMinutes: 5 },
+    { id: p8Svc2, providerId: p8Id, name: "Pose semi-permanent", description: "Préparation + pose + finition UV, dure 3 semaines", durationMinutes: 60, priceCents: 22000, bufferMinutes: 10 },
+    { id: p8Svc3, providerId: p8Id, name: "Nail art créatif", description: "Design personnalisé sur 10 ongles, motifs au choix", durationMinutes: 90, priceCents: 35000, bufferMinutes: 10 },
+    { id: p8Svc4, providerId: p8Id, name: "Pédicure complète", description: "Soin pieds + lime + vernis gel + massage jambes", durationMinutes: 60, priceCents: 18000, bufferMinutes: 10 },
+  ]);
+  await db.insert(serviceStaffTable).values([
+    { serviceId: p8Svc1, staffId: s8_i },
+    { serviceId: p8Svc1, staffId: s8_m },
+    { serviceId: p8Svc2, staffId: s8_m },
+    { serviceId: p8Svc3, staffId: s8_i },
+    { serviceId: p8Svc4, staffId: s8_i },
+    { serviceId: p8Svc4, staffId: s8_m },
+  ]);
+  // Mer-Lun 10h-20h, fermé Mar
+  for (let day = 3; day <= 6; day++) {
+    await db.insert(businessHoursTable).values({ id: uuidv4(), providerId: p8Id, dayOfWeek: day, openTime: "10:00", closeTime: "20:00", isClosed: false });
+  }
+  await db.insert(businessHoursTable).values({ id: uuidv4(), providerId: p8Id, dayOfWeek: 0, openTime: "10:00", closeTime: "20:00", isClosed: false });
+  await db.insert(businessHoursTable).values({ id: uuidv4(), providerId: p8Id, dayOfWeek: 1, openTime: "10:00", closeTime: "20:00", isClosed: false });
+  await db.insert(businessHoursTable).values({ id: uuidv4(), providerId: p8Id, dayOfWeek: 2, openTime: "10:00", closeTime: "20:00", isClosed: true });
+
   // ── BOOKINGS (~60% fill on the next 7 days)
   const staffWithServices = [
     { providerId: p1Id, staffId: s1_f, serviceId: p1Svc1, priceCents: 18000 },
@@ -239,6 +445,13 @@ export async function runSeed() {
     { providerId: p4Id, staffId: s4_l, serviceId: p4Svc1, priceCents: 22000 },
     { providerId: p4Id, staffId: s4_m, serviceId: p4Svc2, priceCents: 35000 },
     { providerId: p4Id, staffId: s4_r, serviceId: p4Svc4, priceCents: 50000 },
+    { providerId: p5Id, staffId: s5_self, serviceId: p5Svc1, priceCents: 22000 },
+    { providerId: p6Id, staffId: s6_k, serviceId: p6Svc1, priceCents: 9000 },
+    { providerId: p6Id, staffId: s6_a, serviceId: p6Svc4, priceCents: 25000 },
+    { providerId: p7Id, staffId: s7_s, serviceId: p7Svc1, priceCents: 55000 },
+    { providerId: p7Id, staffId: s7_h, serviceId: p7Svc3, priceCents: 85000 },
+    { providerId: p8Id, staffId: s8_i, serviceId: p8Svc3, priceCents: 35000 },
+    { providerId: p8Id, staffId: s8_m, serviceId: p8Svc2, priceCents: 22000 },
   ];
 
   const bookingRows = [];
@@ -325,16 +538,20 @@ export async function runSeed() {
   await db.insert(bookingsTable).values(fixedAtlasBookings).onConflictDoNothing();
 
   console.log(`✅ Seed complete!`);
-  console.log(`   Providers: 4`);
-  console.log(`   Staff: 11`);
-  console.log(`   Services: 14`);
+  console.log(`   Providers: 8`);
+  console.log(`   Staff: 20`);
+  console.log(`   Services: 30`);
   console.log(`   Bookings: ${bookingRows.length + fixedAtlasBookings.length} (${fixedAtlasBookings.length} fixes + ${bookingRows.length} aléatoires)`);
   console.log(`\n📧 Test accounts:`);
-  console.log(`   Client:     yasmine@client.ma   / password123`);
-  console.log(`   Owner 1:    atlas@salon.ma       / password123 (Salon Atlas)`);
-  console.log(`   Owner 2:    elegance@salon.ma    / password123 (Institut Elegance)`);
-  console.log(`   Owner 3:    sara@domicile.ma     / password123 (Sara a domicile)`);
-  console.log(`   Owner 4:    zitoun@hammam.ma     / password123 (Hammam Zitoun)`);
+  console.log(`   Client:     yasmine@client.ma      / password123`);
+  console.log(`   Owner 1:    atlas@salon.ma          / password123 (Salon Atlas, Marrakech)`);
+  console.log(`   Owner 2:    elegance@salon.ma       / password123 (Institut Elegance, Casablanca)`);
+  console.log(`   Owner 3:    sara@domicile.ma        / password123 (Sara à domicile, Rabat)`);
+  console.log(`   Owner 4:    zitoun@hammam.ma        / password123 (Hammam Zitoun, Fès)`);
+  console.log(`   Owner 5:    wafa@coiffure.ma        / password123 (Coiffure Wafa, Casablanca)`);
+  console.log(`   Owner 6:    sultan@barbershop.ma    / password123 (Barbershop Le Sultan, Rabat)`);
+  console.log(`   Owner 7:    palmeraie@spa.ma        / password123 (Spa Palmeraie, Marrakech)`);
+  console.log(`   Owner 8:    nails@tanger.ma         / password123 (Nails Factory, Tanger)`);
 }
 
 async function seed() {

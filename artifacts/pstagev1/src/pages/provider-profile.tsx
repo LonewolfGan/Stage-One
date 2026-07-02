@@ -97,6 +97,7 @@ function HeroGallery({ photos, providerName }: { photos: string[]; providerName?
       }}>
         {main ? (
           <img src={main} alt={providerName ?? "Photo principale"}
+            onError={(e) => { e.currentTarget.style.display = "none"; }}
             style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", transition: "transform 600ms cubic-bezier(0.25,0.46,0.45,0.94)" }}
             onMouseEnter={e => { (e.currentTarget as HTMLImageElement).style.transform = "scale(1.03)"; }}
             onMouseLeave={e => { (e.currentTarget as HTMLImageElement).style.transform = "scale(1)"; }}
@@ -113,6 +114,7 @@ function HeroGallery({ photos, providerName }: { photos: string[]; providerName?
         }}>
           {thumbs[i] ? (
             <img src={thumbs[i]} alt={`Photo ${i + 2}`}
+              onError={(e) => { e.currentTarget.style.display = "none"; }}
               style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", transition: "transform 600ms cubic-bezier(0.25,0.46,0.45,0.94)" }}
               onMouseEnter={e => { (e.currentTarget as HTMLImageElement).style.transform = "scale(1.05)"; }}
               onMouseLeave={e => { (e.currentTarget as HTMLImageElement).style.transform = "scale(1)"; }}

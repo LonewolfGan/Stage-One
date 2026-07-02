@@ -195,6 +195,7 @@ function PhotoTile({ src, isCover, onDelete }: { src: string; isCover: boolean; 
     >
       <img
         src={src} alt=""
+        onError={(e) => { e.currentTarget.style.display = "none"; }}
         style={{
           width: "100%", height: "100%", objectFit: "cover", display: "block",
           transform: hovered ? "scale(1.03)" : "scale(1)",

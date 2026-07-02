@@ -109,11 +109,14 @@ function TestimonialCard({ quote, name, role, avatar, rating }: TestimonialData)
       </p>
       {/* Author */}
       <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-        <img
-          src={avatar}
-          alt={name}
-          style={{ width: 38, height: 38, borderRadius: 9999, objectFit: "cover", flexShrink: 0 }}
-        />
+        {avatar && (
+          <img
+            src={avatar}
+            alt={name}
+            onError={(e) => { e.currentTarget.style.display = "none"; }}
+            style={{ width: 38, height: 38, borderRadius: 9999, objectFit: "cover", flexShrink: 0 }}
+          />
+        )}
         <div>
           <div style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)", lineHeight: 1.2 }}>{name}</div>
           <div style={{ fontSize: 12, color: "var(--ink-tertiary)", lineHeight: 1.4 }}>{role}</div>
@@ -796,21 +799,24 @@ export default function HomePage() {
                       overflow: "hidden",
                       marginBottom: 20,
                       border: "1px solid var(--hairline)",
+                      background: "var(--surface-2)",
                     }}
                   >
-                    <motion.img
-                      src={provider.photos[0] || undefined}
-                      alt={provider.name}
-                      onError={(e) => { e.currentTarget.style.display = "none"; }}
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        objectFit: "cover",
-                        display: "block",
-                      }}
-                      variants={{ rest: { scale: 1 }, hover: { scale: 1.04 } }}
-                      transition={{ duration: 0.55, ease: [0.0, 0.0, 0.2, 1] }}
-                    />
+                    {provider.photos[0] && (
+                      <motion.img
+                        src={provider.photos[0]}
+                        alt={provider.name}
+                        onError={(e) => { e.currentTarget.style.display = "none"; }}
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
+                          display: "block",
+                        }}
+                        variants={{ rest: { scale: 1 }, hover: { scale: 1.04 } }}
+                        transition={{ duration: 0.55, ease: [0.0, 0.0, 0.2, 1] }}
+                      />
+                    )}
                   </div>
                   <p style={{ fontSize: 11, color: "var(--ink-tertiary)", marginBottom: 8, letterSpacing: "0.02em" }}>
                     {provider.category} · {provider.city}
