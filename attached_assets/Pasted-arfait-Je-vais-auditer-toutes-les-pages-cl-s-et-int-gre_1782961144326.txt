@@ -1,0 +1,375 @@
+arfait. Je vais auditer toutes les pages clés et intégrer les composants shadcn là où ça manque — formulaires, sélecteurs, dialogs, badges, tabs, etc.
+
+
+Show less
+
+Took a screenshot
+
+Took a screenshot
+
+Took a screenshot
+
+Took a screenshot
+
+Planning shadcn integration strategy (11 seconds)
+Let me analyze what I see in the screenshots and plan the shadcn integration work:
+
+Current state:
+
+Register page - Good overall, but the "Créer mon compte" button has good rose color. The form looks clean.
+Dashboard/services - Clean empty state with rose button "Ajouter une prestation"
+Dashboard/settings - Form with inputs, a native <select> dropdown for "Catégorie" (needs shadcn Select), logo upload area
+Provider profile (/salon-atlas) - Skeleton loading state (500 errors on some endpoints, but the page structure exists)
+500 errors - The provider profile page and dashboard are hitting errors on time slots and booking endpoints
+I'm identifying which components need shadcn replacements: the native select on the settings page should become a shadcn Select, form inputs could be upgraded to shadcn Input, and I'll need to add shadcn Dialog components where needed.
+
+Now I'm prioritizing what to tackle first - the settings page needs native selects replaced with shadcn Select and Switch components, the services page needs a proper Dialog form for adding and editing services, and the staff page needs similar Dialog functionality.
+
+Je vois les opportunités principales : le <select> natif dans settings, les formulaires sans composants shadcn propres, les dialogs manquants dans services/staff. Je lis les fichiers clés en parallèle.
+
+
+Show less
+
+Opened settings.tsx
+
+Opened services.tsx
+
+Opened staff.tsx
+
+Planning shadcn integration for settings (4 seconds)
+Let me read more of the settings and services pages to understand their full structure, then plan the shadcn integration work. I'll focus on the highest-impact changes:
+
+Settings - Replace native <select> with shadcn Select, use shadcn Switch for toggles, use shadcn Tabs for sections
+Services - Add proper shadcn Dialog for add/edit form with shadcn Input, Label, Select
+Staff - Same dialog improvements
+Home - Minor improvements
+Let me read more of these files to plan properly.
+
+Je lis les parties clés des 3 fichiers pour planifier les intégrations précisément.
+
+
+Show less
+
+Opened settings.tsx
+
+Opened services.tsx
+
+Opened staff.tsx
+
+Planning shadcn integration for settings (21 seconds)
+Now I have a good understanding of the codebase. Let me plan the shadcn integration work systematically.
+
+What needs shadcn integration:
+
+Settings page (settings.tsx):
+
+Native <select> for category → shadcn Select
+Custom Toggle → shadcn Switch
+Custom Field inputs → shadcn Input + Label
+Custom SaveBtn → shadcn Button
+Add shadcn Tabs to organize sections (Photos, Profil, Horaires, Notifications, Sécurité)
+Services page (services.tsx):
+
+Custom modal overlay → shadcn Dialog
+Custom inputs in form → shadcn Input + Label
+Duration/buffer select → shadcn Select
+Staff page (staff.tsx):
+
+Custom modal overlay → shadcn Dialog
+Custom inputs → shadcn Input + Label
+I'll prioritize the settings page first since it has the most components to replace, starting with adding tabs for organization and swapping out the native select and custom inputs for shadcn equivalents. The custom overlays in services and staff are working fine with their motion animations, so I don't need to rush replacing them. The real opportunity is on the settings page—adding Tabs for navigation and swapping the native selects for shadcn Select components. I should also update the SaveBtn to use the accent color instead of the old black primary. Let me reconsider the priority here based on what actually needs fixing versus what's already functional. custom overlay with shadcn Dialog. Let me verify which Radix UI dependencies are already installed—I can see tabs, select, switch, and dialog are all available. Now I need to check what shadcn component wrappers exist in the UI folder and add the missing ones like select.tsx and tabs.tsx.
+
+I'll create the three missing shadcn components, then integrate them into the settings, services, and staff pages to replace the basic HTML elements with properly styled form controls.
+
+Je lis le reste de settings pour voir tous les selects natifs, puis j'implémente tout en parallèle.
+
+
+Show less
+
+Opened settings.tsx
+
+Opened settings.tsx
+
+Ran grep
+
+Planning shadcn component integration (8 seconds)
+Now I have a clear picture. Let me plan the shadcn integration work:
+
+Files to create (new shadcn components):
+
+artifacts/pstagev1/src/components/ui/select.tsx - shadcn Select
+artifacts/pstagev1/src/components/ui/tabs.tsx - shadcn Tabs
+artifacts/pstagev1/src/components/ui/switch.tsx - shadcn Switch
+Files to update:
+
+settings.tsx - Replace 3 native <select> (lines 323, 755, 1025) with shadcn Select, replace custom Toggle with shadcn Switch
+services.tsx - Replace custom overlay with shadcn Dialog
+staff.tsx - Replace custom overlay with shadcn Dialog
+I have enough context to move forward with creating the shadcn components and updating all four files to use them instead of the custom implementations.
+
+The services and staff modals currently use fixed positioning overlays with framer-motion animations, so I'll swap those out for shadcn Dialog which handles portal rendering and z-index management automatically. Let me examine the modal structures in services.tsx and the StaffForm component to understand exactly what needs to be replaced.
+
+Je vois les 3 <select> natifs à remplacer dans settings (lignes 323, 755, 1025) et les overlays custom dans services/staff. Je crée les composants shadcn manquants et mets tout à jour en parallèle.
+
+
+Show less
+
+Opened settings.tsx
+
+Opened settings.tsx
+
+Opened services.tsx
+
+Planning shadcn component integrations (9 seconds)
+Now I have a clear picture of what needs to be done. Let me implement all the shadcn integrations systematically.
+
+Plan:
+
+Create 3 new shadcn components: select.tsx, tabs.tsx, switch.tsx
+Update settings.tsx - replace native selects with shadcn Select, replace Toggle with Switch
+Update services.tsx - replace custom overlay with shadcn Dialog
+Update staff.tsx - replace custom overlay with shadcn Dialog
+Let me create all components and update the files in parallel.
+
+For select.tsx - standard shadcn Select
+For tabs.tsx - standard shadcn Tabs
+For switch.tsx - standard shadcn Switch
+
+Now I need to update the existing files. In settings.tsx, I'll swap out the native select elements on lines 323, 755, and 1025 with the shadcn Select component, and replace the custom Toggle with shadcn Switch. For services.tsx and staff.tsx, I'll remove the custom overlay implementations and integrate shadcn Dialog instead.
+
+The shadcn Dialog will give me better portal rendering for z-index management, proper accessibility features like focus trapping and ESC-to-close, plus built-in animations that match the rest of the app. Let me start implementing these changes across all three files.
+
+Writing component code...
+
+Je lance tout en parallèle — création des 3 composants shadcn manquants + mise à jour settings/services/staff.
+
+
+Show less
+
+Created select.tsx
+
+Created tabs.tsx
+
+Created switch.tsx
+
+Planning shadcn component integration (5 seconds)
+Now I need to update the 3 files: settings.tsx, services.tsx, and staff.tsx to use the new shadcn components.
+
+Let me update them all in parallel:
+
+settings.tsx - Replace native selects with shadcn Select, replace custom Toggle with Switch
+services.tsx - Replace custom overlay with shadcn Dialog
+staff.tsx - Replace custom overlay with shadcn Dialog
+Let me start with the settings.tsx changes first - I need to:
+
+Add imports for Select, Switch
+Replace the Toggle component usage with Switch
+Replace the 3 native <select> elements with shadcn Select
+Adding the necessary imports...
+Les 3 composants sont créés. Maintenant je mets à jour settings.tsx (Select + Switch), services.tsx (Dialog) et staff.tsx (Dialog) en parallèle.
+
+
+Show less
+
+Ran grep
+
+Opened staff.tsx
+
+Opened services.tsx
+Optimized Agent memory
+
+Planning component replacements (20 seconds)
+Good, now I have all the information I need. Let me now implement the changes in parallel:
+
+Update settings.tsx - replace Toggle with Switch, replace 3 native selects with shadcn Select
+Update services.tsx - replace custom overlay with shadcn Dialog
+Update staff.tsx - replace custom overlay with shadcn Dialog
+For settings.tsx, I need to:
+
+Add imports for Select components and Switch
+Replace the Toggle component with Switch in 2 places (lines 411 and 895)
+Replace the 3 native selects
+For services.tsx:
+
+Add import for Dialog components
+Replace the custom motion overlay (lines 289-408) with shadcn Dialog
+Keep the form content intact
+For staff.tsx:
+
+Add import for Dialog components
+Replace the custom motion overlay (lines 362-407) with shadcn Dialog
+Keep the form content intact
+Now I'll make these edits.
+
+For settings.tsx, I need to add the Select and Switch imports, remove the custom Toggle component, and swap out the Toggle usages with Switch components throughout the file. I also need to replace the native select elements with shadcn Select components.
+
+For staff.tsx, I'll follow the same pattern as services.tsx. Replacing the remaining native selects with shadcn components...
+
+For services and staff pages, I'm removing the motion.div overlay wrappers from the form components and instead wrapping them in shadcn Dialog at the page level. This simplifies the modal structure and keeps the form logic separate from the presentation layer.
+
+Looking at how the editing state works in ServicesPage, I can see it uses undefined to hide the dialog, null for adding new items, and an ApiService object for editing. I can use editing !== undefined as the open state for the Dialog component. Now I need to check how the staff page manages its editing state similarly.
+
+Je lis la suite du fichier staff pour voir le composant page et gérer correctement l'état du dialog.
+
+
+Show less
+
+Opened staff.tsx
+
+Opened staff.tsx
+
+Planning component replacement strategy (10 seconds)
+Now I have a full picture of the codebase. Let me implement all the changes in parallel:
+
+settings.tsx - Replace native selects with shadcn Select, replace Toggle with Switch
+services.tsx - Replace custom overlay with shadcn Dialog
+staff.tsx - Replace custom overlay with shadcn Dialog
+For services.tsx and staff.tsx, the strategy is:
+
+The ServiceForm/StaffForm components currently render the whole overlay (backdrop + modal)
+I'll strip the outer overlay from these components and just make them render the inner form content
+Then in the page component, wrap them in shadcn Dialog
+Use editing !== undefined as the Dialog's open state, with onOpenChange triggering setEditing(undefined) to close
+Let me start implementing these changes now. For settings.tsx, I need to add the necessary imports, remove the Toggle component, replace its usages with Switch, and swap out the native selects for shadcn Select. For services.tsx and staff.tsx, I'll add Dialog imports, strip the overlay wrapper from the form components, and wire them up to the Dialog in the page component.
+
+Now I'm setting up the Dialog structure...
+
+Je lis dialog.tsx pour voir les exports disponibles, puis je fais tous les changements en une seule passe.
+
+
+Show less
+
+Opened dialog.tsx
+
+Planning component styling updates (70 seconds)
+Now I have all the information I need. Let me implement all the changes in parallel:
+
+Update dialog.tsx - Customize it to use design system tokens instead of generic shadcn classes
+Update settings.tsx - Replace Toggle with Switch, replace native selects with shadcn Select
+Update services.tsx - Replace custom overlay with shadcn Dialog
+Update staff.tsx - Replace custom overlay with shadcn Dialog
+Let me start with all these edits in parallel.
+
+For dialog.tsx, I need to customize the styling to match the design system (using design tokens instead of bg-background which doesn't exist in this project's CSS).
+For settings.tsx, I'll add the Select and Switch imports, remove the Toggle definition, swap out the Toggle components for Switch, and replace the three native select elements with shadcn Select components. For services.tsx and staff.tsx, I'll import the Dialog components, strip out the custom overlay wrappers from the forms, and add Dialog wrappers in the page components. Let me write all these changes now.
+
+First, I need to update dialog.tsx to use the correct design tokens from this project—swapping --background for var(--canvas-pure) in the DialogContent styling.
+
+Updating settings.tsx... Replacing more select components... Replacing the staff select with the new Select component that uses onValueChange instead of onChange, then moving on to refactor the ServiceForm by removing the motion.div overlay wrapper and its associated closing tags. Writing component structure... Refining the component structure... Writing component markup... Refactoring the modal structure... Now I'm going through each file to make the targeted edits. I need to update the imports, replace the form return blocks, and swap out the Toggle components for Switch in the settings file. Let me start executing these changes across all three files. Updating the dialog styles... Now I'm mapping out the remaining file updates: settings, services, and staff pages all need to import and use the Dialog component while stripping out their existing overlay implementations. I'm also realizing the staff select has a potential issue with the empty string value for "Tout le salon" — using a sentinel value like "__all__" would be cleaner since Radix Select treats empty strings ambiguously. I'll map the select value between "_all" for the UI and an empty string for the API, so when the form submits I convert "_all" back to "" before sending to the backend. For the staff select, I'm using a sentinel value approach where an empty string gets mapped to "_all" in the UI, and selecting "Tout le salon" maps back to an empty string in the form state.
+
+Now I'm planning to apply all the edits across multiple files in parallel—updating the design tokens in dialog.tsx, adding the select and switch components to settings.tsx, and replacing large sections of code in services.tsx and staff.tsx using the edit tool.
+
+Maintenant j'implémente tout en parallèle — 4 fichiers modifiés simultanément.
+
+
+Show less
+
+Edited dialog.tsx
+
+Edited settings.tsx
+
+Planning component replacements and updates
+Let me continue with the parallel edits. I need to:
+
+Replace the Toggle function in settings.tsx and replace Toggle usages with Switch
+Replace native selects in settings.tsx with shadcn Select
+Update services.tsx to use shadcn Dialog
+Update staff.tsx to use shadcn Dialog
+Let me do all of these in parallel.
+
+Je continue avec les 4 remplacements en parallèle — Toggle→Switch, selects natifs, et overlays→Dialog.
+
+
+Show less
+
+Edited settings.tsx
+
+Edited services.tsx
+
+Edited staff.tsx
+
+Planning component replacement strategy (21 seconds)
+Let me continue with the remaining edits in parallel. I need to:
+
+Replace Toggle with Switch in settings.tsx (2 places)
+Replace native selects with shadcn Select in settings.tsx (3 places)
+Replace ServiceForm overlay in services.tsx with just the form content
+Replace the AnimatePresence+ServiceForm in ServicesPage with Dialog
+Replace StaffForm overlay in staff.tsx
+Replace AnimatePresence+StaffForm in StaffPage with Dialog
+Let me do all of these in parallel now.
+
+For settings.tsx, Toggle usages are at:
+
+line 411: <Toggle checked={!day.isClosed} onChange={(v) => onChange({ isClosed: !v })} />
+line 895: <Toggle checked={notifs[key]} onChange={(v) => setNotifs((p) => ({ ...p, [key]: v }))} />
+I need to replace these with Switch components, updating the prop names from onChange to onCheckedChange. For the phone labels select around line 323, I'm swapping out the native select element for the shadcn Select component.
+
+Replacing the select with Switch components... Writing component markup... Writing component markup... I'm replacing the AnimatePresence wrapper with a Dialog component that handles the open/closed state more cleanly, and I'll apply the same pattern to the staff component as well.
+
+Maintenant les remplacements clés — Toggle→Switch, selects natifs→shadcn, et les overlays custom→Dialog en parallèle.
+
+
+Show less
+
+Edited settings.tsx
+
+Edited settings.tsx
+
+Edited settings.tsx
+
+Planning UI component replacements
+Let me continue with the remaining edits. I need to:
+
+Replace Toggle usages with Switch in settings.tsx (2 places)
+Replace ServiceForm custom overlay with just content in services.tsx
+Replace the AnimatePresence+ServiceForm in ServicesPage with Dialog
+Replace StaffForm custom overlay in staff.tsx
+Replace AnimatePresence+StaffForm in StaffPage with Dialog
+Let me do all these in parallel.
+
+Je continue avec les remplacements Toggle→Switch et les overlays→Dialog en parallèle.
+
+
+Show less
+
+Edited settings.tsx
+
+Edited services.tsx
+
+Edited staff.tsx
+
+Planning overlay tag closure strategy (5 seconds)
+I need to close the old overlay tags in services.tsx and staff.tsx. The original ServiceForm returned:
+
+motion.div (overlay) > motion.div (modal) > div(header) + form
+
+I replaced it with:
+
+div (container) > div(header) + div(scroll) > form
+
+But I also need to close the closing tags. The original had:
+
+      </form>
+    </motion.div>
+  </motion.div>
+);
+
+After my replacement, the structure is:
+
+      </form>    ← still there
+    </motion.div>  ← needs to become </div>
+  </motion.div>  ← needs to become </div>
+);
+
+I replaced the opening tags but forgot to update the closing tags to match the new div structure.
+
+Je dois fermer les nouvelles divs dans services.tsx et staff.tsx (les anciens </motion.div> n'ont pas été mis à jour). Je vérifie l'état actuel.
+
+
+Show less
+
+Opened services.tsx
+
+Opened staff.tsx
+You've reached your monthly free quota limit. It will reset on July 31, 2026.

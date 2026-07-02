@@ -389,8 +389,8 @@ function ServiceForm({ slug, service, allStaff, onClose }: ServiceFormProps) {
             </div>
           </div>
         </form>
-      </motion.div>
-    </motion.div>
+      </div>
+    </div>
   );
 }
 
@@ -446,11 +446,13 @@ export default function ServicesPage() {
         )}
       </DashboardLayout>
 
-      <AnimatePresence>
-        {editing !== undefined && (
-          <ServiceForm slug={slug} service={editing} allStaff={allStaff} onClose={() => setEditing(undefined)} />
-        )}
-      </AnimatePresence>
+      <Dialog open={editing !== undefined} onOpenChange={(open) => { if (!open) setEditing(undefined); }}>
+        <DialogContent style={{ padding: 0, maxWidth: 520, borderRadius: 14, overflow: "hidden" }}>
+          {editing !== undefined && (
+            <ServiceForm slug={slug} service={editing} allStaff={allStaff} onClose={() => setEditing(undefined)} />
+          )}
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

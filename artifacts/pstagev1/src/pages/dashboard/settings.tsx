@@ -868,7 +868,7 @@ export default function SettingsPage() {
                   <div style={{ fontSize: 13, fontWeight: 500, color: "var(--ink)", marginBottom: 2 }}>{label}</div>
                   <div style={{ fontSize: 11, color: "var(--ink-tertiary)" }}>{desc}</div>
                 </div>
-                <Toggle checked={notifs[key]} onChange={(v) => setNotifs((p) => ({ ...p, [key]: v }))} />
+                <Switch checked={notifs[key]} onCheckedChange={(v) => setNotifs((p) => ({ ...p, [key]: v }))} />
               </div>
             ))}
           </div>

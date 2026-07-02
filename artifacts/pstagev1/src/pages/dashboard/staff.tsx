@@ -463,8 +463,8 @@ function StaffForm({ slug, member, services, onClose }: StaffFormProps) {
             </div>
           </div>
         </form>
-      </motion.div>
-    </motion.div>
+      </div>
+    </div>
   );
 }
 
@@ -547,11 +547,13 @@ export default function StaffPage() {
         )}
       </DashboardLayout>
 
-      <AnimatePresence>
-        {editing !== undefined && (
-          <StaffForm slug={slug} member={editing} services={services} onClose={() => setEditing(undefined)} />
-        )}
-      </AnimatePresence>
+      <Dialog open={editing !== undefined} onOpenChange={(open) => { if (!open) setEditing(undefined); }}>
+        <DialogContent style={{ padding: 0, maxWidth: 520, borderRadius: 14, overflow: "hidden" }}>
+          {editing !== undefined && (
+            <StaffForm slug={slug} member={editing} services={services} onClose={() => setEditing(undefined)} />
+          )}
+        </DialogContent>
+      </Dialog>
 
       <AnimatePresence>
         {absence && <AbsenceModal member={absence} slug={slug} onClose={() => setAbsence(null)} />}
