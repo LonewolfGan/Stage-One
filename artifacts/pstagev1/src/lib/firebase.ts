@@ -2,9 +2,12 @@ import { initializeApp, getApps } from "firebase/app";
 import { getAuth, RecaptchaVerifier, signInWithPhoneNumber, type ConfirmationResult } from "firebase/auth";
 
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY ?? "AIzaSyBJgqnrsWC8Ws4c6WqCCVbPZ4xO2QTS3zc",
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN ?? "anubis-v.firebaseapp.com",
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID ?? "anubis-v",
+  storageBucket: "anubis-v.firebasestorage.app",
+  messagingSenderId: "601571415997",
+  appId: "1:601571415997:web:a187ca4525205333f5e4d4",
 };
 
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
