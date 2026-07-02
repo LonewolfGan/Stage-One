@@ -1,11 +1,10 @@
-import { useState, FormEvent, useEffect, useRef, KeyboardEvent, ClipboardEvent } from "react";
+import { useState, FormEvent, useEffect, useRef } from "react";
 import { useSearch, useLocation } from "wouter";
 import { useBreakpoint } from "@/hooks/use-mobile";
-import { Building2 } from "lucide-react";
+import { Building2, User, ShieldCheck, RotateCcw, AlertTriangle, ArrowRight } from "lucide-react";
 import { EyeIcon } from "@/components/ui/eye";
 import { EyeOffIcon } from "@/components/ui/eye-off";
 import { ArrowLeftIcon } from "@/components/ui/arrow-left";
-import { UserIcon } from "@/components/ui/user";
 import { motion, AnimatePresence } from "framer-motion";
 import { Logo } from "@/components/ui/Logo";
 import { api } from "@/lib/api";
@@ -13,6 +12,7 @@ import { setTokens } from "@/lib/auth-store";
 import heroImage from "@assets/ChatGPT_Image_Jun_27,_2026,_07_43_37_PM_(1)_1782586261262.png";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { InputOTP, InputOTPGroup, InputOTPSlot, InputOTPSeparator } from "@/components/ui/input-otp";
 
 function PasswordRule({ met, label }: { met: boolean; label: string }) {
   return (
@@ -31,69 +31,6 @@ function PasswordRule({ met, label }: { met: boolean; label: string }) {
       <span style={{ fontSize: 12, color: met ? "var(--ink-secondary)" : "var(--ink-tertiary)", transition: "color 200ms ease" }}>
         {label}
       </span>
-    </div>
-  );
-}
-
-function OtpInput({ value, onChange, error }: { value: string[]; onChange: (v: string[]) => void; error?: string }) {
-  const refs = useRef<(HTMLInputElement | null)[]>([]);
-
-  function handleKey(i: number, e: KeyboardEvent<HTMLInputElement>) {
-    if (e.key === "Backspace" && !value[i] && i > 0) refs.current[i - 1]?.focus();
-  }
-
-  function handleChange(i: number, raw: string) {
-    const digit = raw.replace(/\D/g, "").slice(-1);
-    const next = [...value];
-    next[i] = digit;
-    onChange(next);
-    if (digit && i < 5) refs.current[i + 1]?.focus();
-  }
-
-  function handlePaste(e: ClipboardEvent<HTMLInputElement>) {
-    e.preventDefault();
-    const text = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
-    const next = Array(6).fill("");
-    text.split("").forEach((c, i) => { next[i] = c; });
-    onChange(next);
-    const focusIdx = Math.min(text.length, 5);
-    refs.current[focusIdx]?.focus();
-  }
-
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-      <div style={{ display: "flex", gap: 8 }}>
-        {Array.from({ length: 6 }, (_, i) => (
-          <input
-            key={i}
-            ref={(el) => { refs.current[i] = el; }}
-            type="text"
-            inputMode="numeric"
-            maxLength={1}
-            value={value[i] ?? ""}
-            onChange={(e) => handleChange(i, e.target.value)}
-            onKeyDown={(e) => handleKey(i, e)}
-            onPaste={handlePaste}
-            onFocus={(e) => e.currentTarget.select()}
-            style={{
-              flex: 1,
-              height: 52,
-              textAlign: "center",
-              fontSize: 20,
-              fontWeight: 600,
-              letterSpacing: "-0.01em",
-              color: "var(--ink)",
-              backgroundColor: "#FFFFFF",
-              border: `1.5px solid ${error ? "#E53E3E" : value[i] ? "var(--ink)" : "var(--hairline-strong)"}`,
-              borderRadius: 10,
-              outline: "none",
-              transition: "border-color 150ms ease",
-              fontFamily: "inherit",
-            }}
-          />
-        ))}
-      </div>
-      {error && <p style={{ fontSize: 12, color: "#E53E3E" }}>{error}</p>}
     </div>
   );
 }
@@ -117,7 +54,7 @@ export default function RegisterPage() {
 
   // Step 2 state
   const [step, setStep] = useState<Step>("form");
-  const [otp, setOtp] = useState<string[]>(Array(6).fill(""));
+  const [otp, setOtp] = useState("");
   const [otpError, setOtpError] = useState<string | undefined>();
   const [otpLoading, setOtpLoading] = useState(false);
   const [otpServiceUnavailable, setOtpServiceUnavailable] = useState(false);
@@ -196,12 +133,11 @@ export default function RegisterPage() {
 
   async function handleOtpSubmit(e: FormEvent) {
     e.preventDefault();
-    const code = otp.join("");
-    if (code.length < 6) { setOtpError("Entrez les 6 chiffres du code."); return; }
+    if (otp.length < 6) { setOtpError("Entrez les 6 chiffres du code."); return; }
     setOtpError(undefined);
     setOtpLoading(true);
     try {
-      await api.verifyPhone(code);
+      await api.verifyPhone(otp);
       setStep("done");
       setTimeout(() => setLocation(isPro ? "/dashboard/setup" : "/"), 900);
     } catch (err: any) {
@@ -264,99 +200,162 @@ export default function RegisterPage() {
 
             {/* ── Step OTP ── */}
             {step === "otp" && (
-              <motion.div key="otp" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
-                {/* Icon */}
-                <div style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: "var(--accent-tint)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 20 }}>
-                  <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 9.81a19.86 19.86 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.62a16 16 0 0 0 5.47 5.47l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21 16.92"/>
-                  </svg>
+              <motion.div
+                key="otp"
+                initial={{ opacity: 0, x: 24 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -24 }}
+                transition={{ duration: 0.22, ease: [0.25, 0.1, 0.25, 1] }}
+              >
+                {/* Icon badge */}
+                <div style={{
+                  width: 52, height: 52, borderRadius: 14,
+                  backgroundColor: "var(--accent-tint)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  marginBottom: 24,
+                }}>
+                  <ShieldCheck size={24} color="var(--accent)" strokeWidth={1.75} />
                 </div>
 
-                <h1 style={{ fontSize: 22, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.015em", marginBottom: 8 }}>
-                  Vérifiez votre numéro
+                <h1 style={{ fontSize: 24, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.018em", marginBottom: 6, lineHeight: 1.2 }}>
+                  Code de vérification
                 </h1>
-                <p style={{ fontSize: 14, color: "var(--ink-tertiary)", lineHeight: 1.6, marginBottom: 28 }}>
-                  Un code à 6 chiffres a été envoyé au{" "}
-                  <span style={{ color: "var(--ink)", fontWeight: 500 }}>{displayPhone}</span>
+                <p style={{ fontSize: 14, color: "var(--ink-tertiary)", lineHeight: 1.65, marginBottom: 32 }}>
+                  Nous avons envoyé un code à 6 chiffres au{" "}
+                  <span style={{ color: "var(--ink)", fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>
+                    {displayPhone}
+                  </span>
                 </p>
 
                 {/* Service unavailable banner */}
-                {otpServiceUnavailable && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    style={{
-                      padding: "14px 16px",
-                      backgroundColor: "#FFF5F5",
-                      border: "1px solid #FED7D7",
-                      borderRadius: 10,
-                      marginBottom: 20,
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: 6,
-                    }}
-                  >
-                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      <svg width={15} height={15} viewBox="0 0 24 24" fill="none" stroke="#E53E3E" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                      <span style={{ fontSize: 13, fontWeight: 500, color: "#C53030" }}>
-                        Vérification SMS non disponible
-                      </span>
-                    </div>
-                    <p style={{ fontSize: 12, color: "#742A2A", margin: 0, lineHeight: 1.5 }}>
-                      Le service d'envoi de SMS n'est pas configuré sur cette instance. Votre compte est créé — vous pourrez vérifier votre numéro ultérieurement depuis votre profil.
-                    </p>
-                    <button
-                      type="button"
-                      onClick={() => setLocation(isPro ? "/dashboard/setup" : "/")}
-                      style={{
-                        marginTop: 4, alignSelf: "flex-start",
-                        fontSize: 12, fontWeight: 500, color: "#E53E3E",
-                        background: "transparent", border: "none", cursor: "pointer",
-                        padding: 0, textDecoration: "underline",
-                      }}
+                <AnimatePresence>
+                  {otpServiceUnavailable && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -6, height: 0 }}
+                      animate={{ opacity: 1, y: 0, height: "auto" }}
+                      exit={{ opacity: 0, y: -6, height: 0 }}
+                      transition={{ duration: 0.2 }}
+                      style={{ overflow: "hidden", marginBottom: 24 }}
                     >
-                      Continuer sans vérification →
-                    </button>
-                  </motion.div>
-                )}
+                      <div style={{
+                        padding: "14px 16px",
+                        backgroundColor: "var(--accent-tint)",
+                        border: "1px solid rgba(212,70,110,0.2)",
+                        borderRadius: 12,
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 8,
+                      }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                          <AlertTriangle size={14} color="var(--accent)" />
+                          <span style={{ fontSize: 13, fontWeight: 500, color: "var(--accent)" }}>
+                            Vérification SMS non disponible
+                          </span>
+                        </div>
+                        <p style={{ fontSize: 12, color: "var(--ink-secondary)", margin: 0, lineHeight: 1.6 }}>
+                          Le service SMS n'est pas configuré. Votre compte est créé — vous pourrez vérifier votre numéro depuis votre profil.
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => setLocation(isPro ? "/dashboard/setup" : "/")}
+                          style={{
+                            marginTop: 2, alignSelf: "flex-start",
+                            display: "inline-flex", alignItems: "center", gap: 5,
+                            fontSize: 12, fontWeight: 500, color: "var(--accent)",
+                            background: "transparent", border: "none", cursor: "pointer",
+                            padding: 0,
+                          }}
+                        >
+                          Continuer sans vérification
+                          <ArrowRight size={11} />
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
 
-                <form onSubmit={handleOtpSubmit} style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-                  <OtpInput value={otp} onChange={setOtp} error={otpError} />
+                <form onSubmit={handleOtpSubmit} style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+                  {/* OTP input */}
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 24 }}>
+                    <InputOTP
+                      maxLength={6}
+                      value={otp}
+                      onChange={(val) => { setOtp(val); setOtpError(undefined); }}
+                    >
+                      <InputOTPGroup>
+                        <InputOTPSlot index={0} />
+                        <InputOTPSlot index={1} />
+                        <InputOTPSlot index={2} />
+                      </InputOTPGroup>
+                      <InputOTPSeparator />
+                      <InputOTPGroup>
+                        <InputOTPSlot index={3} />
+                        <InputOTPSlot index={4} />
+                        <InputOTPSlot index={5} />
+                      </InputOTPGroup>
+                    </InputOTP>
 
+                    <AnimatePresence>
+                      {otpError && (
+                        <motion.p
+                          initial={{ opacity: 0, y: -4 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0 }}
+                          style={{ fontSize: 12, color: "#E53E3E", margin: 0 }}
+                        >
+                          {otpError}
+                        </motion.p>
+                      )}
+                    </AnimatePresence>
+                  </div>
+
+                  {/* Submit */}
                   <motion.button
                     type="submit"
-                    disabled={otpLoading}
+                    disabled={otpLoading || otp.length < 6}
                     whileTap={otpLoading ? {} : { scale: 0.98 }}
                     style={{
-                      width: "100%", height: 44,
-                      backgroundColor: otpLoading ? "rgba(212,70,110,0.35)" : "var(--accent)",
+                      width: "100%", height: 46,
+                      backgroundColor: (otpLoading || otp.length < 6) ? "rgba(212,70,110,0.4)" : "var(--accent)",
                       color: "#FFFFFF", fontSize: 14, fontWeight: 600,
-                      letterSpacing: "-0.01em", borderRadius: 8, border: "none",
-                      cursor: otpLoading ? "not-allowed" : "pointer",
-                      transition: "background-color 160ms ease",
+                      letterSpacing: "-0.01em", borderRadius: 9999, border: "none",
+                      cursor: (otpLoading || otp.length < 6) ? "not-allowed" : "pointer",
+                      transition: "background-color 180ms ease",
+                      display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
                     }}
                   >
-                    {otpLoading ? "Vérification…" : "Valider le code"}
+                    {otpLoading ? (
+                      <>
+                        <svg width={15} height={15} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" style={{ animation: "spin 0.8s linear infinite" }}>
+                          <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+                        </svg>
+                        Vérification…
+                      </>
+                    ) : "Valider le code"}
                   </motion.button>
                 </form>
 
+                {/* Resend */}
                 <div style={{ marginTop: 20, display: "flex", alignItems: "center", gap: 6 }}>
-                  <span style={{ fontSize: 13, color: "var(--ink-tertiary)" }}>
-                    Pas reçu le code ?
-                  </span>
+                  <span style={{ fontSize: 13, color: "var(--ink-tertiary)" }}>Pas reçu le code ?</span>
                   {resendCooldown > 0 ? (
-                    <span style={{ fontSize: 13, color: "var(--ink-tertiary)" }}>
-                      Renvoyer dans {resendCooldown}s
-                    </span>
+                    <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                      <RotateCcw size={12} color="var(--ink-tertiary)" />
+                      <span style={{ fontSize: 13, color: "var(--ink-tertiary)", fontVariantNumeric: "tabular-nums" }}>
+                        Renvoyer dans {resendCooldown}s
+                      </span>
+                    </div>
                   ) : (
                     <button
+                      type="button"
                       onClick={sendOtp}
                       style={{
+                        display: "inline-flex", alignItems: "center", gap: 5,
                         fontSize: 13, fontWeight: 500, color: "var(--ink)",
                         background: "transparent", border: "none", cursor: "pointer", padding: 0,
-                        textDecoration: "underline", textDecorationColor: "var(--hairline-strong)",
                       }}
                     >
+                      <RotateCcw size={12} />
                       Renvoyer
                     </button>
                   )}
@@ -391,7 +390,7 @@ export default function RegisterPage() {
                       <div style={{ display: "flex", gap: 8 }}>
                         {([
                           { value: "ESTABLISHMENT", label: "Établissement", icon: Building2 },
-                          { value: "INDIVIDUAL", label: "Indépendant", icon: UserIcon },
+                          { value: "INDIVIDUAL", label: "Indépendant", icon: User },
                         ] as const).map(({ value, label, icon: Icon }) => (
                           <button
                             key={value}
