@@ -112,7 +112,7 @@ export default function AccountBookingsPage() {
   );
 
   return (
-    <div style={{ minHeight: "100vh", backgroundColor: ds.colors.canvas, paddingTop: 96 }}>
+    <div style={{ minHeight: "100vh", backgroundColor: ds.colors.canvas }}>
       <TopBar />
 
       <main>
