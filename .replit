@@ -47,8 +47,7 @@ outputType = "console"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd artifacts/api-server && node ./build.mjs && cd ../.. && PORT=3000 node --enable-source-maps ./artifacts/api-server/dist/index.mjs"
-waitForPort = 3000
+args = "cd artifacts/api-server && node ./build.mjs && PORT=3000 node --enable-source-maps ./dist/index.mjs"
 
 [agent]
 stack = "BEST_EFFORT_FALLBACK"
