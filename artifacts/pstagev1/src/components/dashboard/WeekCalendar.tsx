@@ -188,12 +188,12 @@ function BookingPopup({
         top:             position.top,
         left,
         width:           POPUP_W,
-        backgroundColor: ds.colors.canvas,
+        backgroundColor: ds.colors.canvasMuted,
         borderRadius:    12,
         overflow:        "hidden",
         zIndex:          300,
         pointerEvents:   "none",
-        boxShadow:       "0 4px 6px -1px rgba(0,0,0,0.07), 0 12px 32px -4px rgba(0,0,0,0.13), 0 0 0 1px rgba(0,0,0,0.06)",
+        boxShadow:       "0 4px 6px -1px rgba(0,0,0,0.08), 0 16px 40px -6px rgba(0,0,0,0.16), 0 0 0 1px rgba(0,0,0,0.09)",
       }}
     >
       {/* Top accent bar */}
