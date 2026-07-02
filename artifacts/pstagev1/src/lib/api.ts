@@ -66,6 +66,7 @@ export interface AuthUser {
   role: "CLIENT" | "OWNER" | "ADMIN";
   phoneVerified: boolean;
   emailVerified: boolean;
+  photoUrl?: string | null;
 }
 
 export interface LoginResponse {
@@ -78,7 +79,7 @@ export interface RegisterResponse {
   user: AuthUser;
   token: string;
   refreshToken: string;
-  requiresPhoneVerification: boolean;
+  devEmailLink?: string;
 }
 
 // ── Provider types (API shape)
@@ -239,11 +240,17 @@ export const api = {
   login: (email: string, password: string) =>
     apiFetch<LoginResponse>("/auth/login", { method: "POST", body: JSON.stringify({ email, password }) }),
 
-  register: (data: { email: string; phone: string; password: string; name: string; role?: "CLIENT" | "OWNER" }) =>
+  register: (data: { email: string; phone: string; password: string; name: string; role?: "CLIENT" | "OWNER"; phoneToken: string }) =>
     apiFetch<RegisterResponse>("/auth/register", { method: "POST", body: JSON.stringify(data) }),
 
+  preRegisterSendOtp: (phone: string) =>
+    apiFetch<{ message: string; devCode?: string }>("/auth/pre-register/send-otp", { method: "POST", body: JSON.stringify({ phone }) }),
+
+  preRegisterVerifyOtp: (phone: string, code: string) =>
+    apiFetch<{ phoneToken: string }>("/auth/pre-register/verify-otp", { method: "POST", body: JSON.stringify({ phone, code }) }),
+
   sendPhoneOtp: () =>
-    apiFetch<{ message: string }>("/auth/send-phone-otp", { method: "POST" }),
+    apiFetch<{ message: string; devCode?: string }>("/auth/send-phone-otp", { method: "POST" }),
 
   // Dashboard blocks
   getBlocks: () => apiFetch<any[]>("/dashboard/blocks"),
