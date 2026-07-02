@@ -45,46 +45,7 @@ export default defineConfig({
     emptyOutDir: true,
     // Raise the chunk-size warning threshold — individual vendor chunks are expected
     chunkSizeWarningLimit: 600,
-    rollupOptions: {
-      output: {
-        // Split heavy vendor libs into separate cacheable chunks.
-        // These change rarely so they get long-lived CDN/browser cache hits.
-        manualChunks(id) {
-          if (id.includes("node_modules")) {
-            // React core — smallest, loads first
-            if (id.includes("/react-dom/") || id.includes("/react/") || id.includes("/scheduler/")) {
-              return "vendor-react";
-            }
-            // Routing + state
-            if (id.includes("/wouter/") || id.includes("/@tanstack/react-query/")) {
-              return "vendor-state";
-            }
-            // Animation — large, only needed on interactive pages
-            if (id.includes("/framer-motion/") || id.includes("/motion/")) {
-              return "vendor-motion";
-            }
-            // Map — only needed on search page
-            if (id.includes("/leaflet/") || id.includes("/react-leaflet/")) {
-              return "vendor-map";
-            }
-            // Charts — only needed on analytics page
-            if (id.includes("/recharts/") || id.includes("/d3-") || id.includes("/victory-")) {
-              return "vendor-charts";
-            }
-            // Stripe — only needed on booking page
-            if (id.includes("/@stripe/")) {
-              return "vendor-stripe";
-            }
-            // Radix UI + shadcn components
-            if (id.includes("/@radix-ui/")) {
-              return "vendor-radix";
-            }
-            // Everything else in node_modules
-            return "vendor-misc";
-          }
-        },
-      },
-    },
+    rollupOptions: {},
   },
   server: {
     port,
