@@ -18,32 +18,75 @@ PSTAGEV1 is a vertical SaaS booking platform for hair salons and beauty institut
 
 ## Brand Personality
 
-Precise · Restrained · Confident
+Warm · Confident · Accessible
 
-The platform should feel like a premium tool that happens to be beautiful, not a beautiful thing that happens to be functional. Tone: clear and direct, no fluff. Visually: black ink on white canvas, accent used surgically.
+The platform should feel welcoming and trustworthy — a product clients enjoy using, not just a tool. Tone: clear, direct, friendly. Visually: rose accent as the primary brand color, clean white canvas, generous border radius.
 
-Reference feel: Linear (product dashboard), Resend (developer tool precision in a consumer product), Planity FR (domain context but with more editorial restraint).
+Reference feel: Planity FR (booking UX), Fresha (warmth and accessibility), with more editorial refinement.
+
+## Design System
+
+### Colors
+
+- **Primary CTA**: `var(--accent)` — `#D4466E` (rose). All primary action buttons use rose.
+- **Canvas**: `#FBFBFC` — page background (never pure white)
+- **Canvas pure**: `#FFFFFF` — floating surfaces (cards, inputs, modals)
+- **Ink**: `#0C0C0E` — headings and high-emphasis text
+- **Ink secondary**: `rgba(12,12,14,0.65)` — body text
+- **Ink tertiary**: `rgba(12,12,14,0.45)` — meta, captions
+- **Accent tint**: `#FBEEF1` — badge backgrounds, subtle rose fills
+- **Rating**: `#E8A33D` — stars only
+
+### Border Radius
+
+- `--radius-chip`: 4px — micro tags
+- `--radius-tag`: 6px — small tags
+- `--radius-control`: 8px — inputs, small buttons
+- `--radius-card`: 12px — cards
+- `--radius-panel`: 16px — modals, panels
+- `--radius-full`: 9999px — pill buttons, badges, avatar chips
+
+Primary CTA buttons use `--radius-full` (pill shape). Secondary/outline buttons use `--radius-control` (8px).
+
+### Typography
+
+```
+display   → 56px / 600 / lh:1.08 / tracking:-0.025em
+heading-l → 36px / 600 / lh:1.15 / tracking:-0.02em
+heading-m → 24px / 600 / lh:1.20 / tracking:-0.015em
+heading-s → 18px / 500 / lh:1.30 / tracking:-0.01em
+body-l    → 17px / 400 / lh:1.55
+body      → 15px / 400 / lh:1.55
+body-s    → 13px / 400 / lh:1.45
+label     → 14px / 500 / lh:1
+caption   → 12px / 400 / lh:1.4 / tracking:+0.01em
+```
+
+### Absolute rules
+
+1. **ZÉRO `box-shadow`** sur card/button/input/panel
+2. **ZÉRO `translateY` au hover** d'une card
+3. **ZÉRO `font-bold`** — poids max 600 (font-semibold)
+4. **Tracking négatif** obligatoire sur tout texte ≥ 18px
+5. **Skeleton** : `bg-[#ECEDF0] animate-pulse`
+6. **Pas d'état vide blanc** — toujours icône + titre + sous-titre
+7. **ZÉRO `border-left`/`border-right` coloré** ni color dot
+8. **Nested cards** — jamais
 
 ## Anti-references
 
-- Generic SaaS landing page: centered hero + badge pill + grey subtitle + floating search bar
-- Pill-radius on CTA buttons (rounded-full on action buttons — only tags and badges earn pill shape)
-- Gradients used decoratively (acceptable only for image text legibility overlays)
-- Glassmorphism as default (backdrop-filter/blur on decorative cards — acceptable only for the floating pill navbar)
-- Nested cards (card inside a card — never)
-- Glow effects / drop shadows on UI elements
-- Multiple simultaneous rose/accent elements on screen (max 1 visible at any moment)
-- Rose on primary CTAs — primary buttons are black (#0C0C0E), rose is for rare brand moments only
-- Blue (#2563EB, #3B82F6) appearing in the UI palette — off-brand, only allowed inside the Leaflet map for the user-location dot
-- Fresha / Booksy clone aesthetic (overly warm, card-heavy, busy)
+- Gradients décoratifs (seulement autorisés pour la lisibilité sur images)
+- Glassmorphism par défaut
+- Glow effects / drop shadows sur éléments UI
+- Blue (#2563EB, #3B82F6) dans la palette — interdit sauf dot localisation Leaflet
 
 ## Design Principles
 
-1. **Black is primary.** Every CTA button, active state, and emphasis is #0C0C0E. Rose (#D4466E) is the single chromatic accent — one element per screen, never on a primary action, never as a background fill.
-2. **Restraint over decoration.** Every visual element must earn its place. If removing it makes the page cleaner without losing information, remove it.
-3. **The tool disappears into the task.** On the booking flow and dashboard, zero ornamentation. The interface should feel invisible — the appointment is the hero, not the UI.
-4. **Trust through density.** Moroccan beauty clients trust what they can verify: photos, reviews, verified badges, real prices. Surface these first; don't bury them behind progressive disclosure.
-5. **Consistency is the feature.** Every button shape, every icon weight, every border radius must be the same pattern across all screens. Inconsistency reads as low-quality.
+1. **Rose est primaire.** `var(--accent)` #D4466E est la couleur des CTAs et états actifs.
+2. **Restraint over decoration.** Chaque élément visuel doit gagner sa place.
+3. **The tool disappears into the task.** Sur le flow de réservation et le dashboard, zéro ornement.
+4. **Trust through density.** Photos, avis, badges vérifiés, prix réels — en premier plan.
+5. **Consistency is the feature.** Même radius, même poids d'icône, même pattern sur tous les écrans.
 
 ## Accessibility & Inclusion
 

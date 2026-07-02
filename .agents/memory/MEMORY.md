@@ -1,6 +1,6 @@
 - [Neon migration](neon-migration.md) — Use NEON_DATABASE_URL secret (not DATABASE_URL, runtime-managed by Replit); fallback chain in drizzle.config.ts.
 - [PSTAGEV1 Phase 1 build](pstagev1-phase1.md) — Full Awwwards redesign complete; accent #D4466E; frontend on port 5000 BASE_PATH=/.
-- [Button hierarchy rule](button-hierarchy-rule.md) — Primary CTA (confirm, reserve, search, save, login) = rose var(--accent); secondary = dark/outline. DSButton variant="primary" now uses var(--accent) in index.css.
+- [Button hierarchy rule](button-hierarchy-rule.md) — CTA primaire = rose var(--accent) pill (9999px); secondaire = dark outline 8px. L'ancienne règle "noir primaire, rose rare" est abandonnée.
 - [API Server workflow quirks](api-server-workflow.md) — Use port 8000 (not 8080), pre-build binary in bash then start with node directly; Vite proxy /api → localhost:8000.
 - [UI component casing convention](ui-casing-convention.md) — Custom DS components use PascalCase (Badge.tsx, DSButton.tsx, Input.tsx); shadcn uses lowercase (button.tsx, input.tsx). Never import Badge/Button across the casing boundary.
 - [Mock data migration](mock-data-migration.md) — mock-data.ts deleted; all pages use real API via useQuery + adaptProvider/adaptProviderList; dashboard 401s are expected (auth required).

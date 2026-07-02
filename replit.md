@@ -94,7 +94,7 @@ workspace/
 --ink-secondary:  #53565C   ← corps de texte
 --ink-tertiary:   #8A8D93   ← meta, captions
 
---accent:         #D4466E   ← brand mark, sémantique uniquement
+--accent:         #D4466E   ← CTA primaire (boutons d'action)
 --accent-hover:   #B8345B
 --accent-tint:    #FBEEF1   ← fond badge actif
 
@@ -109,7 +109,7 @@ workspace/
 2. **ZÉRO `translateY` au hover** d'une card
 3. **ZÉRO `font-bold`** — poids max 600 (font-semibold)
 4. **Tracking négatif** obligatoire sur tout texte ≥ 18px
-5. **Accent rose** sur < 8% de la surface visible d'un écran
+5. **CTA primaire = `var(--accent)` #D4466E** — boutons d'action principaux en rose pill (`border-radius: 9999px`)
 6. **Skeleton** : `bg-[#ECEDF0] animate-pulse` (jamais `bg-gray-200`)
 7. **Pas d'état vide blanc** — toujours icône + titre + sous-titre
 8. **ZÉRO `border-left`/`border-right` coloré** (one-side border) ni color dot
@@ -282,8 +282,8 @@ Comptes de test (seedés automatiquement) :
 - Langue UI : **français** (plateforme marocaine)
 - Pas d'emojis dans l'UI — seulement icônes Lucide React
 - Design : Awwwards-level, Linear/Resend en light mode
-- Boutons primaires : accent `#D4466E` (var(--accent))
-- Accent rose : max 1 élément par écran, uniquement sémantique
+- Boutons primaires : `var(--accent)` #D4466E, forme pill (`border-radius: 9999px`)
+- Radius boutons secondaires : `--radius-control` (8px), pas pill
 - Prix en MAD : `priceCents / 100` + "MAD"
 - Sections majeures : `py-24` (96px) de séparation
 

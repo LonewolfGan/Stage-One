@@ -1,23 +1,24 @@
 ---
 name: Button hierarchy rule
-description: Which buttons are rose vs dark — corrected from earlier "ink everywhere" preference.
+description: Couleurs et radius des boutons — rose pill pour les CTAs primaires, 8px pour les secondaires.
 ---
 
-## Rule (current, post-correction-prompt)
+## Règle actuelle (validée par l'utilisateur)
 
-**Primary action button** (the one that confirms/completes the user's intent on a screen: Réserver, Rechercher, Se connecter, Créer mon compte, Sauvegarder, Réserver maintenant, Commencer, Payer maintenant) → `background: var(--accent)` (#D4466E), text white.
+**Bouton primaire** (confirme/complète l'intention : Réserver, Rechercher, Commencer, Se connecter, Créer un compte, Sauvegarder, Payer) → `background: var(--accent)` (#D4466E), texte blanc, `border-radius: 9999px` (pill).
 
-**Secondary button** (outline, cancel, ghost, back) → dark ink or transparent/outline.
+**Bouton secondaire** (outline, annuler, retour, ghost) → dark ink ou transparent/outline, `border-radius: var(--radius-control)` (8px).
 
-**Toggle / selection state** (active filter chip, selected tab, selected duration option) → dark ink is fine — these are UI state indicators, not CTAs.
+**Toggle / état de sélection** (filtre actif, onglet sélectionné) → dark ink, pas de pill.
 
-**Decorative elements** (badges like "Top", "RECOMMANDÉ", dots, pins) → any color, not CTAs.
+**Éléments décoratifs** (badges "Top", "RECOMMANDÉ") → pill autorisé, pas un CTA.
 
-## Implementation
+## Ce qui a changé
 
-- `index.css` `.ds-btn-primary` → `background-color: var(--accent)` + hover `var(--accent-hover)`. This propagates to ALL uses of `Button variant="primary"` across the codebase (booking, dashboard, account pages).
-- Inline buttons (auth, settings, category, search cards, provider-profile, not-found, verify-email) → edited individually.
+L'ancienne règle "noir primaire, rose rare" est **abandonnée**. L'utilisateur veut le système de couleurs et de radius actuel :
+- Rose = CTA primaire (pas sémantique-rare)
+- Pill = forme des boutons d'action (pas interdit)
 
-**Why:** Correction prompt (attached_assets) explicitly required rose for primary CTA. This overrides the earlier replit.md preference of "ink #0C0C0E jamais rose sur les CTAs". When the user says "respecte ce prompt à la lettre", the prompt overrides previous stored preferences.
+**Why:** L'utilisateur a explicitement confirmé en juillet 2026 que PRODUCT.md était en désaccord avec ses préférences réelles. Le système actuel de l'app (rose pill) est la référence, pas les anciennes règles.
 
-**How to apply:** Any new button that is the primary confirming action → var(--accent). Navigation toggles, filter controls, selection states → dark is fine.
+**How to apply:** Tout nouveau bouton d'action principal → `var(--accent)` + pill. Ne pas écrire de règle "noir primaire" ou "rose rare".
