@@ -6,3 +6,39 @@ id = "PchjTBWzpD9wA4LULk8Ou"
 uri = "file://architecture-review.html"
 type = "unspecified"
 title = "Architecture Review — PSTAGEV1"
+
+[[outputs]]
+id = "Zz7th3l_6Q7lRse22x02h"
+uri = "file://artifacts/pstagev1/public/cities/casablanca.webp"
+type = "image"
+title = "Casablanca — Mosquée Hassan II"
+
+[[outputs]]
+id = "aaACcGTWiC006yVXzCWn3"
+uri = "file://artifacts/pstagev1/public/cities/marrakech.webp"
+type = "image"
+title = "Marrakech — Medina"
+
+[[outputs]]
+id = "B7t9zGVr2NYX9ZHcDSIaF"
+uri = "file://artifacts/pstagev1/public/cities/rabat.webp"
+type = "image"
+title = "Rabat — Kasbah des Oudayas"
+
+[[outputs]]
+id = "uNniY0aR6YHdIXnaYfCsi"
+uri = "file://artifacts/pstagev1/public/cities/tanger.jpg"
+type = "image"
+title = "Tanger — Médina"
+
+[[outputs]]
+id = "iX0G4QRzr2j0hJ4IxjAPs"
+uri = "file://artifacts/pstagev1/public/cities/agadir.jpg"
+type = "image"
+title = "Agadir — Baie"
+
+[[outputs]]
+id = "ZbYlvb6C3rH-UZrFlCn80"
+uri = "file://artifacts/pstagev1/public/cities/fes.jpg"
+type = "image"
+title = "Fès — Tanneries Chouara"
