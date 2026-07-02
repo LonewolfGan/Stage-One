@@ -140,7 +140,7 @@ const blockSchema = z.object({
   startDatetime: z.string().datetime(),
   endDatetime: z.string().datetime(),
   title: z.string().optional(),
-  type: z.enum(["HOLIDAY", "MANUAL_BLOCK", "ABSENCE"]).default("MANUAL_BLOCK"),
+  type: z.enum(["HOLIDAY", "MANUAL_BLOCK", "ABSENCE", "VACATION", "BREAK"]).default("MANUAL_BLOCK"),
 });
 
 // GET /dashboard/blocks — list all schedule blocks for this provider
