@@ -1,8 +1,9 @@
 import { useMemo, useState, useRef, useCallback, useEffect } from "react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { X, Clock, User, Scissors, CreditCard, CheckCircle, XCircle, AlertCircle } from "lucide-react";
+import { X, Clock, User, Scissors, CreditCard, CheckCircle, XCircle, AlertCircle, ChevronRight } from "lucide-react";
 import { ds } from "@/lib/design-system";
+import { Separator } from "@/components/ui/separator";
 
 // ────────────────────────────────────────────────
 // TYPES
@@ -163,21 +164,22 @@ function BookingPopup({
   booking: Stacked;
   position: PopupPosition | null;
 }) {
-  const { title, client, clientInitials, start, end, type } = booking;
-  const color     = getServiceColor(type);
-  const timeLabel = `${formatHour(start)} – ${formatHour(end)}`;
-  const duration  = Math.round((end - start) * 60);
+  const { title, client, clientInitials, start, end, type, status, amountCents, staffName } = booking;
+  const color      = getServiceColor(type);
+  const timeLabel  = `${formatHour(start)} – ${formatHour(end)}`;
+  const duration   = Math.round((end - start) * 60);
+  const statusInfo = getStatusLabel(status);
+  const hasClient  = client && client !== "—";
+  const price      = amountCents != null ? `${(amountCents / 100).toLocaleString("fr-MA")} MAD` : null;
 
   if (!position) return null;
 
-  const POPUP_W = 240;
+  const POPUP_W = 264;
   const MARGIN  = 10;
 
   const left = position.wouldOverflowRight
     ? position.left - POPUP_W - MARGIN
     : position.left + position.elementWidth + MARGIN;
-
-  const hasClient = client && client !== "—";
 
   return (
     <div
@@ -186,61 +188,145 @@ function BookingPopup({
         top:             position.top,
         left,
         width:           POPUP_W,
-        backgroundColor: ds.colors.ink,
-        borderRadius:    10,
+        backgroundColor: ds.colors.canvas,
+        borderRadius:    12,
         overflow:        "hidden",
         zIndex:          300,
         pointerEvents:   "none",
+        boxShadow:       "0 4px 6px -1px rgba(0,0,0,0.07), 0 12px 32px -4px rgba(0,0,0,0.13), 0 0 0 1px rgba(0,0,0,0.06)",
       }}
     >
-      <div style={{ padding: "12px 14px 14px" }}>
-        {/* Service name */}
-        <p style={{
-          fontSize:      13,
-          fontWeight:    600,
-          color:         ds.colors.canvas,
-          margin:        "0 0 10px",
-          lineHeight:    1.3,
-          letterSpacing: "-0.01em",
-        }}>
-          {title}
-        </p>
+      {/* Top accent bar */}
+      <div style={{ height: 3, backgroundColor: color, width: "100%" }} />
 
-        {/* Divider */}
-        <div style={{ height: 1, backgroundColor: "rgba(255,255,255,0.10)", margin: "0 0 10px" }} />
-
-        {/* Time row */}
-        <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: hasClient ? 8 : 0 }}>
+      {/* Header: service name + status badge */}
+      <div style={{ padding: "12px 14px 10px" }}>
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8 }}>
+          <p style={{
+            fontSize:      13,
+            fontWeight:    650,
+            color:         ds.colors.ink,
+            margin:        0,
+            lineHeight:    1.3,
+            letterSpacing: "-0.015em",
+            flex:          1,
+            minWidth:      0,
+          }}>
+            {title}
+          </p>
+          {/* Status badge */}
           <span style={{
-            display:         "inline-block",
-            width:           6,
-            height:          6,
-            borderRadius:    "50%",
-            backgroundColor: color,
+            display:         "inline-flex",
+            alignItems:      "center",
+            gap:             4,
+            backgroundColor: statusInfo.bg,
+            color:           statusInfo.color,
+            borderRadius:    999,
+            padding:         "2px 7px",
+            fontSize:        10,
+            fontWeight:      650,
+            letterSpacing:   "0.01em",
+            whiteSpace:      "nowrap",
             flexShrink:      0,
-          }} />
-          <span style={{ fontSize: 12, fontWeight: 600, color: ds.colors.canvas, letterSpacing: "-0.01em" }}>
+          }}>
+            <span style={{
+              width: 5, height: 5,
+              borderRadius: "50%",
+              backgroundColor: statusInfo.color,
+              display: "inline-block",
+              flexShrink: 0,
+            }} />
+            {statusInfo.label}
+          </span>
+        </div>
+      </div>
+
+      <Separator className="mx-0" />
+
+      {/* Body */}
+      <div style={{ padding: "10px 14px 12px", display: "flex", flexDirection: "column", gap: 8 }}>
+
+        {/* Time + duration */}
+        <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+          <Clock size={12} strokeWidth={2} color={ds.colors.inkTertiary} style={{ flexShrink: 0 }} />
+          <span style={{ fontSize: 12, fontWeight: 600, color: ds.colors.inkSecondary, letterSpacing: "-0.01em" }}>
             {timeLabel}
           </span>
           <span style={{
-            fontSize:    11,
-            color:       "rgba(255,255,255,0.40)",
-            fontWeight:  500,
-            marginLeft:  "auto",
+            fontSize:        10,
+            fontWeight:      600,
+            color:           hexAlpha(color, 0.9),
+            backgroundColor: hexAlpha(color, 0.10),
+            borderRadius:    4,
+            padding:         "1px 5px",
+            marginLeft:      "auto",
           }}>
             {duration} min
           </span>
         </div>
 
-        {/* Client row with avatar */}
+        {/* Client */}
         {hasClient && (
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <Avatar initials={clientInitials} size={22} fontSize={9} bg="rgba(255,255,255,0.14)" />
-            <span style={{ fontSize: 12, fontWeight: 500, color: "rgba(255,255,255,0.60)" }}>
+            <div style={{
+              width:           22,
+              height:          22,
+              borderRadius:    "50%",
+              backgroundColor: hexAlpha(color, 0.14),
+              display:         "flex",
+              alignItems:      "center",
+              justifyContent:  "center",
+              flexShrink:      0,
+            }}>
+              <span style={{ fontSize: 8, fontWeight: 700, color, letterSpacing: "0.02em" }}>
+                {clientInitials}
+              </span>
+            </div>
+            <span style={{ fontSize: 12, fontWeight: 500, color: ds.colors.inkSecondary }}>
               {client}
             </span>
           </div>
         )}
+
+        {/* Staff */}
+        {staffName && (
+          <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+            <User size={12} strokeWidth={2} color={ds.colors.inkTertiary} style={{ flexShrink: 0 }} />
+            <span style={{ fontSize: 12, fontWeight: 400, color: ds.colors.inkTertiary }}>
+              {staffName}
+            </span>
+          </div>
+        )}
+
+        {/* Price */}
+        {price && (
+          <div style={{
+            display:         "flex",
+            alignItems:      "center",
+            justifyContent:  "space-between",
+            backgroundColor: "var(--surface-2)",
+            borderRadius:    7,
+            padding:         "6px 9px",
+            marginTop:       2,
+          }}>
+            <span style={{ fontSize: 11, color: ds.colors.inkTertiary, fontWeight: 500 }}>Montant</span>
+            <span style={{ fontSize: 12, fontWeight: 650, color: ds.colors.ink }}>{price}</span>
+          </div>
+        )}
+      </div>
+
+      {/* Footer hint */}
+      <div style={{
+        padding:         "7px 14px",
+        borderTop:       "1px solid rgba(0,0,0,0.06)",
+        display:         "flex",
+        alignItems:      "center",
+        justifyContent:  "space-between",
+      }}>
+        <span style={{ fontSize: 10, color: ds.colors.inkDisabled, fontWeight: 500, letterSpacing: "0.01em" }}>
+          Cliquer pour les détails
+        </span>
+        <ChevronRight size={10} color={ds.colors.inkDisabled} strokeWidth={2} />
       </div>
     </div>
   );
