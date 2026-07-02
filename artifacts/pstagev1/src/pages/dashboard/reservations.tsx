@@ -125,78 +125,34 @@ export default function ReservationsPage() {
           gap: "8px 10px",
         }}>
 
-          {/* ── Groupe gauche : bouton retour + séparateur + nav semaine ── */}
-          <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+          {/* ── Bouton retour ── */}
+          <button
+            type="button"
+            onClick={() => navigate("/dashboard/agenda")}
+            style={{
+              flexShrink: 0,
+              display: "flex", alignItems: "center", gap: 5,
+              height: 32, padding: "0 11px 0 8px",
+              borderRadius: 9, border: "1px solid var(--hairline)",
+              background: "none", cursor: "pointer",
+              fontSize: 13, fontWeight: 500, color: "var(--ink-secondary)",
+              letterSpacing: "-0.01em", transition: "background 120ms",
+              whiteSpace: "nowrap",
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-2)")}
+            onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
+          >
+            <ArrowLeft size={14} strokeWidth={2} />
+            Agenda
+          </button>
 
-            {/* Back button */}
-            <button
-              type="button"
-              onClick={() => navigate("/dashboard/agenda")}
-              style={{
-                display: "flex", alignItems: "center", gap: 5,
-                height: 32, padding: "0 11px 0 8px",
-                borderRadius: 9, border: "1px solid var(--hairline)",
-                background: "none", cursor: "pointer",
-                fontSize: 13, fontWeight: 500, color: "var(--ink-secondary)",
-                letterSpacing: "-0.01em", transition: "background 120ms",
-                whiteSpace: "nowrap",
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-2)")}
-              onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
-            >
-              <ArrowLeft size={14} strokeWidth={2} />
-              Agenda
-            </button>
+          {/* ── Séparateur ── */}
+          <div style={{ width: 1, height: 20, backgroundColor: "var(--hairline)", flexShrink: 0 }} />
 
-            {/* Divider */}
-            <div style={{ width: 1, height: 20, backgroundColor: "var(--hairline)", flexShrink: 0 }} />
-
-            {/* Week navigator */}
-            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              <button
-                type="button"
-                onClick={() => setWeekOffset((w) => w - 1)}
-                style={{ width: 30, height: 30, borderRadius: 8, border: "1px solid var(--hairline)", background: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--ink-secondary)", transition: "background 120ms" }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-2)")}
-                onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
-              >
-                <ChevronLeft size={14} />
-              </button>
-
-              <span style={{ fontSize: 12, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.01em", minWidth: 148, textAlign: "center", whiteSpace: "nowrap" }}>
-                {isLoading
-                  ? <span style={{ display: "inline-block", width: 120, height: 12, borderRadius: 6, background: "var(--surface-3)", animation: "pulse 1.5s ease-in-out infinite" }} />
-                  : weekLabel}
-              </span>
-
-              <button
-                type="button"
-                onClick={() => setWeekOffset((w) => w + 1)}
-                style={{ width: 30, height: 30, borderRadius: 8, border: "1px solid var(--hairline)", background: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--ink-secondary)", transition: "background 120ms" }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-2)")}
-                onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
-              >
-                <ChevronRight size={14} />
-              </button>
-
-              {weekOffset !== 0 && (
-                <button
-                  type="button"
-                  onClick={() => setWeekOffset(0)}
-                  style={{ height: 30, padding: "0 10px", borderRadius: 8, border: "1px solid var(--hairline)", background: "none", cursor: "pointer", fontSize: 12, fontWeight: 500, color: "var(--ink-secondary)", transition: "background 120ms", whiteSpace: "nowrap" }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-2)")}
-                  onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
-                >
-                  Aujourd'hui
-                </button>
-              )}
-            </div>
-          </div>
-
-          {/* ── Groupe droit : chips équipe — flex-grow, scrollable horizontalement ── */}
+          {/* ── Chips équipe — prend l'espace disponible, scrollable ── */}
           {staffList.length > 0 && (
             <div style={{
-              flex: "1 1 180px",
+              flex: "1 1 140px",
               minWidth: 0,
               display: "flex",
               alignItems: "center",
@@ -205,8 +161,6 @@ export default function ReservationsPage() {
               scrollbarWidth: "none",
               msOverflowStyle: "none",
             } as React.CSSProperties}>
-              {/* Séparateur visible uniquement quand sur la même ligne (flex-grow l'absorbe sinon) */}
-              <div style={{ width: 1, height: 20, backgroundColor: "var(--hairline)", flexShrink: 0, marginRight: 5 }} />
               {[{ id: null, name: "Tous" }, ...staffList].map((s) => {
                 const active = selectedStaffId === s.id;
                 return (
@@ -243,6 +197,52 @@ export default function ReservationsPage() {
               })}
             </div>
           )}
+
+          {/* ── Séparateur ── */}
+          {staffList.length > 0 && (
+            <div style={{ width: 1, height: 20, backgroundColor: "var(--hairline)", flexShrink: 0 }} />
+          )}
+
+          {/* ── Nav semaine — fixe à droite ── */}
+          <div style={{ flexShrink: 0, display: "flex", alignItems: "center", gap: 6 }}>
+            <button
+              type="button"
+              onClick={() => setWeekOffset((w) => w - 1)}
+              style={{ width: 30, height: 30, borderRadius: 8, border: "1px solid var(--hairline)", background: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--ink-secondary)", transition: "background 120ms" }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-2)")}
+              onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
+            >
+              <ChevronLeft size={14} />
+            </button>
+
+            <span style={{ fontSize: 12, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.01em", minWidth: 148, textAlign: "center", whiteSpace: "nowrap" }}>
+              {isLoading
+                ? <span style={{ display: "inline-block", width: 120, height: 12, borderRadius: 6, background: "var(--surface-3)", animation: "pulse 1.5s ease-in-out infinite" }} />
+                : weekLabel}
+            </span>
+
+            <button
+              type="button"
+              onClick={() => setWeekOffset((w) => w + 1)}
+              style={{ width: 30, height: 30, borderRadius: 8, border: "1px solid var(--hairline)", background: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--ink-secondary)", transition: "background 120ms" }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-2)")}
+              onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
+            >
+              <ChevronRight size={14} />
+            </button>
+
+            {weekOffset !== 0 && (
+              <button
+                type="button"
+                onClick={() => setWeekOffset(0)}
+                style={{ height: 30, padding: "0 10px", borderRadius: 8, border: "1px solid var(--hairline)", background: "none", cursor: "pointer", fontSize: 12, fontWeight: 500, color: "var(--ink-secondary)", transition: "background 120ms", whiteSpace: "nowrap" }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-2)")}
+                onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
+              >
+                Aujourd'hui
+              </button>
+            )}
+          </div>
         </div>
 
         {/* ── Week calendar grid ── */}
