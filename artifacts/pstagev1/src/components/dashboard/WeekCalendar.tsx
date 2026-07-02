@@ -316,9 +316,9 @@ function BookingPopup({
       </div>
 
       {/* Footer hint */}
+      <div style={{ height: 1, backgroundColor: ds.colors.canvasMuted }} />
       <div style={{
         padding:         "7px 14px",
-        borderTop:       "1px solid rgba(0,0,0,0.06)",
         display:         "flex",
         alignItems:      "center",
         justifyContent:  "space-between",
@@ -405,7 +405,6 @@ function BookingModal({
         <div style={{
           flexShrink:     0,
           padding:        "16px 18px 14px",
-          borderBottom:   "1px solid var(--hairline)",
           display:        "flex",
           alignItems:     "flex-start",
           justifyContent: "space-between",
@@ -553,21 +552,23 @@ function InfoRow({
   valueStyle?: React.CSSProperties;
 }) {
   return (
-    <div style={{
-      display:      "flex",
-      alignItems:   "center",
-      gap:          10,
-      padding:      "9px 2px",
-      borderBottom: "1px solid var(--hairline)",
-    }}>
-      <span style={{ color: "var(--ink-tertiary)", flexShrink: 0, display: "flex" }}>{icon}</span>
-      <span style={{ fontSize: 12, color: "var(--ink-tertiary)", fontWeight: 500, minWidth: 88 }}>
-        {label}
-      </span>
-      <span style={{ fontSize: 13, color: "var(--ink-secondary)", fontWeight: 400, marginLeft: "auto", textAlign: "right", ...valueStyle }}>
-        {value}
-      </span>
-    </div>
+    <>
+      <div style={{
+        display:    "flex",
+        alignItems: "center",
+        gap:        10,
+        padding:    "9px 2px",
+      }}>
+        <span style={{ color: "var(--ink-tertiary)", flexShrink: 0, display: "flex" }}>{icon}</span>
+        <span style={{ fontSize: 12, color: "var(--ink-tertiary)", fontWeight: 500, minWidth: 88 }}>
+          {label}
+        </span>
+        <span style={{ fontSize: 13, color: "var(--ink-secondary)", fontWeight: 400, marginLeft: "auto", textAlign: "right", ...valueStyle }}>
+          {value}
+        </span>
+      </div>
+      <div style={{ height: 1, backgroundColor: "var(--surface-2)" }} />
+    </>
   );
 }
 

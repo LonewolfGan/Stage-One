@@ -91,7 +91,7 @@ export default function ReservationsPage() {
   const monday     = addWeeks(baseMonday, weekOffset);
   const days       = eachDayOfInterval({ start: monday, end: addDays(monday, 6) });
 
-  const weekLabel = `${format(monday, "d MMM", { locale: fr })} – ${format(addDays(monday, 6), "d MMM yyyy", { locale: fr })}`;
+  const weekLabel = `${format(monday, "d MMM", { locale: fr })} – ${format(addDays(monday, 6), "d MMM", { locale: fr })}`;
 
   /* ── Staff list ── */
   const { data: providerData } = useQuery({
@@ -272,9 +272,9 @@ export default function ReservationsPage() {
               <ChevronLeft size={14} />
             </button>
 
-            <span style={{ fontSize: 12, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.01em", minWidth: 130, textAlign: "center", whiteSpace: "nowrap" }}>
+            <span style={{ fontSize: 12, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.01em", whiteSpace: "nowrap" }}>
               {isLoading
-                ? <span style={{ display: "inline-block", width: 110, height: 12, borderRadius: 6, background: "var(--surface-3)", animation: "pulse 1.5s ease-in-out infinite" }} />
+                ? <span style={{ display: "inline-block", width: 90, height: 12, borderRadius: 6, background: "var(--surface-3)", animation: "pulse 1.5s ease-in-out infinite" }} />
                 : weekLabel}
             </span>
 
