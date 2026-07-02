@@ -3,7 +3,8 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { build as esbuild } from "esbuild";
 import esbuildPluginPino from "esbuild-plugin-pino";
-import { rm } from "node:fs/promises";
+import { rm, cp } from "node:fs/promises";
+import { existsSync } from "node:fs";
 
 // Plugins (e.g. 'esbuild-plugin-pino') may use `require` to resolve dependencies
 globalThis.require = createRequire(import.meta.url);
@@ -118,6 +119,19 @@ globalThis.__dirname = __bannerPath.dirname(globalThis.__filename);
     `,
     },
   });
+
+  // ── Copy compiled frontend into dist/public ──────────────────────────────
+  // This makes the static files sit next to the bundle so that
+  //   path.resolve(thisDir, "public")   always resolves correctly,
+  // regardless of CWD or how import.meta.url is resolved at runtime.
+  const frontendDist = path.resolve(artifactDir, "../pstagev1/dist/public");
+  const frontendTarget = path.resolve(distDir, "public");
+  if (existsSync(frontendDist)) {
+    await cp(frontendDist, frontendTarget, { recursive: true });
+    console.log(`✓ Frontend dist copied → ${frontendTarget}`);
+  } else {
+    console.log("ℹ  No frontend dist found (Vite not built yet — skipping copy)");
+  }
 }
 
 buildAll().catch((err) => {

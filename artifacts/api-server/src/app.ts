@@ -98,17 +98,31 @@ app.use("/api", router);
 // static assets from artifacts/pstagev1/dist/public, SPA fallback for
 // any non-/api route (client-side routing via Wouter).
 if (process.env.NODE_ENV === "production") {
-  // Resolve static dir relative to this compiled bundle, with a CWD fallback
-  const thisDir = path.dirname(fileURLToPath(import.meta.url));
-  const fromBundle = path.resolve(thisDir, "../../pstagev1/dist/public");
-  const fromCwd    = path.resolve(process.cwd(), "artifacts/pstagev1/dist/public");
-  const staticDir  = existsSync(fromBundle) ? fromBundle : fromCwd;
+  // build.mjs copies artifacts/pstagev1/dist/public → dist/public (next to this bundle).
+  // That is the primary path. Fall back to the source Vite output dir (same content,
+  // useful when the copy step was skipped or the CWD is the project root).
+  const thisDir    = path.dirname(fileURLToPath(import.meta.url));
+  const fromCopied = path.resolve(thisDir, "public");                              // dist/public
+  const fromCwd    = path.resolve(process.cwd(), "artifacts/pstagev1/dist/public"); // project root fallback
+  const staticDir  = existsSync(fromCopied) ? fromCopied : fromCwd;
 
   logger.info({ staticDir, exists: existsSync(staticDir) }, "Serving static frontend");
 
-  app.use(express.static(staticDir, { maxAge: "1y", immutable: true }));
-  // SPA fallback — everything that is not /api gets index.html
-  app.get("*splat", (_req, res) => {
+  app.use(express.static(staticDir, {
+    maxAge: "1y",
+    immutable: true,
+    // Never long-cache index.html — it must always be fresh so the browser
+    // picks up new hashed asset filenames after each deploy.
+    setHeaders(res, filePath) {
+      if (filePath.endsWith("index.html")) {
+        res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+      }
+    },
+  }));
+
+  // SPA fallback — any non-/api path that wasn't served as a static file
+  // gets index.html so client-side routing (Wouter) takes over.
+  app.use((_req, res) => {
     res.sendFile(path.join(staticDir, "index.html"));
   });
 }
