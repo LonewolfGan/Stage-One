@@ -36,7 +36,7 @@ interface BlockModal {
 
 /* ── Status system — single source of truth ── */
 const STATUS_CONFIG = {
-  confirmed:  { color: ds.colors.success,     bg: ds.colors.successBg,   border: ds.colors.successBorder,  label: "Confirmé"   },
+  confirmed:  { color: ds.colors.ink,          bg: ds.colors.canvasMuted, border: ds.colors.border,         label: "Confirmé"   },
   pending:    { color: ds.colors.accent,       bg: ds.colors.accentLight, border: ds.colors.accentBorder,   label: "En attente" },
   cancelled:  { color: ds.colors.error,        bg: ds.colors.errorBg,     border: ds.colors.errorBorder,    label: "Annulé"     },
   completed:  { color: ds.colors.ink,          bg: ds.colors.canvasMuted, border: ds.colors.border,         label: "Terminé"    },
@@ -59,7 +59,7 @@ function avatarInitials(name: string) {
 }
 
 function avatarColor(name: string) {
-  const colors = [ds.colors.success, ds.colors.accent, ds.colors.error, ds.colors.ink, "#6B8CFF", "#B06DCC"];
+  const colors = [ds.colors.accent, ds.colors.error, ds.colors.ink, "#6B8CFF", "#B06DCC", "#E8A33D"];
   let hash = 0;
   for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
   return colors[Math.abs(hash) % colors.length];
