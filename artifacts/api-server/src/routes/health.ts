@@ -14,7 +14,11 @@ router.get("/healthz", (_req, res) => {
 router.post("/twilio-check", async (req, res) => {
   const { to, secret } = req.body as { to?: string; secret?: string };
 
-  const expectedSecret = process.env.TWILIO_TEST_SECRET ?? "pstagev1-twilio-check";
+  const expectedSecret = process.env.TWILIO_TEST_SECRET;
+  if (!expectedSecret) {
+    res.status(404).json({ error: "Not found" });
+    return;
+  }
   if (secret !== expectedSecret) {
     res.status(403).json({ error: "Forbidden: bad secret" });
     return;

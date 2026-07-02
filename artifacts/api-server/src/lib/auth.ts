@@ -1,8 +1,10 @@
 import { SignJWT, jwtVerify } from "jose";
 
-const SECRET = new TextEncoder().encode(
-  process.env.SESSION_SECRET ?? "pstagev1-dev-secret-change-in-production",
-);
+if (!process.env.SESSION_SECRET) {
+  throw new Error("SESSION_SECRET environment variable is required");
+}
+
+const SECRET = new TextEncoder().encode(process.env.SESSION_SECRET);
 
 const ALGORITHM = "HS256";
 

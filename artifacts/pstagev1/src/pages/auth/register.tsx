@@ -129,7 +129,7 @@ export default function RegisterPage() {
     return e;
   }
 
-  function startCooldown(seconds: number, setter: (n: number) => void, ref: React.MutableRefObject<ReturnType<typeof setInterval> | null>) {
+  function startCooldown(seconds: number, setter: React.Dispatch<React.SetStateAction<number>>, ref: React.MutableRefObject<ReturnType<typeof setInterval> | null>) {
     setter(seconds);
     if (ref.current) clearInterval(ref.current);
     ref.current = setInterval(() => {
