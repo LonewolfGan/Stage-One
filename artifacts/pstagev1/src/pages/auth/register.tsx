@@ -715,13 +715,13 @@ export default function RegisterPage() {
                   key={s}
                   style={{
                     height: 3, borderRadius: 2,
-                    flex: step === s ? "3" : "1",
+                    flex: "1 1 0%",
                     backgroundColor: step === s
                       ? "var(--ink)"
                       : STEPS.indexOf(step) > STEPS.indexOf(s)
                         ? "var(--ink-tertiary)"
                         : "var(--hairline-strong)",
-                    transition: "all 300ms ease",
+                    transition: "background-color 300ms ease",
                   }}
                 />
               ))}
