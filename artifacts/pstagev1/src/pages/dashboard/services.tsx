@@ -5,10 +5,11 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Button } from "@/components/ui/DSButton";
 import { api, type ApiService, type ApiStaff } from "@/lib/api";
-import { Pencil, Tag, Trash2, Clock, Timer, Users, ToggleLeft, ToggleRight, Plus, X } from "lucide-react";
+import { Pencil, Tag, Trash2, Clock, Timer, Users, ToggleLeft, ToggleRight, Plus } from "lucide-react";
 import { ds } from "@/lib/design-system";
 import { toast } from "sonner";
 import { initials } from "@/lib/utils";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 /* ── Staff chip ───────────────────────────────────────────── */
 function StaffChip({ name }: { name: string }) {
@@ -286,32 +287,17 @@ function ServiceForm({ slug, service, allStaff, onClose }: ServiceFormProps) {
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-      transition={{ duration: 0.15 }}
-      onClick={onClose}
-      style={{ position: "fixed", inset: 0, zIndex: 200, backgroundColor: "rgba(0,0,0,0.46)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}
-    >
-      <motion.div
-        initial={{ opacity: 0, scale: 0.97, y: 8 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.97, y: 8 }}
-        transition={{ duration: 0.18, ease: [0, 0, 0.2, 1] }}
-        onClick={(e) => e.stopPropagation()}
-        style={{ width: "100%", maxWidth: 480, backgroundColor: ds.colors.canvas, borderRadius: 14, border: `1px solid ${ds.colors.border}`, overflow: "hidden", maxHeight: "90vh", overflowY: "auto" }}
-      >
-        {/* Header */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 20px 16px", borderBottom: `1px solid ${ds.colors.border}`, position: "sticky", top: 0, background: ds.colors.canvas, zIndex: 1 }}>
-          <h2 style={{ margin: 0, fontSize: 15, fontWeight: 600, color: ds.colors.ink, letterSpacing: "-0.015em" }}>
-            {isEdit ? "Modifier la prestation" : "Nouvelle prestation"}
-          </h2>
-          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: ds.colors.inkTertiary, padding: 4, display: "flex", borderRadius: 6 }}>
-            <X size={16} />
-          </button>
-        </div>
+    <div style={{ display: "flex", flexDirection: "column", overflow: "hidden" }}>
+      {/* Header */}
+      <div style={{ display: "flex", alignItems: "center", padding: "16px 20px 14px", borderBottom: `1px solid ${ds.colors.border}`, flexShrink: 0 }}>
+        <h2 style={{ margin: 0, fontSize: 15, fontWeight: 600, color: ds.colors.ink, letterSpacing: "-0.015em" }}>
+          {isEdit ? "Modifier la prestation" : "Nouvelle prestation"}
+        </h2>
+      </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} style={{ padding: "20px" }}>
+      {/* Form */}
+      <div style={{ overflowY: "auto", flex: 1 }}>
+      <form onSubmit={handleSubmit} style={{ padding: "20px" }}>
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
 
             <div>

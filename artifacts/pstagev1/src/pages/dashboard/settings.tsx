@@ -9,6 +9,8 @@ import {
   Clock, Save, User, Bell, Shield, MapPin,
   Plus, Trash2, X, Phone, Image, Coffee, Upload, CalendarOff,
 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 
 /* ─── Types ───────────────────────────────────────────────────────────────────── */
 
@@ -57,26 +59,6 @@ function Section({ title, icon: Icon, children }: { title: string; icon: React.E
   );
 }
 
-function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
-  return (
-    <button
-      role="switch" aria-checked={checked} onClick={() => onChange(!checked)}
-      style={{
-        width: 36, height: 20, borderRadius: 99,
-        backgroundColor: checked ? "var(--accent)" : "rgba(12,12,14,0.12)",
-        border: "none", cursor: "pointer", padding: 2,
-        display: "flex", alignItems: "center",
-        transition: "background-color 180ms ease", flexShrink: 0,
-      }}
-    >
-      <div style={{
-        width: 16, height: 16, borderRadius: "50%", backgroundColor: "#fff",
-        transform: checked ? "translateX(16px)" : "translateX(0)",
-        transition: "transform 180ms ease",
-      }} />
-    </button>
-  );
-}
 
 function Field({
   label, value, onChange, type = "text", placeholder, hint,
@@ -320,17 +302,14 @@ function PhoneList({ phones, onChange }: { phones: PhoneEntry[]; onChange: (p: P
       {phones.map((phone) => (
         <div key={phone.id} style={{ display: "flex", gap: 8, alignItems: "center" }}>
           <Phone size={13} color="var(--ink-tertiary)" style={{ flexShrink: 0 }} />
-          <select
-            value={phone.label}
-            onChange={(e) => update(phone.id, { label: e.target.value })}
-            style={{
-              padding: "9px 10px", border: "1px solid var(--hairline)", borderRadius: 8,
-              fontSize: 12, color: "var(--ink-secondary)", background: "var(--surface-1)",
-              outline: "none", fontFamily: "var(--font)", cursor: "pointer", flexShrink: 0,
-            }}
-          >
-            {PHONE_LABELS.map((l) => <option key={l} value={l}>{l}</option>)}
-          </select>
+          <Select value={phone.label} onValueChange={(v) => update(phone.id, { label: v })}>
+            <SelectTrigger className="w-[130px] shrink-0">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {PHONE_LABELS.map((l) => <SelectItem key={l} value={l}>{l}</SelectItem>)}
+            </SelectContent>
+          </Select>
           <input
             type="tel" value={phone.number} placeholder="+212 6 XX XX XX XX"
             onChange={(e) => update(phone.id, { number: e.target.value })}
@@ -408,7 +387,7 @@ function DayHoursRow({
 
         {/* Open/Closed toggle */}
         <div style={{ display: "flex", alignItems: "center", gap: 7, flexShrink: 0 }}>
-          <Toggle checked={!day.isClosed} onChange={(v) => onChange({ isClosed: !v })} />
+          <Switch checked={!day.isClosed} onCheckedChange={(v) => onChange({ isClosed: !v })} />
           <span style={{ fontSize: 11, color: "var(--ink-tertiary)", minWidth: 38 }}>
             {day.isClosed ? "Fermé" : "Ouvert"}
           </span>
@@ -752,17 +731,14 @@ export default function SettingsPage() {
               />
               <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
                 <label style={{ fontSize: 12, fontWeight: 500, color: "var(--ink-secondary)" }}>Catégorie</label>
-                <select
-                  value={profile.category}
-                  onChange={(e) => setProfile((p) => ({ ...p, category: e.target.value }))}
-                  style={{
-                    padding: "9px 12px", border: "1px solid var(--hairline)", borderRadius: 8,
-                    fontSize: 13, color: "var(--ink)", background: "var(--surface-1)",
-                    outline: "none", fontFamily: "var(--font)", cursor: "pointer",
-                  }}
-                >
-                  {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
-                </select>
+                <Select value={profile.category} onValueChange={(v) => setProfile((p) => ({ ...p, category: v }))}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
@@ -1022,16 +998,20 @@ export default function SettingsPage() {
                   {staffList.length > 0 && (
                     <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                       <label style={{ fontSize: 11, fontWeight: 500, color: "var(--ink-secondary)" }}>Membre du personnel (laisser vide = tout le salon)</label>
-                      <select
-                        value={blockForm.staffId}
-                        onChange={(e) => setBlockForm((f) => ({ ...f, staffId: e.target.value }))}
-                        style={{ padding: "8px 10px", borderRadius: 7, border: "1px solid var(--hairline-strong)", fontSize: 13, color: "var(--ink)", background: "var(--canvas-pure)" }}
+                      <Select
+                        value={blockForm.staffId === "" ? "_all" : blockForm.staffId}
+                        onValueChange={(v) => setBlockForm((f) => ({ ...f, staffId: v === "_all" ? "" : v }))}
                       >
-                        <option value="">Tout le salon</option>
-                        {staffList.map((s) => (
-                          <option key={s.id} value={s.id}>{s.name}</option>
-                        ))}
-                      </select>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="_all">Tout le salon</SelectItem>
+                          {staffList.map((s) => (
+                            <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                   )}
 
