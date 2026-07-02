@@ -258,6 +258,12 @@ export const api = {
   verifyPhone: (code: string) =>
     apiFetch<{ message: string }>("/auth/verify-phone", { method: "POST", body: JSON.stringify({ code }) }),
 
+  sendEmailCode: () =>
+    apiFetch<{ message: string; devCode?: string }>("/auth/send-email-code", { method: "POST" }),
+
+  verifyEmailCode: (code: string) =>
+    apiFetch<{ message: string }>("/auth/verify-email-code", { method: "POST", body: JSON.stringify({ code }) }),
+
   me: () => apiFetch<AuthUser>("/auth/me"),
 
   changePassword: (currentPassword: string, newPassword: string) =>

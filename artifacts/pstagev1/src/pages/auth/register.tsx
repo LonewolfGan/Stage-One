@@ -6,7 +6,6 @@ import { EyeIcon } from "@/components/ui/eye";
 import { EyeOffIcon } from "@/components/ui/eye-off";
 import { ArrowLeftIcon } from "@/components/ui/arrow-left";
 import { motion, AnimatePresence } from "framer-motion";
-import { Logo } from "@/components/ui/Logo";
 import { api } from "@/lib/api";
 import { setTokens } from "@/lib/auth-store";
 import heroImage from "@assets/ChatGPT_Image_Jun_27,_2026,_07_43_37_PM_(1)_1782586261262.png";
@@ -35,7 +34,54 @@ function PasswordRule({ met, label }: { met: boolean; label: string }) {
   );
 }
 
-type Step = "form" | "otp" | "done";
+function DevBanner({ code, onFill }: { code: string; onFill: (c: string) => void }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -6, height: 0 }}
+      animate={{ opacity: 1, y: 0, height: "auto" }}
+      exit={{ opacity: 0, y: -6, height: 0 }}
+      transition={{ duration: 0.2 }}
+      style={{ overflow: "hidden", marginBottom: 20 }}
+    >
+      <div style={{
+        padding: "12px 14px",
+        backgroundColor: "#FEFCE8",
+        border: "1px solid #FDE68A",
+        borderRadius: 8,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: 8,
+      }}>
+        <div>
+          <span style={{ fontSize: 11, fontWeight: 500, color: "#92400E", display: "block", marginBottom: 2 }}>
+            Mode développement — simulé
+          </span>
+          <span style={{ fontSize: 13, color: "#78350F" }}>
+            Code :{" "}
+            <span style={{ fontWeight: 600, fontVariantNumeric: "tabular-nums", letterSpacing: "0.1em" }}>
+              {code}
+            </span>
+          </span>
+        </div>
+        <button
+          type="button"
+          onClick={() => onFill(code)}
+          style={{
+            fontSize: 11, fontWeight: 500, color: "#92400E",
+            background: "rgba(146,64,14,0.08)", border: "none",
+            borderRadius: 4, padding: "4px 8px", cursor: "pointer",
+            whiteSpace: "nowrap",
+          }}
+        >
+          Remplir auto
+        </button>
+      </div>
+    </motion.div>
+  );
+}
+
+type Step = "form" | "phone-otp" | "email-otp" | "done";
 
 export default function RegisterPage() {
   const search = useSearch();
@@ -52,14 +98,22 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [fieldError, setFieldError] = useState<{ email?: string; phone?: string; password?: string; general?: string }>({});
 
-  // OTP state
+  // Phone OTP state
   const [step, setStep] = useState<Step>("form");
-  const [otp, setOtp] = useState("");
-  const [otpError, setOtpError] = useState<string | undefined>();
-  const [otpLoading, setOtpLoading] = useState(false);
-  const [devCode, setDevCode] = useState<string | undefined>();
+  const [phoneOtp, setPhoneOtp] = useState("");
+  const [phoneOtpError, setPhoneOtpError] = useState<string | undefined>();
+  const [phoneOtpLoading, setPhoneOtpLoading] = useState(false);
+  const [devPhoneCode, setDevPhoneCode] = useState<string | undefined>();
   const [resendCooldown, setResendCooldown] = useState(0);
   const cooldownRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Email OTP state
+  const [emailOtp, setEmailOtp] = useState("");
+  const [emailOtpError, setEmailOtpError] = useState<string | undefined>();
+  const [emailOtpLoading, setEmailOtpLoading] = useState(false);
+  const [devEmailCode, setDevEmailCode] = useState<string | undefined>();
+  const [emailResendCooldown, setEmailResendCooldown] = useState(0);
+  const emailCooldownRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const pwd8 = password.length >= 8;
   const pwdAlpha = /[a-zA-Z]/.test(password) && /[0-9]/.test(password);
@@ -72,34 +126,34 @@ export default function RegisterPage() {
     return e;
   }
 
-  function startCooldown(seconds: number) {
-    setResendCooldown(seconds);
-    if (cooldownRef.current) clearInterval(cooldownRef.current);
-    cooldownRef.current = setInterval(() => {
-      setResendCooldown((prev) => {
-        if (prev <= 1) { clearInterval(cooldownRef.current!); return 0; }
+  function startCooldown(seconds: number, setter: (n: number) => void, ref: React.MutableRefObject<ReturnType<typeof setInterval> | null>) {
+    setter(seconds);
+    if (ref.current) clearInterval(ref.current);
+    ref.current = setInterval(() => {
+      setter((prev) => {
+        if (prev <= 1) { clearInterval(ref.current!); return 0; }
         return prev - 1;
       });
     }, 1000);
   }
 
   useEffect(() => {
-    return () => { if (cooldownRef.current) clearInterval(cooldownRef.current); };
+    return () => {
+      if (cooldownRef.current) clearInterval(cooldownRef.current);
+      if (emailCooldownRef.current) clearInterval(emailCooldownRef.current);
+    };
   }, []);
 
-  async function sendOtp(targetPhone: string) {
-    try {
-      const res = await api.preRegisterSendOtp(targetPhone);
-      setDevCode(res.devCode);
-      startCooldown(60);
-    } catch (err: any) {
-      const status = err?.status;
-      if (status === 429) {
-        setFieldError({ general: "Trop de tentatives d'envoi. Réessayez dans une heure." });
-      } else {
-        setFieldError({ general: err?.data?.message ?? "Erreur lors de l'envoi du code." });
-      }
-    }
+  async function sendPhoneOtp(targetPhone: string) {
+    const res = await api.preRegisterSendOtp(targetPhone);
+    setDevPhoneCode(res.devCode);
+    startCooldown(60, setResendCooldown, cooldownRef);
+  }
+
+  async function sendEmailCode() {
+    const res = await api.sendEmailCode();
+    setDevEmailCode(res.devCode);
+    startCooldown(60, setEmailResendCooldown, emailCooldownRef);
   }
 
   async function handleFormSubmit(e: FormEvent) {
@@ -109,25 +163,27 @@ export default function RegisterPage() {
     setFieldError({});
     setLoading(true);
     try {
-      await sendOtp(phone);
-      setStep("otp");
-    } catch {
-      // error already set inside sendOtp
+      await sendPhoneOtp(phone);
+      setStep("phone-otp");
+    } catch (err: any) {
+      const status = err?.status;
+      if (status === 429) {
+        setFieldError({ general: "Trop de tentatives d'envoi. Réessayez dans une heure." });
+      } else {
+        setFieldError({ general: err?.data?.message ?? "Erreur lors de l'envoi du code." });
+      }
     } finally {
       setLoading(false);
     }
   }
 
-  async function handleOtpSubmit(e: FormEvent) {
+  async function handlePhoneOtpSubmit(e: FormEvent) {
     e.preventDefault();
-    if (otp.length < 6) { setOtpError("Entrez les 6 chiffres du code."); return; }
-    setOtpError(undefined);
-    setOtpLoading(true);
+    if (phoneOtp.length < 6) { setPhoneOtpError("Entrez les 6 chiffres du code."); return; }
+    setPhoneOtpError(undefined);
+    setPhoneOtpLoading(true);
     try {
-      // 1. Verify OTP → get phoneToken
-      const { phoneToken } = await api.preRegisterVerifyOtp(phone, otp);
-
-      // 2. Create account with verified phone
+      const { phoneToken } = await api.preRegisterVerifyOtp(phone, phoneOtp);
       const name = email.split("@")[0].replace(/[._-]/g, " ");
       const res = await api.register({
         name,
@@ -138,30 +194,56 @@ export default function RegisterPage() {
         phoneToken,
       });
       setTokens(res.token, res.refreshToken, res.user);
-      setStep("done");
-      setTimeout(() => setLocation(isPro ? "/dashboard/agenda" : "/"), 900);
+      await sendEmailCode();
+      setStep("email-otp");
     } catch (err: any) {
       const msg: string = err?.data?.message ?? err?.message ?? "";
       if (msg.toLowerCase().includes("email")) {
-        // Email conflict → back to form
         setStep("form");
         setFieldError({ email: "Cette adresse est déjà utilisée." });
       } else if (msg.toLowerCase().includes("téléphone") || msg.toLowerCase().includes("numéro")) {
         setStep("form");
         setFieldError({ phone: "Ce numéro est déjà utilisé." });
       } else if (msg.includes("token") || msg.includes("Token")) {
-        // phoneToken expired → restart from OTP
-        setOtp("");
-        setOtpError("Code expiré. Renvoyez un nouveau code.");
+        setPhoneOtp("");
+        setPhoneOtpError("Code expiré. Renvoyez un nouveau code.");
       } else {
-        setOtpError(msg || "Une erreur est survenue.");
+        setPhoneOtpError(msg || "Une erreur est survenue.");
       }
     } finally {
-      setOtpLoading(false);
+      setPhoneOtpLoading(false);
     }
   }
 
+  async function handleEmailOtpSubmit(e: FormEvent) {
+    e.preventDefault();
+    if (emailOtp.length < 6) { setEmailOtpError("Entrez les 6 chiffres du code."); return; }
+    setEmailOtpError(undefined);
+    setEmailOtpLoading(true);
+    try {
+      await api.verifyEmailCode(emailOtp);
+      setStep("done");
+      setTimeout(() => setLocation(isPro ? "/dashboard/agenda" : "/"), 900);
+    } catch (err: any) {
+      const msg: string = err?.data?.message ?? err?.message ?? "";
+      if (msg.includes("expiré") || msg.includes("incorrect")) {
+        setEmailOtpError("Code incorrect ou expiré.");
+      } else {
+        setEmailOtpError(msg || "Une erreur est survenue.");
+      }
+    } finally {
+      setEmailOtpLoading(false);
+    }
+  }
+
+  function handleSkipEmail() {
+    setStep("done");
+    setTimeout(() => setLocation(isPro ? "/dashboard/agenda" : "/"), 900);
+  }
+
   const displayPhone = phone.startsWith("0") ? "+212 " + phone.slice(1) : phone;
+
+  const STEPS: Step[] = ["form", "phone-otp", "email-otp"];
 
   return (
     <div className="flex overflow-hidden" style={{ height: "100vh", backgroundColor: "var(--canvas)" }}>
@@ -179,9 +261,13 @@ export default function RegisterPage() {
         {/* Back */}
         <div>
           <button
-            onClick={() => step === "otp" ? (setStep("form"), setOtp(""), setOtpError(undefined)) : setLocation("/")}
+            onClick={() => {
+              if (step === "phone-otp") { setStep("form"); setPhoneOtp(""); setPhoneOtpError(undefined); }
+              else if (step === "form") setLocation("/");
+            }}
             style={{
-              display: "inline-flex", alignItems: "center", gap: 6,
+              display: step === "email-otp" || step === "done" ? "none" : "inline-flex",
+              alignItems: "center", gap: 6,
               fontSize: 13, fontWeight: 500, color: "var(--ink-tertiary)",
               background: "transparent", border: "none", cursor: "pointer", padding: 0,
               transition: "color 140ms ease",
@@ -190,7 +276,7 @@ export default function RegisterPage() {
             onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "var(--ink-tertiary)"; }}
           >
             <ArrowLeftIcon size={14} />
-            {step === "otp" ? "Modifier mes infos" : "Accueil"}
+            {step === "phone-otp" ? "Modifier mes infos" : "Accueil"}
           </button>
         </div>
 
@@ -198,7 +284,7 @@ export default function RegisterPage() {
         <div style={{ flex: 1, maxWidth: 480, display: "flex", flexDirection: "column", justifyContent: "center" }}>
           <AnimatePresence mode="wait">
 
-            {/* ── Step done ── */}
+            {/* ── Done ── */}
             {step === "done" && (
               <motion.div key="done" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} style={{ paddingTop: 40 }}>
                 <div style={{ width: 48, height: 48, borderRadius: "50%", backgroundColor: "rgba(51,202,127,0.12)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 20 }}>
@@ -211,79 +297,37 @@ export default function RegisterPage() {
               </motion.div>
             )}
 
-            {/* ── Step OTP ── */}
-            {step === "otp" && (
+            {/* ── Email OTP ── */}
+            {step === "email-otp" && (
               <motion.div
-                key="otp"
+                key="email-otp"
                 initial={{ opacity: 0, x: 24 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -24 }}
                 transition={{ duration: 0.22, ease: [0.25, 0.1, 0.25, 1] }}
               >
                 <h1 style={{ fontSize: 24, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.018em", marginBottom: 6, lineHeight: 1.2 }}>
-                  Vérifiez votre numéro
+                  Vérifiez votre email
                 </h1>
                 <p style={{ fontSize: 14, color: "var(--ink-tertiary)", lineHeight: 1.65, marginBottom: 28 }}>
-                  Code envoyé au{" "}
-                  <span style={{ color: "var(--ink)", fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>
-                    {displayPhone}
+                  Code envoyé à{" "}
+                  <span style={{ color: "var(--ink)", fontWeight: 500 }}>
+                    {email}
                   </span>
                 </p>
 
-                {/* Dev banner */}
                 <AnimatePresence>
-                  {devCode && (
-                    <motion.div
-                      initial={{ opacity: 0, y: -6, height: 0 }}
-                      animate={{ opacity: 1, y: 0, height: "auto" }}
-                      exit={{ opacity: 0, y: -6, height: 0 }}
-                      transition={{ duration: 0.2 }}
-                      style={{ overflow: "hidden", marginBottom: 20 }}
-                    >
-                      <div style={{
-                        padding: "12px 14px",
-                        backgroundColor: "#FEFCE8",
-                        border: "1px solid #FDE68A",
-                        borderRadius: 8,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        gap: 8,
-                      }}>
-                        <div>
-                          <span style={{ fontSize: 11, fontWeight: 500, color: "#92400E", display: "block", marginBottom: 2 }}>
-                            Mode développement — SMS simulé
-                          </span>
-                          <span style={{ fontSize: 13, color: "#78350F" }}>
-                            Code :{" "}
-                            <span style={{ fontWeight: 600, fontVariantNumeric: "tabular-nums", letterSpacing: "0.1em" }}>
-                              {devCode}
-                            </span>
-                          </span>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => setOtp(devCode)}
-                          style={{
-                            fontSize: 11, fontWeight: 500, color: "#92400E",
-                            background: "rgba(146,64,14,0.08)", border: "none",
-                            borderRadius: 4, padding: "4px 8px", cursor: "pointer",
-                            whiteSpace: "nowrap",
-                          }}
-                        >
-                          Remplir auto
-                        </button>
-                      </div>
-                    </motion.div>
+                  {devEmailCode && (
+                    <DevBanner code={devEmailCode} onFill={(c) => setEmailOtp(c)} />
                   )}
                 </AnimatePresence>
 
-                <form onSubmit={handleOtpSubmit} style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+                <form onSubmit={handleEmailOtpSubmit} style={{ display: "flex", flexDirection: "column", gap: 0 }}>
                   <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 24 }}>
                     <InputOTP
                       maxLength={6}
-                      value={otp}
-                      onChange={(val) => { setOtp(val); setOtpError(undefined); }}
+                      value={emailOtp}
+                      onChange={(val) => { setEmailOtp(val); setEmailOtpError(undefined); }}
                     >
                       <InputOTPGroup>
                         <InputOTPSlot index={0} />
@@ -299,14 +343,14 @@ export default function RegisterPage() {
                     </InputOTP>
 
                     <AnimatePresence>
-                      {otpError && (
+                      {emailOtpError && (
                         <motion.p
                           initial={{ opacity: 0, y: -4 }}
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0 }}
                           style={{ fontSize: 12, color: "#E53E3E", margin: 0 }}
                         >
-                          {otpError}
+                          {emailOtpError}
                         </motion.p>
                       )}
                     </AnimatePresence>
@@ -314,19 +358,143 @@ export default function RegisterPage() {
 
                   <motion.button
                     type="submit"
-                    disabled={otpLoading || otp.length < 6}
-                    whileTap={otpLoading ? {} : { scale: 0.98 }}
+                    disabled={emailOtpLoading || emailOtp.length < 6}
+                    whileTap={emailOtpLoading ? {} : { scale: 0.98 }}
                     style={{
                       width: "100%", height: 46,
-                      backgroundColor: (otpLoading || otp.length < 6) ? "rgba(212,70,110,0.4)" : "var(--accent)",
+                      backgroundColor: (emailOtpLoading || emailOtp.length < 6) ? "rgba(212,70,110,0.4)" : "var(--accent)",
                       color: "#FFFFFF", fontSize: 14, fontWeight: 600,
                       letterSpacing: "-0.01em", borderRadius: 9999, border: "none",
-                      cursor: (otpLoading || otp.length < 6) ? "not-allowed" : "pointer",
+                      cursor: (emailOtpLoading || emailOtp.length < 6) ? "not-allowed" : "pointer",
                       transition: "background-color 180ms ease",
                       display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
                     }}
                   >
-                    {otpLoading ? (
+                    {emailOtpLoading ? (
+                      <>
+                        <svg width={15} height={15} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" style={{ animation: "spin 0.8s linear infinite" }}>
+                          <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+                        </svg>
+                        Vérification…
+                      </>
+                    ) : "Vérifier mon email"}
+                  </motion.button>
+                </form>
+
+                {/* Resend */}
+                <div style={{ marginTop: 20, display: "flex", alignItems: "center", gap: 6 }}>
+                  <span style={{ fontSize: 13, color: "var(--ink-tertiary)" }}>Pas reçu ?</span>
+                  {emailResendCooldown > 0 ? (
+                    <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                      <RotateCcw size={12} color="var(--ink-tertiary)" />
+                      <span style={{ fontSize: 13, color: "var(--ink-tertiary)", fontVariantNumeric: "tabular-nums" }}>
+                        Renvoyer dans {emailResendCooldown}s
+                      </span>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={sendEmailCode}
+                      style={{
+                        display: "inline-flex", alignItems: "center", gap: 5,
+                        fontSize: 13, fontWeight: 500, color: "var(--ink)",
+                        background: "transparent", border: "none", cursor: "pointer", padding: 0,
+                      }}
+                    >
+                      <RotateCcw size={12} />
+                      Renvoyer
+                    </button>
+                  )}
+                </div>
+
+                {/* Skip */}
+                <button
+                  type="button"
+                  onClick={handleSkipEmail}
+                  style={{
+                    marginTop: 16, fontSize: 13, color: "var(--ink-tertiary)",
+                    background: "none", border: "none", cursor: "pointer", padding: 0,
+                  }}
+                >
+                  Passer pour l'instant
+                </button>
+              </motion.div>
+            )}
+
+            {/* ── Phone OTP ── */}
+            {step === "phone-otp" && (
+              <motion.div
+                key="phone-otp"
+                initial={{ opacity: 0, x: 24 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -24 }}
+                transition={{ duration: 0.22, ease: [0.25, 0.1, 0.25, 1] }}
+              >
+                <h1 style={{ fontSize: 24, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.018em", marginBottom: 6, lineHeight: 1.2 }}>
+                  Vérifiez votre numéro
+                </h1>
+                <p style={{ fontSize: 14, color: "var(--ink-tertiary)", lineHeight: 1.65, marginBottom: 28 }}>
+                  Code envoyé au{" "}
+                  <span style={{ color: "var(--ink)", fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>
+                    {displayPhone}
+                  </span>
+                </p>
+
+                <AnimatePresence>
+                  {devPhoneCode && (
+                    <DevBanner code={devPhoneCode} onFill={(c) => setPhoneOtp(c)} />
+                  )}
+                </AnimatePresence>
+
+                <form onSubmit={handlePhoneOtpSubmit} style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 24 }}>
+                    <InputOTP
+                      maxLength={6}
+                      value={phoneOtp}
+                      onChange={(val) => { setPhoneOtp(val); setPhoneOtpError(undefined); }}
+                    >
+                      <InputOTPGroup>
+                        <InputOTPSlot index={0} />
+                        <InputOTPSlot index={1} />
+                        <InputOTPSlot index={2} />
+                      </InputOTPGroup>
+                      <InputOTPSeparator />
+                      <InputOTPGroup>
+                        <InputOTPSlot index={3} />
+                        <InputOTPSlot index={4} />
+                        <InputOTPSlot index={5} />
+                      </InputOTPGroup>
+                    </InputOTP>
+
+                    <AnimatePresence>
+                      {phoneOtpError && (
+                        <motion.p
+                          initial={{ opacity: 0, y: -4 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0 }}
+                          style={{ fontSize: 12, color: "#E53E3E", margin: 0 }}
+                        >
+                          {phoneOtpError}
+                        </motion.p>
+                      )}
+                    </AnimatePresence>
+                  </div>
+
+                  <motion.button
+                    type="submit"
+                    disabled={phoneOtpLoading || phoneOtp.length < 6}
+                    whileTap={phoneOtpLoading ? {} : { scale: 0.98 }}
+                    style={{
+                      width: "100%", height: 46,
+                      backgroundColor: (phoneOtpLoading || phoneOtp.length < 6) ? "rgba(212,70,110,0.4)" : "var(--accent)",
+                      color: "#FFFFFF", fontSize: 14, fontWeight: 600,
+                      letterSpacing: "-0.01em", borderRadius: 9999, border: "none",
+                      cursor: (phoneOtpLoading || phoneOtp.length < 6) ? "not-allowed" : "pointer",
+                      transition: "background-color 180ms ease",
+                      display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                    }}
+                  >
+                    {phoneOtpLoading ? (
                       <>
                         <svg width={15} height={15} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" style={{ animation: "spin 0.8s linear infinite" }}>
                           <path d="M21 12a9 9 0 1 1-6.219-8.56" />
@@ -350,7 +518,7 @@ export default function RegisterPage() {
                   ) : (
                     <button
                       type="button"
-                      onClick={() => sendOtp(phone)}
+                      onClick={() => sendPhoneOtp(phone)}
                       style={{
                         display: "inline-flex", alignItems: "center", gap: 5,
                         fontSize: 13, fontWeight: 500, color: "var(--ink)",
@@ -365,13 +533,9 @@ export default function RegisterPage() {
               </motion.div>
             )}
 
-            {/* ── Step form ── */}
+            {/* ── Form ── */}
             {step === "form" && (
               <motion.div key="form" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                <div className="flex lg:hidden" style={{ marginBottom: 28 }}>
-                  <Logo size="md" />
-                </div>
-
                 <h1 style={{ fontSize: 24, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.018em", marginBottom: 8, lineHeight: 1.2 }}>
                   {isPro ? "Créez votre espace prestataire" : "Créez votre compte"}
                 </h1>
@@ -546,13 +710,17 @@ export default function RegisterPage() {
           {/* Progress dots */}
           {step !== "done" && (
             <div style={{ marginTop: 32, display: "flex", alignItems: "center", gap: 6 }}>
-              {(["form", "otp"] as const).map((s) => (
+              {STEPS.map((s) => (
                 <div
                   key={s}
                   style={{
                     height: 3, borderRadius: 2,
-                    flex: step === s ? "2" : "1",
-                    backgroundColor: step === s ? "var(--ink)" : "var(--hairline-strong)",
+                    flex: step === s ? "3" : "1",
+                    backgroundColor: step === s
+                      ? "var(--ink)"
+                      : STEPS.indexOf(step) > STEPS.indexOf(s)
+                        ? "var(--ink-tertiary)"
+                        : "var(--hairline-strong)",
                     transition: "all 300ms ease",
                   }}
                 />
@@ -576,7 +744,7 @@ export default function RegisterPage() {
         </div>
       </div>
 
-      {/* ── Right column (hero) ── */}
+      {/* ── Right column (hero image only — no overlay, no text) ── */}
       {isLg && (
         <div style={{ flex: "1 1 50%", position: "relative", overflow: "hidden" }}>
           <img
@@ -584,13 +752,6 @@ export default function RegisterPage() {
             alt="Salon de beauté"
             style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top" }}
           />
-          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.28) 100%)" }} />
-          <div style={{ position: "absolute", bottom: 40, left: 40, right: 40 }}>
-            <Logo size="md" onDark />
-            <p style={{ marginTop: 12, fontSize: 15, color: "rgba(255,255,255,0.75)", lineHeight: 1.6, maxWidth: 380 }}>
-              La plateforme de réservation beauté de référence au Maroc.
-            </p>
-          </div>
         </div>
       )}
     </div>

@@ -473,6 +473,60 @@ router.get("/verify-email", async (req, res) => {
   res.json({ success: true, message: "Email vérifié avec succès" });
 });
 
+// ── POST /auth/send-email-code ─────────────────────────────────────────────
+router.post("/send-email-code", requireAuth, async (req, res) => {
+  const userId = req.user!.sub;
+  const user = await db.query.usersTable.findFirst({ where: eq(usersTable.id, userId) });
+  if (!user) { res.status(404).json({ code: "ERR-004", message: "Utilisateur introuvable" }); return; }
+  if (user.emailVerified) { res.json({ message: "Email déjà vérifié" }); return; }
+
+  const allowed = await otp_checkRateLimit(`email:${userId}`);
+  if (!allowed) {
+    res.status(429).json({ code: "RATE_LIMIT", message: "Trop de tentatives. Réessayez dans une heure." });
+    return;
+  }
+
+  const code = String(Math.floor(100000 + Math.random() * 900000));
+  await otp_save(`email:${userId}`, code);
+
+  try {
+    const { sendMail } = await import("../lib/email");
+    await sendMail({
+      to: user.email,
+      subject: `${code} — Code de vérification PSTAGEV1`,
+      html: `<p>Bonjour ${user.name},</p><p>Votre code de vérification email : <strong style="font-size:24px;letter-spacing:0.1em">${code}</strong></p><p>Valable 10 minutes.</p>`,
+    });
+  } catch (err) {
+    logger.warn({ err }, "Email OTP send failed — continuing");
+  }
+
+  const response: any = { message: "Code envoyé" };
+  if (process.env.NODE_ENV !== "production") {
+    response.devCode = code;
+    logger.info({ userId, code }, "[DEV] Email OTP code");
+  }
+  res.json(response);
+});
+
+// ── POST /auth/verify-email-code ───────────────────────────────────────────
+router.post("/verify-email-code", requireAuth, async (req, res) => {
+  const { code } = req.body as { code?: string };
+  if (!code) {
+    res.status(400).json({ code: "ERR-001", message: "code requis" });
+    return;
+  }
+
+  const userId = req.user!.sub;
+  const stored = await otp_get(`email:${userId}`);
+  if (!stored || stored !== code.trim()) {
+    res.status(400).json({ code: "AUTH-004", message: "Code incorrect ou expiré" });
+    return;
+  }
+  await otp_delete(`email:${userId}`);
+  await db.update(usersTable).set({ emailVerified: true, updatedAt: new Date() }).where(eq(usersTable.id, userId));
+  res.json({ message: "Email vérifié avec succès" });
+});
+
 // ── POST /auth/change-password ─────────────────────────────────────────────
 router.post("/change-password", requireAuth, async (req, res) => {
   const parse = z.object({
