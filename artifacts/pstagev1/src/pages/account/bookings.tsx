@@ -8,7 +8,10 @@ import { StatusBadge, type BookingStatus } from "@/components/ui/status-badge";
 import { ds } from "@/lib/design-system";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Calendar, AlertCircle, Star, X, ChevronLeft, Clock, MapPin } from "lucide-react";
+import { Calendar, AlertCircle, Star, ChevronLeft, Clock, MapPin } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 function canCancel(booking: MyBooking): boolean {
   if (booking.status !== "CONFIRMED" && booking.status !== "PENDING") return false;
@@ -197,101 +200,88 @@ export default function AccountBookingsPage() {
         </div>
       </main>
 
-      {/* ── Cancel dialog ── */}
-      {cancelTarget && (
-        <div
-          style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.4)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: 20 }}
-          onClick={() => { setCancelTarget(null); setCancelError(null); }}
-        >
-          <div className="ds-card" style={{ maxWidth: 400, width: "100%" }} onClick={(e) => e.stopPropagation()}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-              <h3 style={{ fontSize: 17, fontWeight: 600, color: ds.colors.ink, margin: 0 }}>Annuler le rendez-vous ?</h3>
-              <button onClick={() => { setCancelTarget(null); setCancelError(null); }} style={{ background: "none", border: "none", cursor: "pointer", color: ds.colors.inkTertiary, display: "flex" }}>
-                <X size={18} />
-              </button>
+      {/* ── Cancel dialog (shadcn) ── */}
+      <Dialog
+        open={cancelTarget !== null}
+        onOpenChange={(open) => { if (!open) { setCancelTarget(null); setCancelError(null); } }}
+      >
+        <DialogContent style={{ maxWidth: 420 }}>
+          <DialogHeader>
+            <DialogTitle style={{ fontSize: 17, letterSpacing: "-0.01em" }}>Annuler le rendez-vous ?</DialogTitle>
+          </DialogHeader>
+          <p style={{ fontSize: 14, color: ds.colors.inkSecondary, lineHeight: 1.55, margin: 0 }}>
+            Cette action est irréversible. Le créneau sera libéré et disponible à d'autres clients.
+          </p>
+          {cancelError && (
+            <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", backgroundColor: ds.colors.errorBg, borderRadius: 8 }}>
+              <AlertCircle size={14} style={{ color: ds.colors.error, flexShrink: 0 }} />
+              <span style={{ fontSize: 13, color: ds.colors.error }}>{cancelError}</span>
             </div>
-            <p style={{ fontSize: 14, color: ds.colors.inkSecondary, marginBottom: 20, lineHeight: 1.55 }}>
-              Cette action est irréversible. Le créneau sera libéré et disponible à d'autres clients.
-            </p>
-            {cancelError && (
-              <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", backgroundColor: ds.colors.errorBg, borderRadius: 8, marginBottom: 16 }}>
-                <AlertCircle size={14} style={{ color: ds.colors.error, flexShrink: 0 }} />
-                <span style={{ fontSize: 13, color: ds.colors.error }}>{cancelError}</span>
-              </div>
-            )}
-            <div style={{ display: "flex", gap: 10 }}>
-              <button
-                onClick={() => { setCancelTarget(null); setCancelError(null); }}
-                style={{ flex: 1, padding: "10px 16px", border: `1px solid ${ds.colors.border}`, borderRadius: 8, background: ds.colors.canvas, fontSize: 14, fontWeight: 500, color: ds.colors.ink, cursor: "pointer" }}
-              >
-                Garder le RDV
-              </button>
-              <button
-                disabled={cancelMutation.isPending}
-                onClick={() => cancelMutation.mutate(cancelTarget)}
-                style={{
-                  flex: 1, padding: "10px 16px", border: "none", borderRadius: 8,
-                  background: ds.colors.error, fontSize: 14, fontWeight: 500,
-                  color: ds.colors.canvas, cursor: cancelMutation.isPending ? "not-allowed" : "pointer",
-                  opacity: cancelMutation.isPending ? 0.65 : 1, transition: "opacity 140ms",
-                }}
-              >
-                {cancelMutation.isPending ? "Annulation…" : "Confirmer l'annulation"}
-              </button>
-            </div>
+          )}
+          <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
+            <button
+              onClick={() => { setCancelTarget(null); setCancelError(null); }}
+              style={{ flex: 1, padding: "10px 16px", border: `1px solid ${ds.colors.border}`, borderRadius: 8, background: ds.colors.canvas, fontSize: 14, fontWeight: 500, color: ds.colors.ink, cursor: "pointer" }}
+            >
+              Garder le RDV
+            </button>
+            <button
+              disabled={cancelMutation.isPending}
+              onClick={() => cancelTarget && cancelMutation.mutate(cancelTarget)}
+              style={{
+                flex: 1, padding: "10px 16px", border: "none", borderRadius: 8,
+                background: ds.colors.error, fontSize: 14, fontWeight: 500,
+                color: "#fff", cursor: cancelMutation.isPending ? "not-allowed" : "pointer",
+                opacity: cancelMutation.isPending ? 0.65 : 1, transition: "opacity 140ms",
+              }}
+            >
+              {cancelMutation.isPending ? "Annulation…" : "Confirmer l'annulation"}
+            </button>
           </div>
-        </div>
-      )}
+        </DialogContent>
+      </Dialog>
 
-      {/* ── Review modal ── */}
-      {reviewTarget && (
-        <div
-          style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.4)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: 20 }}
-          onClick={() => setReviewTarget(null)}
-        >
-          <div className="ds-card" style={{ maxWidth: 440, width: "100%" }} onClick={(e) => e.stopPropagation()}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-              <h3 style={{ fontSize: 17, fontWeight: 600, color: ds.colors.ink, margin: 0 }}>Laisser un avis</h3>
-              <button onClick={() => setReviewTarget(null)} style={{ background: "none", border: "none", cursor: "pointer", color: ds.colors.inkTertiary, display: "flex" }}>
-                <X size={18} />
-              </button>
-            </div>
+      {/* ── Review dialog (shadcn) ── */}
+      <Dialog
+        open={reviewTarget !== null}
+        onOpenChange={(open) => { if (!open) setReviewTarget(null); }}
+      >
+        <DialogContent style={{ maxWidth: 460 }}>
+          <DialogHeader>
+            <DialogTitle style={{ fontSize: 17, letterSpacing: "-0.01em" }}>Laisser un avis</DialogTitle>
+          </DialogHeader>
 
-            <div style={{ marginBottom: 20 }}>
-              <p style={{ fontSize: 13, color: ds.colors.inkTertiary, marginBottom: 10 }}>Note globale</p>
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            <div>
+              <Label style={{ marginBottom: 8, display: "block", color: ds.colors.inkTertiary }}>Note globale</Label>
               <StarPicker value={reviewRating} onChange={setReviewRating} />
               {reviewRating > 0 && (
-                <p style={{ fontSize: 12, color: ds.colors.inkTertiary, marginTop: 6, margin: "6px 0 0" }}>
+                <p style={{ fontSize: 12, color: ds.colors.inkTertiary, marginTop: 6 }}>
                   {["", "Très mauvais", "Mauvais", "Correct", "Bien", "Excellent"][reviewRating]}
                 </p>
               )}
             </div>
 
-            <div style={{ marginBottom: 20 }}>
-              <label style={{ fontSize: 13, color: ds.colors.inkTertiary, display: "block", marginBottom: 8 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              <Label htmlFor="review-comment" style={{ color: ds.colors.inkTertiary }}>
                 Commentaire <span style={{ fontWeight: 400 }}>(optionnel)</span>
-              </label>
-              <textarea
+              </Label>
+              <Textarea
+                id="review-comment"
                 value={reviewComment}
                 onChange={(e) => setReviewComment(e.target.value)}
                 placeholder="Décrivez votre expérience…"
                 maxLength={1000}
                 rows={4}
-                style={{
-                  width: "100%", padding: "10px 12px", fontSize: 14, lineHeight: 1.55,
-                  border: `1px solid ${ds.colors.border}`, borderRadius: 8,
-                  backgroundColor: ds.colors.canvas, color: ds.colors.ink,
-                  resize: "vertical", outline: "none", fontFamily: "inherit",
-                  boxSizing: "border-box",
-                }}
+                className="resize-y"
               />
-              <p style={{ fontSize: 11, color: ds.colors.inkTertiary, marginTop: 4, textAlign: "right", margin: "4px 0 0" }}>
+              <p style={{ fontSize: 11, color: ds.colors.inkTertiary, textAlign: "right", margin: 0 }}>
                 {reviewComment.length}/1000
               </p>
             </div>
 
             {reviewError && (
-              <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", backgroundColor: ds.colors.errorBg, borderRadius: 8, marginBottom: 16 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", backgroundColor: ds.colors.errorBg, borderRadius: 8 }}>
                 <AlertCircle size={14} style={{ color: ds.colors.error, flexShrink: 0 }} />
                 <span style={{ fontSize: 13, color: ds.colors.error }}>{reviewError}</span>
               </div>
@@ -315,8 +305,8 @@ export default function AccountBookingsPage() {
               </Button>
             </div>
           </div>
-        </div>
-      )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

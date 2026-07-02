@@ -11,21 +11,8 @@ import { Logo } from "@/components/ui/Logo";
 import { api } from "@/lib/api";
 import { setTokens } from "@/lib/auth-store";
 import heroImage from "@assets/ChatGPT_Image_Jun_27,_2026,_07_43_37_PM_(1)_1782586261262.png";
-
-const inputBase: React.CSSProperties = {
-  width: "100%",
-  height: 44,
-  padding: "0 14px",
-  fontSize: 14,
-  color: "var(--ink)",
-  backgroundColor: "#FFFFFF",
-  border: "1px solid var(--hairline-strong)",
-  borderRadius: 8,
-  outline: "none",
-  transition: "border-color 150ms ease",
-  boxSizing: "border-box",
-  fontFamily: "inherit",
-};
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 function PasswordRule({ met, label }: { met: boolean; label: string }) {
   return (
@@ -429,54 +416,45 @@ export default function RegisterPage() {
                   )}
 
                   {/* Email */}
-                  <div>
-                    <label style={{ display: "block", fontSize: 13, fontWeight: 500, color: "var(--ink-secondary)", marginBottom: 6 }}>
-                      Email
-                    </label>
-                    <input
+                  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                    <Label htmlFor="reg-email">Email</Label>
+                    <Input
+                      id="reg-email"
                       type="email" autoComplete="email"
                       value={email}
                       onChange={(e) => { setEmail(e.target.value); setFieldError((p) => ({ ...p, email: undefined })); }}
                       placeholder="yasmine@exemple.ma"
-                      style={{ ...inputBase, borderColor: fieldError.email ? "#E53E3E" : "var(--hairline-strong)" }}
-                      onFocus={(e) => { if (!fieldError.email) e.currentTarget.style.borderColor = "var(--ink-secondary)"; }}
-                      onBlur={(e) => { if (!fieldError.email) e.currentTarget.style.borderColor = "var(--hairline-strong)"; }}
+                      className={`h-11 ${fieldError.email ? "border-red-400" : ""}`}
                     />
-                    {fieldError.email && <p style={{ fontSize: 12, color: "#E53E3E", marginTop: 5 }}>{fieldError.email}</p>}
+                    {fieldError.email && <p style={{ fontSize: 12, color: "#E53E3E", margin: 0 }}>{fieldError.email}</p>}
                   </div>
 
                   {/* Phone */}
-                  <div>
-                    <label style={{ display: "block", fontSize: 13, fontWeight: 500, color: "var(--ink-secondary)", marginBottom: 6 }}>
-                      Téléphone
-                    </label>
-                    <input
+                  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                    <Label htmlFor="reg-phone">Téléphone</Label>
+                    <Input
+                      id="reg-phone"
                       type="tel" autoComplete="tel"
                       value={phone}
                       onChange={(e) => { setPhone(e.target.value); setFieldError((p) => ({ ...p, phone: undefined })); }}
                       placeholder="0612345678"
-                      style={{ ...inputBase, borderColor: fieldError.phone ? "#E53E3E" : "var(--hairline-strong)" }}
-                      onFocus={(e) => { if (!fieldError.phone) e.currentTarget.style.borderColor = "var(--ink-secondary)"; }}
-                      onBlur={(e) => { if (!fieldError.phone) e.currentTarget.style.borderColor = "var(--hairline-strong)"; }}
+                      className={`h-11 ${fieldError.phone ? "border-red-400" : ""}`}
                     />
-                    {fieldError.phone && <p style={{ fontSize: 12, color: "#E53E3E", marginTop: 5 }}>{fieldError.phone}</p>}
+                    {fieldError.phone && <p style={{ fontSize: 12, color: "#E53E3E", margin: 0 }}>{fieldError.phone}</p>}
                   </div>
 
                   {/* Password */}
-                  <div>
-                    <label style={{ display: "block", fontSize: 13, fontWeight: 500, color: "var(--ink-secondary)", marginBottom: 6 }}>
-                      Mot de passe
-                    </label>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                    <Label htmlFor="reg-password">Mot de passe</Label>
                     <div style={{ position: "relative" }}>
-                      <input
+                      <Input
+                        id="reg-password"
                         type={showPwd ? "text" : "password"}
                         autoComplete="new-password"
                         value={password}
                         onChange={(e) => { setPassword(e.target.value); setFieldError((p) => ({ ...p, password: undefined })); }}
                         placeholder="Créez un mot de passe"
-                        style={{ ...inputBase, paddingRight: 42, borderColor: fieldError.password ? "#E53E3E" : "var(--hairline-strong)" }}
-                        onFocus={(e) => { if (!fieldError.password) e.currentTarget.style.borderColor = "var(--ink-secondary)"; }}
-                        onBlur={(e) => { if (!fieldError.password) e.currentTarget.style.borderColor = "var(--hairline-strong)"; }}
+                        className={`h-11 pr-11 ${fieldError.password ? "border-red-400" : ""}`}
                       />
                       <button
                         type="button"
@@ -491,7 +469,7 @@ export default function RegisterPage() {
                         {showPwd ? <EyeOffIcon size={15} /> : <EyeIcon size={15} />}
                       </button>
                     </div>
-                    <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 6 }}>
+                    <div style={{ marginTop: 4, display: "flex", flexDirection: "column", gap: 6 }}>
                       <PasswordRule met={pwd8} label="Au moins 8 caractères" />
                       <PasswordRule met={pwdAlpha} label="Au moins une lettre et un chiffre" />
                     </div>

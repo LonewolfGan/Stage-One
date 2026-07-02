@@ -7,22 +7,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { api } from "@/lib/api";
 import { setTokens } from "@/lib/auth-store";
 import { useBreakpoint } from "@/hooks/use-mobile";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import heroImage from "@assets/ChatGPT_Image_Jun_27,_2026,_07_43_37_PM_(1)_1782586261262.png";
-
-const inputBase: React.CSSProperties = {
-  width: "100%",
-  height: 44,
-  padding: "0 14px",
-  fontSize: 14,
-  color: "var(--ink)",
-  backgroundColor: "#FFFFFF",
-  border: "1px solid var(--hairline-strong)",
-  borderRadius: 8,
-  outline: "none",
-  transition: "border-color 150ms ease",
-  boxSizing: "border-box",
-  fontFamily: "inherit",
-};
 
 export default function LoginPage() {
   const [, setLocation] = useLocation();
@@ -83,16 +70,9 @@ export default function LoginPage() {
           <button
             onClick={() => setLocation("/")}
             style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 6,
-              fontSize: 13,
-              fontWeight: 500,
-              color: "var(--ink-tertiary)",
-              background: "transparent",
-              border: "none",
-              cursor: "pointer",
-              padding: 0,
+              display: "inline-flex", alignItems: "center", gap: 6,
+              fontSize: 13, fontWeight: 500, color: "var(--ink-tertiary)",
+              background: "transparent", border: "none", cursor: "pointer", padding: 0,
               transition: "color 140ms ease",
             }}
             onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "var(--ink)"; }}
@@ -105,55 +85,40 @@ export default function LoginPage() {
 
         {/* Form body */}
         <div style={{ flex: 1, maxWidth: 480, display: "flex", flexDirection: "column", justifyContent: "center" }}>
-          <h1
-            style={{
-              fontSize: 24,
-              fontWeight: 600,
-              color: "var(--ink)",
-              letterSpacing: "-0.018em",
-              marginBottom: 8,
-              lineHeight: 1.2,
-            }}
-          >
+          <h1 style={{ fontSize: 24, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.018em", marginBottom: 8, lineHeight: 1.2 }}>
             Bon retour parmi nous
           </h1>
           <p style={{ fontSize: 14, color: "var(--ink-tertiary)", lineHeight: 1.6, marginBottom: 32 }}>
             Connectez-vous à votre espace personnel.
           </p>
 
-          <form onSubmit={handleSubmit} noValidate style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          <form onSubmit={handleSubmit} noValidate style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             {/* Email */}
-            <div>
-              <label style={{ display: "block", fontSize: 13, fontWeight: 500, color: "var(--ink-secondary)", marginBottom: 6 }}>
-                Email
-              </label>
-              <input
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              <Label htmlFor="login-email">Email</Label>
+              <Input
+                id="login-email"
                 type="email"
                 autoComplete="email"
                 value={email}
                 onChange={(e) => { setEmail(e.target.value); setError(null); }}
                 placeholder="yasmine@exemple.ma"
-                style={inputBase}
-                onFocus={(e) => { e.currentTarget.style.borderColor = "var(--ink-secondary)"; }}
-                onBlur={(e) => { e.currentTarget.style.borderColor = "var(--hairline-strong)"; }}
+                className="h-11"
               />
             </div>
 
             {/* Password */}
-            <div>
-              <label style={{ display: "block", fontSize: 13, fontWeight: 500, color: "var(--ink-secondary)", marginBottom: 6 }}>
-                Mot de passe
-              </label>
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              <Label htmlFor="login-password">Mot de passe</Label>
               <div style={{ position: "relative" }}>
-                <input
+                <Input
+                  id="login-password"
                   type={showPwd ? "text" : "password"}
                   autoComplete="current-password"
                   value={password}
                   onChange={(e) => { setPassword(e.target.value); setError(null); }}
                   placeholder="Votre mot de passe"
-                  style={{ ...inputBase, paddingRight: 42 }}
-                  onFocus={(e) => { e.currentTarget.style.borderColor = "var(--ink-secondary)"; }}
-                  onBlur={(e) => { e.currentTarget.style.borderColor = "var(--hairline-strong)"; }}
+                  className="h-11 pr-11"
                 />
                 <button
                   type="button"
@@ -197,17 +162,12 @@ export default function LoginPage() {
               disabled={loading || !canSubmit}
               whileTap={loading || !canSubmit ? {} : { scale: 0.98 }}
               style={{
-                width: "100%",
-                height: 44,
+                width: "100%", height: 44,
                 backgroundColor: canSubmit && !loading ? "var(--accent)" : "rgba(212,70,110,0.28)",
-                color: "#FFFFFF",
-                fontSize: 14,
-                fontWeight: 600,
-                letterSpacing: "-0.01em",
-                borderRadius: 8,
-                border: "none",
+                color: "#FFFFFF", fontSize: 14, fontWeight: 600, letterSpacing: "-0.01em",
+                borderRadius: 8, border: "none",
                 cursor: loading || !canSubmit ? "not-allowed" : "pointer",
-                transition: "background-color 160ms ease, color 160ms ease",
+                transition: "background-color 160ms ease",
                 marginTop: 4,
               }}
             >
@@ -219,10 +179,7 @@ export default function LoginPage() {
             Pas encore de compte ?{" "}
             <button
               onClick={() => setLocation("/auth/register")}
-              style={{
-                fontSize: 13, fontWeight: 500, color: "var(--ink)",
-                background: "transparent", border: "none", cursor: "pointer", padding: 0,
-              }}
+              style={{ fontSize: 13, fontWeight: 500, color: "var(--ink)", background: "transparent", border: "none", cursor: "pointer", padding: 0 }}
             >
               S'inscrire
             </button>
@@ -232,38 +189,20 @@ export default function LoginPage() {
         {/* Bottom terms */}
         <p style={{ paddingTop: 32, fontSize: 12, color: "var(--ink-tertiary)", lineHeight: 1.6, maxWidth: 480 }}>
           En vous connectant, vous acceptez nos{" "}
-          <span
-            style={{ color: "var(--ink-secondary)", cursor: "pointer", textDecoration: "underline", textDecorationColor: "var(--hairline-strong)" }}
-          >
+          <span style={{ color: "var(--ink-secondary)", cursor: "pointer", textDecoration: "underline", textDecorationColor: "var(--hairline-strong)" }}>
             conditions d'utilisation
           </span>
           .
         </p>
       </div>
 
-      {/* ── Right column — image panel (50%) ── */}
-      <div
-        className="hidden lg:flex"
-        style={{ flex: "0 0 50%", padding: 16 }}
-      >
-        <div
-          style={{
-            flex: 1,
-            borderRadius: 20,
-            overflow: "hidden",
-            position: "relative",
-          }}
-        >
+      {/* ── Right column — image panel ── */}
+      <div className="hidden lg:flex" style={{ flex: "0 0 50%", padding: 16 }}>
+        <div style={{ flex: 1, borderRadius: 20, overflow: "hidden", position: "relative" }}>
           <img
             src={heroImage}
             alt="Beauté"
-            style={{
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-              objectPosition: "center top",
-              display: "block",
-            }}
+            style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top", display: "block" }}
           />
         </div>
       </div>

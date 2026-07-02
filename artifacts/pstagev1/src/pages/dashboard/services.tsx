@@ -10,6 +10,9 @@ import { ds } from "@/lib/design-system";
 import { toast } from "sonner";
 import { initials } from "@/lib/utils";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 /* ── Staff chip ───────────────────────────────────────────── */
 function StaffChip({ name }: { name: string }) {
@@ -300,52 +303,36 @@ function ServiceForm({ slug, service, allStaff, onClose }: ServiceFormProps) {
       <form onSubmit={handleSubmit} style={{ padding: "20px" }}>
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
 
-            <div>
-              <label style={labelStyle}>Nom <span style={{ color: ds.colors.accent }}>*</span></label>
-              <input style={fieldStyle} value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex. Coupe femme" autoFocus
-                onFocus={(e) => { e.currentTarget.style.borderColor = ds.colors.ink; }}
-                onBlur={(e)  => { e.currentTarget.style.borderColor = ds.colors.borderStrong; }}
-              />
+            <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+              <Label htmlFor="svc-name">Nom <span style={{ color: ds.colors.accent }}>*</span></Label>
+              <Input id="svc-name" className="h-9" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex. Coupe femme" autoFocus />
             </div>
 
-            <div>
-              <label style={labelStyle}>Description <span style={{ color: ds.colors.inkDisabled, fontWeight: 400 }}>(optionnel)</span></label>
-              <textarea style={{ ...fieldStyle, height: 68, padding: "10px 12px", resize: "vertical", lineHeight: 1.5 }}
-                value={description} onChange={(e) => setDesc(e.target.value)} placeholder="Décrivez la prestation…"
-                onFocus={(e) => { e.currentTarget.style.borderColor = ds.colors.ink; }}
-                onBlur={(e)  => { e.currentTarget.style.borderColor = ds.colors.borderStrong; }}
-              />
+            <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+              <Label htmlFor="svc-desc">Description <span style={{ color: ds.colors.inkDisabled, fontWeight: 400 }}>(optionnel)</span></Label>
+              <Textarea id="svc-desc" rows={3} value={description} onChange={(e) => setDesc(e.target.value)} placeholder="Décrivez la prestation…" className="resize-y" />
             </div>
 
             {/* Duration + Buffer + Price */}
             <div style={{ display: "grid", gridTemplateColumns: formIsMd ? "1fr 1fr 1fr" : "1fr", gap: 10 }}>
-              <div>
-                <label style={labelStyle}>Durée (min) <span style={{ color: ds.colors.accent }}>*</span></label>
-                <input style={fieldStyle} type="number" min="1" value={duration} onChange={(e) => setDuration(e.target.value)} placeholder="45"
-                  onFocus={(e) => { e.currentTarget.style.borderColor = ds.colors.ink; }}
-                  onBlur={(e)  => { e.currentTarget.style.borderColor = ds.colors.borderStrong; }}
-                />
+              <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+                <Label htmlFor="svc-dur">Durée (min) <span style={{ color: ds.colors.accent }}>*</span></Label>
+                <Input id="svc-dur" className="h-9" type="number" min="1" value={duration} onChange={(e) => setDuration(e.target.value)} placeholder="45" />
               </div>
-              <div>
-                <label style={labelStyle}>Pause (min)</label>
-                <input style={fieldStyle} type="number" min="0" value={buffer} onChange={(e) => setBuffer(e.target.value)} placeholder="0"
-                  onFocus={(e) => { e.currentTarget.style.borderColor = ds.colors.ink; }}
-                  onBlur={(e)  => { e.currentTarget.style.borderColor = ds.colors.borderStrong; }}
-                />
+              <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+                <Label htmlFor="svc-buf">Pause (min)</Label>
+                <Input id="svc-buf" className="h-9" type="number" min="0" value={buffer} onChange={(e) => setBuffer(e.target.value)} placeholder="0" />
               </div>
-              <div>
-                <label style={labelStyle}>Prix (MAD) <span style={{ color: ds.colors.accent }}>*</span></label>
-                <input style={fieldStyle} type="number" min="0" step="0.01" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="150"
-                  onFocus={(e) => { e.currentTarget.style.borderColor = ds.colors.ink; }}
-                  onBlur={(e)  => { e.currentTarget.style.borderColor = ds.colors.borderStrong; }}
-                />
+              <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+                <Label htmlFor="svc-price">Prix (MAD) <span style={{ color: ds.colors.accent }}>*</span></Label>
+                <Input id="svc-price" className="h-9" type="number" min="0" step="0.01" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="150" />
               </div>
             </div>
 
             {/* Staff checkboxes */}
             {allStaff.length > 0 && (
               <div>
-                <label style={labelStyle}>Professionnels assignés</label>
+                <Label style={{ marginBottom: 6, display: "block" }}>Professionnels assignés</Label>
                 <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                   {allStaff.map((m) => {
                     const checked = staffIds.includes(m.id);

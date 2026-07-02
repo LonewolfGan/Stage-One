@@ -9,6 +9,9 @@ import { ds } from "@/lib/design-system";
 import { toast } from "sonner";
 import { Avatar } from "@/components/ui/Avatar";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 /* ─── helpers ─────────────────────────────────────────────── */
 function initials(name: string) {
@@ -372,26 +375,19 @@ function StaffForm({ slug, member, services, onClose }: StaffFormProps) {
         <form onSubmit={(e) => { e.preventDefault(); if (!name.trim()) { setError("Le nom est requis."); return; } setError(""); save.mutate(); }} style={{ padding: 20 }}>
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
 
-            <div>
-              <label style={labelStyle}>Nom <span style={{ color: ds.colors.accent }}>*</span></label>
-              <input style={fieldStyle} value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex. Nadia Bensali" autoFocus
-                onFocus={(e) => { e.currentTarget.style.borderColor = ds.colors.ink; }}
-                onBlur={(e)  => { e.currentTarget.style.borderColor = ds.colors.borderStrong; }}
-              />
+            <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+              <Label htmlFor="staff-name">Nom <span style={{ color: ds.colors.accent }}>*</span></Label>
+              <Input id="staff-name" className="h-9" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex. Nadia Bensali" autoFocus />
             </div>
 
-            <div>
-              <label style={labelStyle}>Biographie <span style={{ color: ds.colors.inkDisabled, fontWeight: 400 }}>(optionnel)</span></label>
-              <textarea style={{ ...fieldStyle, height: 68, padding: "10px 12px", resize: "vertical", lineHeight: 1.5 }}
-                value={bio} onChange={(e) => setBio(e.target.value)} placeholder="Coiffeuse senior, 8 ans d'expérience"
-                onFocus={(e) => { e.currentTarget.style.borderColor = ds.colors.ink; }}
-                onBlur={(e)  => { e.currentTarget.style.borderColor = ds.colors.borderStrong; }}
-              />
+            <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+              <Label htmlFor="staff-bio">Biographie <span style={{ color: ds.colors.inkDisabled, fontWeight: 400 }}>(optionnel)</span></Label>
+              <Textarea id="staff-bio" rows={3} value={bio} onChange={(e) => setBio(e.target.value)} placeholder="Coiffeuse senior, 8 ans d'expérience" className="resize-y" />
             </div>
 
             {/* Photo upload */}
             <div>
-              <label style={labelStyle}>Photo <span style={{ color: ds.colors.inkDisabled, fontWeight: 400 }}>(optionnel)</span></label>
+              <Label style={{ marginBottom: 6, display: "block" }}>Photo <span style={{ color: ds.colors.inkDisabled, fontWeight: 400 }}>(optionnel)</span></Label>
               <label style={{ display: "flex", alignItems: "center", gap: 14, padding: "10px 14px", border: `1px dashed ${ds.colors.borderStrong}`, borderRadius: 10, cursor: "pointer", transition: "border-color 140ms ease, background-color 140ms ease" }}
                 onMouseEnter={(e) => { (e.currentTarget as HTMLLabelElement).style.borderColor = ds.colors.ink; (e.currentTarget as HTMLLabelElement).style.backgroundColor = ds.colors.canvasSubtle; }}
                 onMouseLeave={(e) => { (e.currentTarget as HTMLLabelElement).style.borderColor = ds.colors.borderStrong; (e.currentTarget as HTMLLabelElement).style.backgroundColor = "transparent"; }}
@@ -421,7 +417,7 @@ function StaffForm({ slug, member, services, onClose }: StaffFormProps) {
             {/* Services / spécialités */}
             {services.length > 0 && (
               <div>
-                <label style={labelStyle}>Spécialités (prestations réalisées)</label>
+                <Label style={{ marginBottom: 6, display: "block" }}>Spécialités (prestations réalisées)</Label>
                 <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                   {services.map((s) => {
                     const checked = serviceIds.includes(s.id);

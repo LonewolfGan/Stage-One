@@ -4,9 +4,12 @@ import { Footer } from "@/components/layout/Footer";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
-import { Mail, Save, AlertTriangle } from "lucide-react";
-import { UserIcon } from "@/components/ui/user";
-import { PhoneIcon } from "@/components/ui/phone";
+import { Mail, Save, AlertTriangle, Phone } from "lucide-react";
+import { User } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/DSButton";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface UserProfile {
   id: string;
@@ -83,54 +86,48 @@ export default function ProfilePage() {
         </div>
 
         {isLoading ? (
-          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             {[1, 2, 3].map((i) => (
-              <div key={i} style={{ height: 56, borderRadius: 8, background: "var(--surface-2)", animation: "pulse 1.5s ease-in-out infinite" }} />
+              <div key={i} style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-10 w-full" />
+              </div>
             ))}
           </div>
         ) : (
-          <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-              <span style={{ fontSize: 13, fontWeight: 500, color: "var(--ink-secondary)", display: "flex", alignItems: "center", gap: 6 }}>
-                <UserIcon size={13} /> Nom complet
-              </span>
-              <input
+          <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+
+            {/* Nom */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              <Label htmlFor="profile-name" style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <User size={13} /> Nom complet
+              </Label>
+              <Input
+                id="profile-name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                style={{
-                  padding: "10px 14px",
-                  border: "1px solid var(--hairline)",
-                  borderRadius: 8,
-                  fontSize: 14,
-                  color: "var(--ink)",
-                  background: "var(--surface-1)",
-                  outline: "none",
-                }}
+                placeholder="Votre nom complet"
+                className="h-10"
               />
-            </label>
+            </div>
 
-            <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-              <span style={{ fontSize: 13, fontWeight: 500, color: "var(--ink-secondary)", display: "flex", alignItems: "center", gap: 6 }}>
+            {/* Email */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              <Label htmlFor="profile-email" style={{ display: "flex", alignItems: "center", gap: 6 }}>
                 <Mail size={13} /> Adresse email
                 {user?.emailVerified
                   ? <span style={{ fontSize: 11, color: "#16A34A", fontWeight: 500 }}>· Vérifiée</span>
                   : <span style={{ fontSize: 11, color: "var(--accent)", fontWeight: 500 }}>· Non vérifiée</span>}
-              </span>
-              <input
+              </Label>
+              <Input
+                id="profile-email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                style={{
-                  padding: "10px 14px",
-                  border: "1px solid var(--hairline)",
-                  borderRadius: 8,
-                  fontSize: 14,
-                  color: "var(--ink)",
-                  background: "var(--surface-1)",
-                  outline: "none",
-                }}
+                placeholder="votre@email.ma"
+                className="h-10"
               />
-            </label>
+            </div>
 
             {!user?.emailVerified && (
               <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 14px", background: "var(--accent-tint)", border: "1px solid rgba(212,70,110,0.18)", borderRadius: 8 }}>
@@ -147,59 +144,39 @@ export default function ProfilePage() {
               </div>
             )}
 
-            <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-              <span style={{ fontSize: 13, fontWeight: 500, color: "var(--ink-secondary)", display: "flex", alignItems: "center", gap: 6 }}>
-                <PhoneIcon size={13} /> Téléphone
+            {/* Téléphone */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              <Label htmlFor="profile-phone" style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <Phone size={13} /> Téléphone
                 {user?.phoneVerified
                   ? <span style={{ fontSize: 11, color: "#16A34A", fontWeight: 500 }}>· Vérifié</span>
                   : <span style={{ fontSize: 11, color: "var(--accent)", fontWeight: 500 }}>· Non vérifié</span>}
-              </span>
-              <input
+              </Label>
+              <Input
+                id="profile-phone"
                 type="tel"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                style={{
-                  padding: "10px 14px",
-                  border: "1px solid var(--hairline)",
-                  borderRadius: 8,
-                  fontSize: 14,
-                  color: "var(--ink)",
-                  background: "var(--surface-1)",
-                  outline: "none",
-                }}
+                placeholder="0612345678"
+                className="h-10"
               />
-            </label>
+            </div>
 
             {(emailChanged || phoneChanged) && (
               <div style={{ padding: "12px 14px", background: "#FEF3C7", border: "1px solid #F59E0B", borderRadius: 8, fontSize: 13, color: "#92400E" }}>
-                ⚠️ Modifier l'email ou le téléphone réinitialisera leur statut de vérification.
+                Modifier l'email ou le téléphone réinitialisera leur statut de vérification.
               </div>
             )}
 
-            <button
+            <Button
               type="submit"
+              variant="primary"
               disabled={mutation.isPending}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 8,
-                padding: "12px 24px",
-                background: "var(--accent)",
-                color: "#fff",
-                border: "none",
-                borderRadius: 8,
-                fontSize: 14,
-                fontWeight: 500,
-                cursor: mutation.isPending ? "not-allowed" : "pointer",
-                opacity: mutation.isPending ? 0.7 : 1,
-                transition: "opacity 140ms ease",
-                marginTop: 4,
-              }}
+              icon={<Save size={14} />}
+              style={{ marginTop: 4, alignSelf: "flex-start" }}
             >
-              <Save size={15} />
               {mutation.isPending ? "Sauvegarde…" : "Sauvegarder"}
-            </button>
+            </Button>
           </form>
         )}
       </div>

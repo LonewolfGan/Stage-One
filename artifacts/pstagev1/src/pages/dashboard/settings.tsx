@@ -11,6 +11,9 @@ import {
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 /* ─── Types ───────────────────────────────────────────────────────────────────── */
 
@@ -68,20 +71,11 @@ function Field({
 }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-      <label style={{ fontSize: 12, fontWeight: 500, color: "var(--ink-secondary)", letterSpacing: "0.01em" }}>
-        {label}
-      </label>
-      <input
+      <Label style={{ fontSize: 12, letterSpacing: "0.01em" }}>{label}</Label>
+      <Input
         type={type} value={value} placeholder={placeholder}
         onChange={(e) => onChange(e.target.value)}
-        style={{
-          padding: "9px 12px", border: "1px solid var(--hairline)", borderRadius: 8,
-          fontSize: 13, color: "var(--ink)", background: "var(--surface-1)",
-          outline: "none", fontFamily: "var(--font)", transition: "border-color 140ms ease",
-          width: "100%", boxSizing: "border-box",
-        }}
-        onFocus={(e)  => { e.target.style.borderColor = "var(--hairline-strong)"; }}
-        onBlur={(e)   => { e.target.style.borderColor = "var(--hairline)"; }}
+        className="h-9 text-[13px]"
       />
       {hint && <p style={{ fontSize: 11, color: "var(--ink-tertiary)", margin: 0 }}>{hint}</p>}
     </div>
@@ -154,13 +148,9 @@ function PasswordSection() {
 
 function TimeInput({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   return (
-    <input
+    <Input
       type="time" value={value} onChange={(e) => onChange(e.target.value)}
-      style={{
-        padding: "5px 8px", border: "1px solid var(--hairline)", borderRadius: 6,
-        fontSize: 13, color: "var(--ink)", background: "var(--surface-1)",
-        outline: "none", fontFamily: "var(--font)", minWidth: 90,
-      }}
+      className="h-8 text-[13px] min-w-[90px] w-auto"
     />
   );
 }
@@ -310,14 +300,10 @@ function PhoneList({ phones, onChange }: { phones: PhoneEntry[]; onChange: (p: P
               {PHONE_LABELS.map((l) => <SelectItem key={l} value={l}>{l}</SelectItem>)}
             </SelectContent>
           </Select>
-          <input
+          <Input
             type="tel" value={phone.number} placeholder="+212 6 XX XX XX XX"
             onChange={(e) => update(phone.id, { number: e.target.value })}
-            style={{
-              flex: 1, padding: "9px 12px", border: "1px solid var(--hairline)", borderRadius: 8,
-              fontSize: 13, color: "var(--ink)", background: "var(--surface-1)",
-              outline: "none", fontFamily: "var(--font)",
-            }}
+            className="flex-1 h-9 text-[13px]"
           />
           {phones.length > 1 && (
             <button
@@ -700,7 +686,7 @@ export default function SettingsPage() {
           <div className="ds-card" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
             {/* Logo upload */}
             <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-              <label style={{ fontSize: 12, fontWeight: 500, color: "var(--ink-secondary)" }}>Logo du salon</label>
+              <Label style={{ fontSize: 12 }}>Logo du salon</Label>
               <div style={{ position: "relative", width: 120, height: 120, marginBottom: 10 }}>
                 {profile.logoUrl ? (
                   <img
@@ -730,7 +716,7 @@ export default function SettingsPage() {
                 placeholder="Nom du salon"
               />
               <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-                <label style={{ fontSize: 12, fontWeight: 500, color: "var(--ink-secondary)" }}>Catégorie</label>
+                <Label style={{ fontSize: 12 }}>Catégorie</Label>
                 <Select value={profile.category} onValueChange={(v) => setProfile((p) => ({ ...p, category: v }))}>
                   <SelectTrigger>
                     <SelectValue />
@@ -743,20 +729,13 @@ export default function SettingsPage() {
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-              <label style={{ fontSize: 12, fontWeight: 500, color: "var(--ink-secondary)" }}>Description</label>
-              <textarea
+              <Label style={{ fontSize: 12 }}>Description</Label>
+              <Textarea
                 value={profile.description}
                 onChange={(e) => setProfile((p) => ({ ...p, description: e.target.value }))}
                 placeholder="Décrivez votre salon en quelques lignes…"
                 rows={3}
-                style={{
-                  padding: "9px 12px", border: "1px solid var(--hairline)", borderRadius: 8,
-                  fontSize: 13, color: "var(--ink)", background: "var(--surface-1)",
-                  outline: "none", fontFamily: "var(--font)", resize: "vertical",
-                  lineHeight: 1.6, width: "100%", boxSizing: "border-box",
-                }}
-                onFocus={(e)  => { e.target.style.borderColor = "var(--hairline-strong)"; }}
-                onBlur={(e)   => { e.target.style.borderColor = "var(--hairline)"; }}
+                className="resize-y text-[13px]"
               />
               <p style={{ fontSize: 11, color: "var(--ink-tertiary)", margin: 0 }}>
                 Visible sur la page publique du salon
@@ -764,20 +743,14 @@ export default function SettingsPage() {
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-              <label style={{ fontSize: 12, fontWeight: 500, color: "var(--ink-secondary)", display: "flex", alignItems: "center", gap: 5 }}>
+              <Label style={{ fontSize: 12, display: "flex", alignItems: "center", gap: 5 }}>
                 <MapPin size={11} /> Adresse
-              </label>
-              <input
+              </Label>
+              <Input
                 value={profile.address}
                 onChange={(e) => setProfile((p) => ({ ...p, address: e.target.value }))}
                 placeholder="Numéro, rue, quartier, ville"
-                style={{
-                  padding: "9px 12px", border: "1px solid var(--hairline)", borderRadius: 8,
-                  fontSize: 13, color: "var(--ink)", background: "var(--surface-1)",
-                  outline: "none", fontFamily: "var(--font)", width: "100%", boxSizing: "border-box",
-                }}
-                onFocus={(e)  => { e.target.style.borderColor = "var(--hairline-strong)"; }}
-                onBlur={(e)   => { e.target.style.borderColor = "var(--hairline)"; }}
+                className="h-9 text-[13px]"
               />
             </div>
 
@@ -791,9 +764,7 @@ export default function SettingsPage() {
         <Section title="Contact" icon={Phone}>
           <div className="ds-card" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             <div>
-              <label style={{ fontSize: 12, fontWeight: 500, color: "var(--ink-secondary)", display: "block", marginBottom: 10 }}>
-                Téléphones
-              </label>
+              <Label style={{ fontSize: 12, display: "block", marginBottom: 10 }}>Téléphones</Label>
               <PhoneList phones={phones} onChange={setPhones} />
             </div>
             <Field
@@ -965,39 +936,39 @@ export default function SettingsPage() {
 
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
                     <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                      <label style={{ fontSize: 11, fontWeight: 500, color: "var(--ink-secondary)" }}>Date de début</label>
-                      <input
+                      <Label style={{ fontSize: 11 }}>Date de début</Label>
+                      <Input
                         type="date"
                         value={blockForm.startDate}
                         onChange={(e) => setBlockForm((f) => ({ ...f, startDate: e.target.value }))}
-                        style={{ padding: "8px 10px", borderRadius: 7, border: "1px solid var(--hairline-strong)", fontSize: 13, color: "var(--ink)", background: "var(--canvas-pure)" }}
+                        className="h-9 text-[13px]"
                       />
                     </div>
                     <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                      <label style={{ fontSize: 11, fontWeight: 500, color: "var(--ink-secondary)" }}>Date de fin</label>
-                      <input
+                      <Label style={{ fontSize: 11 }}>Date de fin</Label>
+                      <Input
                         type="date"
                         value={blockForm.endDate}
                         onChange={(e) => setBlockForm((f) => ({ ...f, endDate: e.target.value }))}
-                        style={{ padding: "8px 10px", borderRadius: 7, border: "1px solid var(--hairline-strong)", fontSize: 13, color: "var(--ink)", background: "var(--canvas-pure)" }}
+                        className="h-9 text-[13px]"
                       />
                     </div>
                   </div>
 
                   <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                    <label style={{ fontSize: 11, fontWeight: 500, color: "var(--ink-secondary)" }}>Titre (facultatif)</label>
-                    <input
+                    <Label style={{ fontSize: 11 }}>Titre (facultatif)</Label>
+                    <Input
                       type="text"
                       value={blockForm.title}
                       onChange={(e) => setBlockForm((f) => ({ ...f, title: e.target.value }))}
                       placeholder="Ex : Vacances d'été, Fermeture exceptionnelle…"
-                      style={{ padding: "8px 10px", borderRadius: 7, border: "1px solid var(--hairline-strong)", fontSize: 13, color: "var(--ink)", background: "var(--canvas-pure)" }}
+                      className="h-9 text-[13px]"
                     />
                   </div>
 
                   {staffList.length > 0 && (
                     <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                      <label style={{ fontSize: 11, fontWeight: 500, color: "var(--ink-secondary)" }}>Membre du personnel (laisser vide = tout le salon)</label>
+                      <Label style={{ fontSize: 11 }}>Membre du personnel (laisser vide = tout le salon)</Label>
                       <Select
                         value={blockForm.staffId === "" ? "_all" : blockForm.staffId}
                         onValueChange={(v) => setBlockForm((f) => ({ ...f, staffId: v === "_all" ? "" : v }))}
