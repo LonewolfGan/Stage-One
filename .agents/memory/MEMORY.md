@@ -1,3 +1,4 @@
+- [Neon migration](neon-migration.md) — Use NEON_DATABASE_URL secret (not DATABASE_URL, runtime-managed by Replit); fallback chain in drizzle.config.ts.
 - [PSTAGEV1 Phase 1 build](pstagev1-phase1.md) — Full Awwwards redesign complete; accent #D4466E; frontend on port 5000 BASE_PATH=/.
 - [Button hierarchy rule](button-hierarchy-rule.md) — Primary CTA (confirm, reserve, search, save, login) = rose var(--accent); secondary = dark/outline. DSButton variant="primary" now uses var(--accent) in index.css.
 - [API Server workflow quirks](api-server-workflow.md) — Use port 8000 (not 8080), pre-build binary in bash then start with node directly; Vite proxy /api → localhost:8000.
