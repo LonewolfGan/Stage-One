@@ -240,7 +240,7 @@ export const api = {
   login: (email: string, password: string) =>
     apiFetch<LoginResponse>("/auth/login", { method: "POST", body: JSON.stringify({ email, password }) }),
 
-  register: (data: { email: string; phone: string; password: string; name: string; role?: "CLIENT" | "OWNER"; phoneToken: string }) =>
+  register: (data: { email: string; phone: string; password: string; name: string; role?: "CLIENT" | "OWNER"; phoneToken: string; tokenType?: "firebase" | "internal" }) =>
     apiFetch<RegisterResponse>("/auth/register", { method: "POST", body: JSON.stringify(data) }),
 
   preRegisterSendOtp: (phone: string) =>

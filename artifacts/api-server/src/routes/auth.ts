@@ -83,7 +83,9 @@ const registerSchema = z.object({
   password: z.string().min(6),
   name: z.string().min(1),
   role: z.enum(["CLIENT", "OWNER"]).default("CLIENT"),
+  // phoneToken: either a Firebase ID Token (tokenType="firebase") or our internal JWT (tokenType="internal")
   phoneToken: z.string({ required_error: "phoneToken requis" }),
+  tokenType: z.enum(["firebase", "internal"]).default("internal"),
 });
 
 const loginSchema = z.object({
@@ -98,18 +100,36 @@ router.post("/register", async (req, res) => {
     res.status(400).json({ code: "ERR-001", message: "Données invalides", errors: parse.error.flatten() });
     return;
   }
-  const { email, phone, password, name, role, phoneToken } = parse.data;
+  const { email, phone, password, name, role, phoneToken, tokenType } = parse.data;
 
-  // Verify phone token
+  // Verify phone token — either Firebase ID Token or internal JWT
   let verifiedPhone: string;
   try {
-    verifiedPhone = await verifyPhoneToken(phoneToken);
+    if (tokenType === "firebase") {
+      const { adminAuth } = await import("../lib/firebase");
+      if (!adminAuth) {
+        res.status(500).json({ code: "ERR-CONFIG", message: "Firebase non configuré côté serveur." });
+        return;
+      }
+      const decoded = await adminAuth.verifyIdToken(phoneToken);
+      const firebasePhone = decoded.phone_number;
+      if (!firebasePhone) {
+        res.status(400).json({ code: "ERR-PHONE", message: "Token Firebase invalide : numéro de téléphone manquant." });
+        return;
+      }
+      verifiedPhone = firebasePhone;
+    } else {
+      verifiedPhone = await verifyPhoneToken(phoneToken);
+    }
   } catch {
     res.status(400).json({ code: "ERR-PHONE", message: "Token de vérification du téléphone invalide ou expiré. Recommencez la vérification." });
     return;
   }
 
-  if (verifiedPhone !== normalizePhone(phone)) {
+  // Normalize both sides for comparison
+  const normalizedInput = normalizePhone(phone);
+  const normalizedVerified = normalizePhone(verifiedPhone);
+  if (normalizedVerified !== normalizedInput) {
     res.status(400).json({ code: "ERR-PHONE", message: "Le numéro de téléphone ne correspond pas au token de vérification." });
     return;
   }

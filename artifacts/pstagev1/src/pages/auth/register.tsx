@@ -12,6 +12,8 @@ import heroImage from "@assets/ChatGPT_Image_Jun_27,_2026,_07_43_37_PM_(1)_17825
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { InputOTP, InputOTPGroup, InputOTPSlot, InputOTPSeparator } from "@/components/ui/input-otp";
+import { sendFirebaseOtp, verifyFirebaseOtp } from "@/lib/firebase";
+import type { ConfirmationResult } from "firebase/auth";
 
 function PasswordRule({ met, label }: { met: boolean; label: string }) {
   return (
@@ -106,6 +108,7 @@ export default function RegisterPage() {
   const [devPhoneCode, setDevPhoneCode] = useState<string | undefined>();
   const [resendCooldown, setResendCooldown] = useState(0);
   const cooldownRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const firebaseConfirmationRef = useRef<ConfirmationResult | null>(null);
 
   // Email OTP state
   const [emailOtp, setEmailOtp] = useState("");
@@ -145,8 +148,10 @@ export default function RegisterPage() {
   }, []);
 
   async function sendPhoneOtp(targetPhone: string) {
-    const res = await api.preRegisterSendOtp(targetPhone);
-    setDevPhoneCode(res.devCode);
+    // Normalize: 06XXXXXXXX → +2126XXXXXXXX
+    const e164 = targetPhone.startsWith("0") ? "+212" + targetPhone.slice(1) : targetPhone;
+    const confirmation = await sendFirebaseOtp(e164, "recaptcha-container");
+    firebaseConfirmationRef.current = confirmation;
     startCooldown(60, setResendCooldown, cooldownRef);
   }
 
@@ -180,10 +185,11 @@ export default function RegisterPage() {
   async function handlePhoneOtpSubmit(e: FormEvent) {
     e.preventDefault();
     if (phoneOtp.length < 6) { setPhoneOtpError("Entrez les 6 chiffres du code."); return; }
+    if (!firebaseConfirmationRef.current) { setPhoneOtpError("Session expirée. Renvoyez le code."); return; }
     setPhoneOtpError(undefined);
     setPhoneOtpLoading(true);
     try {
-      const { phoneToken } = await api.preRegisterVerifyOtp(phone, phoneOtp);
+      const firebaseIdToken = await verifyFirebaseOtp(firebaseConfirmationRef.current, phoneOtp);
       const name = email.split("@")[0].replace(/[._-]/g, " ");
       const res = await api.register({
         name,
@@ -191,7 +197,8 @@ export default function RegisterPage() {
         phone: phone.trim(),
         password,
         role: isPro ? "OWNER" : "CLIENT",
-        phoneToken,
+        phoneToken: firebaseIdToken,
+        tokenType: "firebase",
       });
       setTokens(res.token, res.refreshToken, res.user);
       await sendEmailCode();
@@ -204,7 +211,10 @@ export default function RegisterPage() {
       } else if (msg.toLowerCase().includes("téléphone") || msg.toLowerCase().includes("numéro")) {
         setStep("form");
         setFieldError({ phone: "Ce numéro est déjà utilisé." });
-      } else if (msg.includes("token") || msg.includes("Token")) {
+      } else if (msg.includes("invalid-verification-code") || msg.includes("code invalide") || msg.includes("Invalid verification")) {
+        setPhoneOtp("");
+        setPhoneOtpError("Code incorrect. Vérifiez et réessayez.");
+      } else if (msg.includes("expired") || msg.includes("expiré") || msg.includes("session-expired")) {
         setPhoneOtp("");
         setPhoneOtpError("Code expiré. Renvoyez un nouveau code.");
       } else {
@@ -247,6 +257,8 @@ export default function RegisterPage() {
 
   return (
     <div className="flex overflow-hidden" style={{ height: "100vh", backgroundColor: "var(--canvas)" }}>
+      {/* reCAPTCHA invisible — requis par Firebase Phone Auth */}
+      <div id="recaptcha-container" style={{ display: "none" }} />
       {/* ── Left column ── */}
       <div
         style={{
