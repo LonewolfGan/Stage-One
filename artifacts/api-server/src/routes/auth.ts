@@ -216,7 +216,8 @@ router.post("/pre-register/send-otp", async (req, res) => {
   }
 
   const normalized = normalizePhone(phone.trim());
-  if (!normalized.match(/^\+212[0-9]{9}$/) && !normalized.match(/^[0-9]{8,15}$/)) {
+  // Accept: +212XXXXXXXXX (Maroc), +1XXXXXXXXXX (USA/Canada), or any E.164 (+[1-9]...)
+  if (!normalized.match(/^\+?[1-9][0-9]{7,14}$/)) {
     res.status(400).json({ code: "ERR-001", message: "Format de numéro invalide" });
     return;
   }
