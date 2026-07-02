@@ -71,18 +71,18 @@ const CATEGORY_CONFIG: Record<string, {
 };
 
 const CITY_CARDS = [
-  { city: "Casablanca",   img: "https://images.unsplash.com/photo-1553301997-e1e8e4c1e3d1?w=600&q=70&fit=crop" },
-  { city: "Marrakech",    img: "https://images.unsplash.com/photo-1528360983277-13d401cdc186?w=600&q=70&fit=crop" },
-  { city: "Rabat",        img: "https://images.unsplash.com/photo-1567521464027-f127ff144326?w=600&q=70&fit=crop" },
-  { city: "Fès",          img: "https://images.unsplash.com/photo-1581338834647-b0fb40704e21?w=600&q=70&fit=crop" },
-  { city: "Tanger",       img: "https://images.unsplash.com/photo-1548407260-da850faa41e3?w=600&q=70&fit=crop" },
-  { city: "Agadir",       img: "https://images.unsplash.com/photo-1548700734-d1e6e57e0a8e?w=600&q=70&fit=crop" },
-  { city: "Meknès",       img: "https://images.unsplash.com/photo-1509316785289-025f5b846b35?w=600&q=70&fit=crop" },
-  { city: "Oujda",        img: "https://images.unsplash.com/photo-1531761535209-180857e963b9?w=600&q=70&fit=crop" },
-  { city: "Kénitra",      img: "https://images.unsplash.com/photo-1449496967047-2a322e7ec170?w=600&q=70&fit=crop" },
-  { city: "Tétouan",      img: "https://images.unsplash.com/photo-1519923834699-ef0b7cde4712?w=600&q=70&fit=crop" },
-  { city: "Chefchaouen",  img: "https://images.unsplash.com/photo-1548681528-6a5c45b66063?w=600&q=70&fit=crop" },
-  { city: "Essaouira",    img: "https://images.unsplash.com/photo-1539768942893-daf53e448371?w=600&q=70&fit=crop" },
+  { city: "Casablanca",   img: "/cities/casablanca.webp" },
+  { city: "Marrakech",    img: "/cities/marrakech.webp"  },
+  { city: "Rabat",        img: "/cities/rabat.webp"      },
+  { city: "Fès",          img: "/cities/fes.jpg"         },
+  { city: "Tanger",       img: "/cities/tanger.jpg"      },
+  { city: "Agadir",       img: "/cities/agadir.jpg"      },
+  { city: "Meknès",       img: "/cities/meknes.jpg"      },
+  { city: "Oujda",        img: "/cities/oujda.jpg"       },
+  { city: "Kénitra",      img: "/cities/kenitra.jpg"     },
+  { city: "Tétouan",      img: "/cities/tetouan.jpg"     },
+  { city: "Chefchaouen",  img: "/cities/chefchaouen.jpg" },
+  { city: "Essaouira",    img: "/cities/essaouira.jpg"   },
 ];
 
 function useClickOutside(ref: React.RefObject<HTMLElement | null>, cb: () => void) {
