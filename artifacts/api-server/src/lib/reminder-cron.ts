@@ -3,7 +3,6 @@ import { and, eq, gte, lt } from "drizzle-orm";
 import { logger } from "./logger";
 import { redis } from "./redis";
 import { sendMail } from "./email";
-import { sendSms } from "./sms";
 import { buildReminderEmail, buildReminder2hEmail } from "./email-templates";
 
 const REMINDER_DAY_TTL  = 60 * 60 * 48;
@@ -74,12 +73,6 @@ async function runReminderScan() {
     const { subject, html } = buildReminderEmail(data);
     await sendMail({ to: b.clientEmail, subject, html });
 
-    if (b.clientPhone) {
-      await sendSms(
-        b.clientPhone,
-        `Rappel ANUBIS : votre RDV "${b.serviceName}" chez ${b.providerName} est demain. Ref : ${b.id.split("-")[0].toUpperCase()}`,
-      );
-    }
     await markSent(key, REMINDER_DAY_TTL);
     logger.info({ bookingId: b.id, window: "J-1" }, "Reminder sent");
   }
@@ -104,12 +97,6 @@ async function runReminderScan() {
     const { subject, html } = buildReminder2hEmail(data);
     await sendMail({ to: b.clientEmail, subject, html });
 
-    if (b.clientPhone) {
-      await sendSms(
-        b.clientPhone,
-        `ANUBIS : votre RDV "${b.serviceName}" chez ${b.providerName} est dans 2h. Adresse : ${b.providerAddress ?? b.providerCity}`,
-      );
-    }
     await markSent(key, REMINDER_2H_TTL);
     logger.info({ bookingId: b.id, window: "H-2" }, "Reminder sent");
   }
