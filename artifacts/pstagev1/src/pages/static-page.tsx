@@ -8,7 +8,7 @@ const PAGE_CONTENT: Record<string, { title: string; subtitle: string; body?: str
   "a-propos": {
     title: "À propos",
     subtitle: "Notre mission, notre équipe.",
-    body: "PSTAGEV1 est une plateforme de réservation en ligne dédiée aux salons de coiffure et instituts de beauté au Maroc. Notre mission est de simplifier la prise de rendez-vous pour les clients et la gestion d'agenda pour les professionnels.",
+    body: "Anubis est une plateforme de réservation en ligne dédiée aux salons de coiffure et instituts de beauté au Maroc. Notre mission est de simplifier la prise de rendez-vous pour les clients et la gestion d'agenda pour les professionnels.",
   },
   "contact": {
     title: "Nous contacter",

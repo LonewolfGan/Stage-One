@@ -88,7 +88,7 @@ export function Footer() {
 
         <div className="footer-bottom">
           <p style={{ fontSize: 11, color: "var(--ink-tertiary)", letterSpacing: "0.01em", margin: 0 }}>
-            © {new Date().getFullYear()} PSTAGEV1. Tous droits réservés.
+            © {new Date().getFullYear()} Anubis. Tous droits réservés.
           </p>
           <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
             {[

@@ -1,5 +1,5 @@
 /**
- * PSTAGEV1 — Design System
+ * Anubis — Design System
  * Source of truth for all colors, radii, and type scales.
  * ⚠️ Every color reference in the app MUST use ds.colors.xxx — never a hex literal.
  */

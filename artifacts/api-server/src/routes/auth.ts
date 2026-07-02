@@ -124,7 +124,7 @@ router.post("/send-phone-otp", requireAuth, async (req, res) => {
   await redis.set(`otp:${userId}`, code, "EX", 600); // 10 minutes
 
   // Send OTP via SMS — gracefully mocked when TWILIO_* vars are absent
-  await sendSms(user.phone, `Votre code de vérification PSTAGEV1 : ${code}`);
+  await sendSms(user.phone, `Votre code de vérification Anubis : ${code}`);
 
   res.json({ message: "Code envoyé" });
 });
@@ -278,7 +278,7 @@ router.post("/send-email-verification", requireAuth, async (req, res) => {
   const { sendMail } = await import("../lib/email");
   await sendMail({
     to: user.email,
-    subject: "Vérifiez votre adresse email — PSTAGEV1",
+    subject: "Vérifiez votre adresse email — Anubis",
     html: `<p>Bonjour ${user.name},</p><p>Cliquez sur le lien ci-dessous pour vérifier votre adresse email :</p><p><a href="${link}">${link}</a></p><p>Ce lien est valable 24 heures.</p>`,
   });
 
